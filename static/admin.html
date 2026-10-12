@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="fr" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="google" content="notranslate">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<title>Administration · AutoCollab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<link rel="stylesheet" href="/static/app.css">
+<script src="/static/i18n.js"></script>
+<script src="/static/ui.js"></script>
+<script src="/static/assistant.js" defer></script>
+<style>
+  .pw { display: flex; gap: 8px; }
+  .pw .input { font-family: var(--mono); }
+  .notice { padding: 12px 14px; border-radius: 10px; background: var(--accent-soft); font-size: 14px; }
+  .notice code { font-family: var(--mono); background: var(--panel); padding: 2px 6px; border-radius: 4px; user-select: all; }
+  td.id { font-family: var(--mono); font-size: 13px; color: var(--ink); }
+  td.act { text-align: right; white-space: nowrap; padding-right: 0; }
+  .btn-del { background: transparent; color: var(--err); padding: 0 10px; font-weight: 500; }
+  .btn-del:hover { background: var(--err-soft); }
+  .you { color: var(--muted); font-size: 12px; margin-left: 4px; }
+  .role { font-size: 12px; font-weight: 550; border-radius: 99px; padding: 1px 9px; background: var(--accent-soft); color: var(--accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 18%, transparent); }
+  .role.user { background: var(--hair); color: var(--muted); }
+  .role.warn-role { background: var(--warn-soft); color: var(--warn); }
+  .tfa-policy { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .seg { display: inline-flex; background: var(--hair); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+  .seg button { border: 0; background: transparent; color: var(--muted); font-weight: 550; font-size: 13px; padding: 6px 12px; border-radius: 7px; }
+  .seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); box-shadow: var(--shadow-xs); }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
+  .tab { background: transparent; border: 0; border-bottom: 2px solid transparent; padding: 10px 12px; font-weight: 550; font-size: 14px; color: var(--muted); margin-bottom: -1px; }
+  .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+  .tab:hover { color: var(--ink); }
+  .row-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
+  .providers { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .provider { position: relative; display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px 12px 40px; cursor: pointer; background: var(--panel); }
+  .provider input { position: absolute; left: 14px; top: 15px; accent-color: var(--accent); width: 16px; height: 16px; }
+  .provider strong { font-size: 14.5px; }
+  .provider span { font-size: 12.5px; color: var(--muted); }
+  .provider:has(input:checked) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .provider .warn-tag { color: var(--warn); font-weight: 600; }
+  .provider .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .provider .tag { font-size: 11px; font-weight: 550; border-radius: 99px; padding: 0 7px; line-height: 18px; background: var(--hair); color: var(--muted); }
+  .provider .tag.ok { background: var(--ok-soft); color: var(--ok); }
+  .provider .tag.warn { background: var(--warn-soft); color: var(--warn); }
+  .provider-config { display: flex; flex-direction: column; gap: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+  .model-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .model-chips button { font-family: var(--mono); font-size: 12px; border: 1px solid var(--line-2); background: var(--panel); color: var(--ink-2); border-radius: 99px; padding: 2px 10px; }
+  .model-chips button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .ai-status { display: flex; gap: 14px; align-items: flex-start; border-radius: 14px; padding: 16px 18px; border: 1px solid var(--line); background: var(--panel); box-shadow: var(--shadow-xs); }
+  .ai-status .icon { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; flex: none; background: var(--hair); color: var(--muted); }
+  .ai-status .icon svg { width: 18px; height: 18px; }
+  .ai-status.ok { border-color: color-mix(in srgb, var(--ok) 35%, var(--line)); } .ai-status.ok .icon { background: var(--ok-soft); color: var(--ok); }
+  .ai-status.warn { border-color: color-mix(in srgb, var(--warn) 40%, var(--line)); background: var(--warn-soft); } .ai-status.warn .icon { background: var(--panel); color: var(--warn); }
+  .ai-status.bad { border-color: color-mix(in srgb, var(--err) 40%, var(--line)); background: var(--err-soft); } .ai-status.bad .icon { background: var(--panel); color: var(--err); }
+  .ai-status strong { font-size: 15px; }
+  .ai-status .facts { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .ai-status .facts code { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); }
+  .other-keys summary { cursor: pointer; font-weight: 600; }
+  .keys { display: flex; flex-direction: column; gap: 10px; }
+  .key-row { display: grid; grid-template-columns: 170px 1fr auto; gap: 10px; align-items: center; }
+  .key-row .state { font-size: 12.5px; color: var(--muted); }
+  .key-row .state.ok { color: var(--ok); font-weight: 600; }
+  .key-row.current { background: var(--accent-soft); border-radius: 10px; padding: 8px 10px; margin: 0 -10px; }
+  @media (max-width: 700px) { .key-row { grid-template-columns: 1fr; } }
+  .warning { padding: 12px 14px; border-radius: 10px; background: var(--warn-soft); color: var(--ink); font-size: 14px; }
+  .warning strong { color: var(--warn); }
+  .result { padding: 10px 12px; border-radius: 8px; font-size: 14px; }
+  .result.ok { background: var(--ok-soft); color: var(--ok); }
+  .result.bad { background: var(--err-soft); color: var(--err); }
+  .int-apps { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+  .int-app { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+  .int-app:has(input:checked) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .int-app input { accent-color: var(--accent); width: 16px; height: 16px; flex: none; }
+  .int-app img { width: 22px; height: 22px; flex: none; }
+  .int-app span { display: flex; flex-direction: column; font-size: 12.5px; color: var(--muted); min-width: 0; }
+  .int-app strong { color: var(--ink); font-size: 14px; }
+  .oauth-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 700px) { .oauth-grid { grid-template-columns: 1fr; } }
+  .copy-row { display: flex; gap: 8px; }
+  .copy-row code { flex: 1; min-width: 0; font-family: var(--mono); font-size: 12.5px; background: var(--sunken); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; overflow-wrap: anywhere; user-select: all; }
+  .steps-list { margin: 0; padding-left: 20px; font-size: 13.5px; color: var(--ink-2); display: flex; flex-direction: column; gap: 4px; }
+  .provider-head { display: flex; align-items: center; gap: 10px; }
+  .provider-head img { width: 22px; height: 22px; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav class="side" aria-label="Navigation principale">
+    <a class="brand" href="/#/agents">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l5 13.5 2.2-6.3L16.5 8z"/><path d="M13 13l2.6 8 1.3-3.7 3.7-1.3z"/></svg></span>
+      <span class="brand-name"><strong>AutoCollab</strong><span>Bourdat Finance</span></span>
+    </a>
+    <div class="nav">
+      <a href="/#/agents">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 7V4M9 12h.01M15 12h.01M9 16h6"/></svg>
+        Mes agents
+      </a>
+      <a href="/#/chaines">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+        Chaînes
+      </a>
+      <a href="/#/taches">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>
+        Tâches
+      </a>
+      <a href="/#/executions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg>
+        Exécutions
+      </a>
+      <a href="/#/contexte">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/><path d="M9 8h7M9 12h5"/></svg>
+        Contexte
+      </a>
+      <a href="/#/connexions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8"/></svg>
+        Mes connexions
+      </a>
+      <a href="/#/planification">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+        Planification
+      </a>
+    </div>
+    <div class="side-foot">
+      <div class="nav">
+        <a href="/#/developpeurs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+          Développeurs
+        </a>
+        <a href="/admin" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+          Administration
+        </a>
+      </div>
+      <div class="me">
+        <span class="avatar" id="avatar" aria-hidden="true"></span>
+        <span class="me-text"><strong id="meName"></strong><span id="meEmail"></span></span>
+        <a class="side-btn" href="/#/compte" aria-label="Mon compte : changer mon mot de passe" title="Mon compte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6M15.5 7.5l3 3L22 7l-3-3"/></svg></a>
+        <button class="side-btn" id="langBtn" aria-label="Langue" title="Langue" style="font-size: 12px; font-weight: 700; width: auto; padding: 0 8px"></button>
+        <button class="side-btn" id="logoutBtn" aria-label="Se déconnecter" title="Se déconnecter">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content narrow">
+    <header class="page-head">
+      <div>
+        <h1>Administration</h1>
+        <p>Comptes du cabinet, intelligence artificielle et applications connectées.</p>
+      </div>
+    </header>
+
+
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tabUsersBtn" aria-controls="tabUsers" aria-selected="true">Utilisateurs</button>
+      <button class="tab" role="tab" id="tabAIBtn" aria-controls="tabAI" aria-selected="false">Intelligence artificielle</button>
+      <button class="tab" role="tab" id="tabIntBtn" aria-controls="tabInt" aria-selected="false">Intégrations</button>
+    </div>
+
+    <div id="tabUsers" role="tabpanel" aria-labelledby="tabUsersBtn" style="display: flex; flex-direction: column; gap: 18px">
+      <div class="row-head">
+        <p class="info" style="margin: 0">Créez les comptes du cabinet et gérez leurs accès.</p>
+        <button class="btn btn-primary" id="addOpenBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          Ajouter un utilisateur
+        </button>
+      </div>
+
+      <div class="notice" id="created" hidden></div>
+
+      <section class="card tfa-policy" aria-labelledby="tfaPolicyTitle">
+        <div style="flex: 1; min-width: 240px">
+          <h2 class="label" id="tfaPolicyTitle" style="margin: 0 0 4px">Double authentification obligatoire</h2>
+          <p class="hint" style="margin: 0">Un code à 6 chiffres d'une application sur le téléphone, en plus du mot de passe. Les personnes concernées l'activent à leur prochaine connexion.</p>
+        </div>
+        <div class="seg" role="group" aria-label="Double authentification obligatoire" id="tfaPolicy">
+          <button type="button" data-policy="none">Personne</button><button type="button" data-policy="admins">Administrateurs</button><button type="button" data-policy="all">Tout le monde</button>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="listTitle">
+        <h2 class="label" id="listTitle">Comptes</h2>
+        <div class="table-wrap" id="users"></div>
+        <p class="empty" id="usersEmpty" hidden>Aucun utilisateur.</p>
+      </section>
+    </div>
+
+    <form id="tabAI" role="tabpanel" aria-labelledby="tabAIBtn" hidden autocomplete="off" style="display: flex; flex-direction: column; gap: 18px">
+      <section class="ai-status" id="aiStatus" aria-live="polite"></section>
+
+      <section class="card" style="display: flex; flex-direction: column; gap: 16px">
+        <div>
+          <h2 class="label" style="margin: 0">Fournisseur</h2>
+          <p class="hint" style="margin: 2px 0 0">Utilisé par tous les agents du cabinet. Choisissez-le, collez sa clé, puis « Enregistrer et tester ».</p>
+        </div>
+        <div class="providers" id="providers"></div>
+        <div class="provider-config">
+          <div class="field">
+            <div class="row-head" style="gap: 8px">
+              <label for="aiKey">Clé d'API <span id="aiKeyProvider"></span></label>
+              <a id="aiKeyLink" target="_blank" rel="noopener" class="hint" style="font-size: 13px">Obtenir une clé ↗</a>
+            </div>
+            <input class="input" type="password" id="aiKey" autocomplete="new-password" spellcheck="false" style="font-family: var(--mono)">
+            <span class="hint" id="aiKeyState"></span>
+          </div>
+          <div class="field">
+            <label for="aiModel">Modèle</label>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap">
+              <input class="input" id="aiModel" list="aiModels" required maxlength="100" spellcheck="false" style="flex: 1 1 240px; font-family: var(--mono)">
+              <datalist id="aiModels"></datalist>
+              <button type="button" class="btn btn-outline" id="aiModelDefault">Modèle conseillé</button>
+            </div>
+            <div class="model-chips" id="aiModelChips"></div>
+          </div>
+          <label class="check" style="align-items: flex-start"><input type="checkbox" id="aiVision" style="margin-top: 3px"> <span><strong>Envoyer les captures d'écran à l'IA</strong><br><span class="hint" id="aiVisionHint"></span></span></label>
+          <div class="field" id="aiEndpointField" hidden>
+            <label for="aiEndpoint">Adresse de l'API DeepSeek</label>
+            <input class="input" id="aiEndpoint" spellcheck="false">
+          </div>
+        </div>
+      </section>
+
+      <details class="card other-keys" id="otherKeys" hidden>
+        <summary><span id="otherKeysTitle">Autres clés enregistrées</span></summary>
+        <p class="hint" style="margin: 10px 0">Clés gardées pour pouvoir changer de fournisseur rapidement. Elles restent sur le serveur et ne sont jamais réaffichées.</p>
+        <div class="keys" id="keys"></div>
+      </details>
+
+      <div class="result" id="aiResult" hidden role="status"></div>
+      <div class="actions">
+        <button class="btn btn-primary" id="aiSaveBtn">Enregistrer et tester</button>
+        <button type="button" class="btn btn-outline" id="aiTestBtn">Tester sans enregistrer</button>
+      </div>
+    </form>
+
+    <form id="tabInt" role="tabpanel" aria-labelledby="tabIntBtn" hidden autocomplete="off" style="display: flex; flex-direction: column; gap: 18px">
+      <section class="card" style="display: flex; flex-direction: column; gap: 14px">
+        <h2 class="label" style="margin: 0">Applications proposées</h2>
+        <p class="hint" style="margin: 0">Chaque utilisateur connecte son propre compte dans « Mes connexions ». Ses agents utilisent alors ces applications directement (serveurs MCP officiels), sans navigateur.</p>
+        <div class="int-apps" id="intApps"></div>
+        <label class="check"><input type="checkbox" id="intCustom"> Autoriser les utilisateurs à ajouter d'autres serveurs MCP (adresse + jeton)</label>
+        <p class="warning" style="margin: 0"><strong>Données :</strong> le contenu lu par les agents (e-mails, fichiers, messages) est envoyé au fournisseur d'IA choisi dans l'onglet « Intelligence artificielle ».</p>
+      </section>
+
+      <section class="card" style="display: flex; flex-direction: column; gap: 14px">
+        <div class="provider-head"><img src="/static/icons/drive.svg" alt=""><h2 class="label" style="margin: 0">Application Google (Gmail, Drive, Docs, Sheets, Agenda)</h2></div>
+        <ol class="steps-list">
+          <li>Dans <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud › Identifiants</a>, créez un « ID client OAuth » de type <strong>Application Web</strong>.</li>
+          <li>Ajoutez l'URI de redirection ci-dessous dans « URI de redirection autorisés ».</li>
+          <li>Activez les API Gmail, Drive… et leurs services MCP (gmailmcp.googleapis.com, drivemcp.googleapis.com…). <a href="https://developers.google.com/workspace/guides/configure-mcp-servers" target="_blank" rel="noopener">Guide Google</a></li>
+          <li>Collez ici l'ID client et le code secret.</li>
+        </ol>
+        <div class="field"><span class="field-label">URI de redirection</span><div class="copy-row"><code class="redirect"></code><button type="button" class="btn btn-outline btn-sm" data-copy>Copier</button></div></div>
+        <div class="oauth-grid">
+          <div class="field"><label for="googleId">ID client</label><input class="input" id="googleId" spellcheck="false" placeholder="….apps.googleusercontent.com"></div>
+          <div class="field"><label for="googleSecret">Code secret du client</label><input class="input" id="googleSecret" type="password" autocomplete="new-password" spellcheck="false"><span class="hint" id="googleSecretState"></span></div>
+        </div>
+      </section>
+
+      <section class="card" style="display: flex; flex-direction: column; gap: 14px">
+        <div class="provider-head"><img src="/static/icons/slack.svg" alt=""><h2 class="label" style="margin: 0">Application Slack</h2></div>
+        <ol class="steps-list">
+          <li>Sur <a href="https://api.slack.com/apps" target="_blank" rel="noopener">api.slack.com/apps</a>, créez une application interne à votre espace de travail.</li>
+          <li>Dans « OAuth &amp; Permissions », ajoutez l'URI de redirection ci-dessous.</li>
+          <li>Collez ici le Client ID et le Client Secret (onglet « Basic Information »).</li>
+        </ol>
+        <div class="field"><span class="field-label">URI de redirection</span><div class="copy-row"><code class="redirect"></code><button type="button" class="btn btn-outline btn-sm" data-copy>Copier</button></div></div>
+        <div class="oauth-grid">
+          <div class="field"><label for="slackId">Client ID</label><input class="input" id="slackId" spellcheck="false"></div>
+          <div class="field"><label for="slackSecret">Client Secret</label><input class="input" id="slackSecret" type="password" autocomplete="new-password" spellcheck="false"><span class="hint" id="slackSecretState"></span></div>
+        </div>
+      </section>
+      <p class="hint" style="margin: 0" id="intPublicHint"></p>
+      <div class="actions"><button class="btn btn-primary" id="intSaveBtn">Enregistrer</button></div>
+    </form>
+  </main>
+</div>
+
+<dialog id="addDlg">
+  <form id="addForm" autocomplete="off">
+    <h2>Ajouter un utilisateur</h2>
+    <div class="dialog-body">
+      <div class="field">
+        <label for="newUsername">Identifiant</label>
+        <input class="input" type="text" id="newUsername" required placeholder="jdupont" autocapitalize="none" spellcheck="false">
+        <span class="hint">Minuscules, chiffres, point, tiret. Sert à se connecter.</span>
+      </div>
+      <div class="field">
+        <label for="newName">Nom affiché</label>
+        <input class="input" type="text" id="newName" placeholder="Jean Dupont">
+      </div>
+      <div class="field">
+        <label for="newEmail">E-mail</label>
+        <input class="input" type="email" id="newEmail" placeholder="jean.dupont@bourdatfinance.com" autocapitalize="none" spellcheck="false">
+        <span class="hint">Permet aussi de se connecter à la place de l'identifiant.</span>
+      </div>
+      <div class="field">
+        <label for="newPassword">Mot de passe provisoire</label>
+        <div class="pw">
+          <input class="input" type="text" id="newPassword" required minlength="10" spellcheck="false">
+          <button type="button" class="btn btn-outline" id="genBtn">Générer</button>
+        </div>
+        <span class="hint">10 caractères minimum. Transmettez-le par un canal sûr : la personne devra le remplacer à sa première connexion.</span>
+      </div>
+      <label class="check"><input type="checkbox" id="newAdmin"> Administrateur (peut gérer les comptes)</label>
+    </div>
+    <div class="dialog-foot">
+      <p class="form-err" id="addErr" role="alert"></p>
+      <button class="btn btn-primary" id="addBtn">Créer le compte</button>
+      <button type="button" class="btn btn-outline" id="addCancelBtn">Annuler</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="editDlg">
+  <form method="dialog" id="editForm" autocomplete="off">
+    <h2 id="editTitle"></h2>
+    <div class="dialog-body">
+      <div class="field">
+        <label for="editName">Nom affiché</label>
+        <input class="input" type="text" id="editName">
+      </div>
+      <div class="field">
+        <label for="editEmail">E-mail</label>
+        <input class="input" type="email" id="editEmail" autocapitalize="none" spellcheck="false">
+      </div>
+      <div class="field">
+        <label for="editPassword">Nouveau mot de passe</label>
+        <div class="pw">
+          <input class="input" type="text" id="editPassword" minlength="10" spellcheck="false" placeholder="Laisser vide pour ne pas changer">
+          <button type="button" class="btn btn-outline" id="editGenBtn">Générer</button>
+        </div>
+        <span class="hint">Le changer déconnecte la personne partout ; elle devra le remplacer à sa prochaine connexion.</span>
+      </div>
+      <label class="check"><input type="checkbox" id="editAdmin"> Administrateur</label>
+      <div class="field" id="editTfa" hidden>
+        <span class="field-label">Double authentification</span>
+        <label class="check"><input type="checkbox" id="editTfaReset"> Réinitialiser (téléphone perdu ou changé)</label>
+        <span class="hint">La personne la configurera de nouveau à sa prochaine connexion si votre cabinet l'exige, ou depuis Mon compte.</span>
+      </div>
+    </div>
+    <div class="dialog-foot">
+      <p class="form-err" id="editErr" role="alert"></p>
+      <button class="btn btn-primary" value="save" id="saveBtn">Enregistrer</button>
+      <button class="btn btn-outline" value="cancel" formnovalidate>Annuler</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let users = [], editing = null;
+
+function toast(msg, ok = false) {
+  const t = $("toast"); t.textContent = msg; t.className = "toast" + (ok ? " ok" : ""); t.hidden = false;
+  clearTimeout(toast.timer); toast.timer = setTimeout(() => t.hidden = true, 5000);
+}
+
+async function api(path, opts = {}) { return UI.track(apiRequest(path, opts)); }
+
+async function apiRequest(path, opts = {}) {
+  const r = await fetch(path, { headers: { "Content-Type": "application/json" }, ...opts });
+  if (r.status === 401) { location.replace("/login"); throw new Error("Session expirée"); }
+  if (r.status === 403) { location.replace("/"); throw new Error("Réservé aux administrateurs"); }
+  if (!r.ok) {
+    let d = r.statusText;
+    try { d = (await r.json()).detail || d; } catch {}
+    if (Array.isArray(d)) d = "Champs manquants ou invalides.";
+    throw new Error(d);
+  }
+  return r.json();
+}
+
+function generatePassword() {
+  // No look-alike characters (0/O, 1/l/I), so it can be read out or copied by hand.
+  const alphabet = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = crypto.getRandomValues(new Uint32Array(14));
+  return Array.from(bytes, b => alphabet[b % alphabet.length]).join("");
+}
+
+function showPassword(username, password, created) {
+  const n = $("created");
+  n.innerHTML = `${created ? "Compte" : "Nouveau mot de passe de"} <strong>${esc(username)}</strong>${created ? " créé. Mot de passe provisoire" : ""} : <code>${esc(password)}</code><br>`
+    + `<span class="hint">Il ne sera plus affiché : notez-le avant de quitter la page.</span>`;
+  n.hidden = false;
+}
+
+async function loadUsers() {
+  users = await api("/api/admin/users");
+  $("usersEmpty").hidden = users.length > 0;
+  renderUsers();
+}
+
+function renderUsers() {
+  UI.paginate($("users"), users, (list) => `<table class="table">
+    <thead><tr><th>Identifiant</th><th>Nom</th><th>E-mail</th><th>Rôle</th><th>Double authentification</th><th><span class="sr-only">Actions</span></th></tr></thead>
+    <tbody>${list.map(u => `<tr>
+    <td class="id">${esc(u.username)}</td>
+    <td class="main">${esc(u.name)}${u.me ? '<span class="you">(vous)</span>' : ""}${u.temporary_password ? '<br><span class="you" title="Le mot de passe défini par un administrateur n\'a pas encore été remplacé">Mot de passe provisoire</span>' : ""}</td>
+    <td>${u.email ? esc(u.email) : "—"}</td>
+    <td>${u.admin ? '<span class="role">Admin</span>' : '<span class="role user">Utilisateur</span>'}</td>
+    <td>${u.two_factor ? '<span class="role">Activée</span>' : tfaRequiredFor(u) ? '<span class="role warn-role">À activer</span>' : '<span class="role user">Désactivée</span>'}</td>
+    <td class="row-act">${UI.actions(
+      UI.action("edit", `Modifier ${u.username}`, "edit", { attrs: `data-edit="${esc(u.username)}"` }),
+      u.me ? "" : UI.action("delete", `Supprimer ${u.username}`, "trash", { danger: true, attrs: `data-del="${esc(u.username)}"` }))}</td></tr>`).join("")}</tbody></table>`, renderUsers);
+}
+
+$("genBtn").onclick = () => { $("newPassword").value = generatePassword(); };
+$("addOpenBtn").onclick = () => { $("addForm").reset(); $("addErr").textContent = ""; $("addDlg").showModal(); $("newUsername").focus(); };
+$("addCancelBtn").onclick = () => $("addDlg").close();
+$("editGenBtn").onclick = () => { $("editPassword").value = generatePassword(); };
+
+$("addForm").onsubmit = async (e) => {
+  e.preventDefault();
+  $("addErr").textContent = ""; $("addBtn").disabled = true;
+  const body = {
+    username: $("newUsername").value, name: $("newName").value, email: $("newEmail").value,
+    password: $("newPassword").value, admin: $("newAdmin").checked,
+  };
+  try {
+    const u = await api("/api/admin/users", { method: "POST", body: JSON.stringify(body) });
+    $("addDlg").close();
+    showPassword(u.username, body.password, true);
+    $("addForm").reset();
+    await loadUsers();
+  } catch (err) { $("addErr").textContent = err.message; }
+  $("addBtn").disabled = false;
+};
+
+$("users").onclick = async (e) => {
+  const edit = e.target.closest("[data-edit]"), del = e.target.closest("[data-del]");
+  if (edit) {
+    editing = users.find(u => u.username === edit.dataset.edit);
+    $("editTitle").textContent = `Modifier ${editing.username}`;
+    $("editName").value = editing.name;
+    $("editEmail").value = editing.email;
+    $("editPassword").value = "";
+    $("editAdmin").checked = editing.admin;
+    $("editAdmin").disabled = editing.me;
+    $("editTfa").hidden = !editing.two_factor; $("editTfaReset").checked = false;
+    $("editErr").textContent = "";
+    $("editDlg").showModal();
+  }
+  if (del) {
+    const name = del.dataset.del;
+    if (!confirm(`Supprimer le compte « ${name} » ? La personne ne pourra plus se connecter.`)) return;
+    try { await api(`/api/admin/users/${encodeURIComponent(name)}`, { method: "DELETE" }); toast(`Compte « ${name} » supprimé.`, true); await loadUsers(); }
+    catch (err) { toast(err.message); }
+  }
+};
+
+$("editForm").onsubmit = async (e) => {
+  if (e.submitter?.value !== "save") return;
+  e.preventDefault();
+  const changes = { name: $("editName").value, email: $("editEmail").value, reset_2fa: $("editTfaReset").checked };
+  if ($("editPassword").value) changes.password = $("editPassword").value;
+  if (!editing.me) changes.admin = $("editAdmin").checked;
+  $("saveBtn").disabled = true;
+  try {
+    await api(`/api/admin/users/${encodeURIComponent(editing.username)}`, { method: "PATCH", body: JSON.stringify(changes) });
+    $("editDlg").close();
+    if (changes.password) showPassword(editing.username, changes.password, false);
+    toast("Enregistré.", true);
+    await loadUsers();
+  } catch (err) { $("editErr").textContent = err.message; }
+  $("saveBtn").disabled = false;
+};
+
+// Language switch (FR / EN), saved in the account.
+if (window.I18N) {
+  $("langBtn").textContent = I18N.lang === "en" ? "FR" : "EN";
+  $("langBtn").onclick = () => I18N.setLang(I18N.lang === "en" ? "fr" : "en");
+}
+$("logoutBtn").onclick = async () => { await fetch("/api/logout", { method: "POST" }).catch(() => {}); location.replace("/login"); };
+
+api("/api/me").then(u => {
+  if (window.I18N) I18N.sync(u.lang);
+  if (u.must_change_password) return location.replace("/");
+  $("meName").textContent = u.name;
+  $("meEmail").textContent = u.email || u.username;
+  $("avatar").textContent = u.name.split(/[\s.]+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join("");
+}).catch(() => {});
+
+// --- tabs -------------------------------------------------------------------------
+
+function showTab(name) {
+  const panels = { users: "tabUsers", ai: "tabAI", int: "tabInt" };
+  for (const [key, id] of Object.entries(panels)) {
+    $(id).hidden = key !== name;
+    $(id + "Btn").setAttribute("aria-selected", String(key === name));
+  }
+  history.replaceState(null, "", { ai: "#ia", int: "#integrations" }[name] || "#");
+  if (name === "ai") loadAI().catch(err => toast(err.message));
+  if (name === "int") loadIntegrations().catch(err => toast(err.message));
+}
+$("tabUsersBtn").onclick = () => showTab("users");
+$("tabAIBtn").onclick = () => showTab("ai");
+$("tabIntBtn").onclick = () => showTab("int");
+
+// --- integrations (MCP applications) -----------------------------------------------
+
+let integ = null;
+
+async function loadIntegrations() {
+  integ = await api("/api/admin/integrations");
+  $("intApps").innerHTML = integ.catalog.map(a => `<label class="int-app"><input type="checkbox" value="${a.kind}" ${integ.enabled.includes(a.kind) ? "checked" : ""}>
+    <img src="/static/icons/${a.kind}.svg" alt=""><span><strong>${esc(a.name)}</strong>${esc(a.description)}</span></label>`).join("");
+  $("intCustom").checked = integ.allow_custom;
+  document.querySelectorAll("#tabInt code.redirect").forEach(c => c.textContent = integ.redirect_uri);
+  $("intPublicHint").textContent = integ.redirect_uri.startsWith("https://") || /\/\/(localhost|127\.0\.0\.1)[:/]/.test(integ.redirect_uri) ? ""
+    : "Google et Slack exigent une adresse en https:// : renseignez PUBLIC_URL dans le fichier .env du serveur.";
+  for (const p of ["google", "slack"]) {
+    const o = integ.oauth[p];
+    $(p + "Id").value = o.client_id;
+    $(p + "Secret").value = "";
+    $(p + "Secret").placeholder = o.secret_set ? "Laisser vide pour garder le code actuel" : "";
+    $(p + "SecretState").textContent = o.secret_set ? `Enregistré ${o.secret_hint}` : "Aucun code secret";
+  }
+}
+
+$("tabInt").addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-copy]"); if (!b) return;
+  try { await navigator.clipboard.writeText(integ.redirect_uri); b.textContent = "Copié"; setTimeout(() => b.textContent = "Copier", 1500); }
+  catch { toast("Copie impossible : sélectionnez le texte à la main."); }
+});
+
+$("tabInt").onsubmit = async (e) => {
+  e.preventDefault();
+  $("intSaveBtn").disabled = true;
+  const oauth = {};
+  for (const p of ["google", "slack"]) oauth[p] = { client_id: $(p + "Id").value.trim(), client_secret: $(p + "Secret").value.trim() || null };
+  try {
+    await api("/api/admin/integrations", { method: "PUT", body: JSON.stringify({
+      oauth, enabled: [...document.querySelectorAll("#intApps input:checked")].map(i => i.value), allow_custom: $("intCustom").checked }) });
+    await loadIntegrations();
+    toast("Intégrations enregistrées.", true);
+  } catch (err) { toast(err.message); }
+  $("intSaveBtn").disabled = false;
+};
+
+// --- AI settings --------------------------------------------------------------------
+
+let ai = null, clearKeys = new Set();
+const KEY_NAMES = { anthropic: "Claude (Anthropic)", mistral: "Mistral", openai: "OpenAI", deepseek: "DeepSeek" };
+const NOTES = { anthropic: "Recommandé · lit les captures d'écran", mistral: "Hébergé en Europe (France)", openai: "GPT-4o lit les captures d'écran", deepseek: '<span class="warn-tag">Serveurs en Chine</span>' };
+
+let typedKeys = {};
+const ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+const ICON_WARN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>';
+const ICON_INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>';
+
+function whenText(t) {
+  const d = new Date(t), now = new Date();
+  const hm = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  return d.toDateString() === now.toDateString() ? `aujourd'hui à ${hm}` : `le ${d.toLocaleDateString("fr-FR")} à ${hm}`;
+}
+
+async function loadAI() {
+  ai = await api("/api/admin/settings");
+  clearKeys = new Set(); typedKeys = {};
+  $("aiResult").hidden = true;
+  renderProviders(ai.provider);
+  $("aiModel").value = ai.model;
+  $("aiVision").checked = !!ai.use_vision;
+  $("aiEndpoint").value = ai.deepseek_endpoint;
+  updateProvider(false);
+  renderStatus();
+}
+
+// The banner at the top: what the agents use right now, and whether it works.
+function renderStatus() {
+  const p = ai.providers[ai.provider], key = ai.keys[ai.provider] || {}, t = ai.last_test;
+  const current = t && t.provider === ai.provider && t.model === ai.model && t.key_hint === key.hint;
+  let cls, icon, title, detail;
+  if (!key.set) {
+    cls = "bad"; icon = ICON_WARN; title = "Les agents ne peuvent pas démarrer";
+    detail = `Aucune clé d'API ${p.label}. Collez-la ci-dessous puis cliquez sur « Enregistrer et tester ».`;
+  } else if (current && !t.ok) {
+    cls = "bad"; icon = ICON_WARN; title = "Le dernier test a échoué";
+    detail = `${t.message} (${whenText(t.at)})`;
+  } else if (current && t.ok) {
+    cls = "ok"; icon = ICON_OK; title = "Les agents sont prêts";
+    detail = `Testé avec succès ${whenText(t.at)}.`;
+  } else {
+    cls = "warn"; icon = ICON_INFO; title = "Configuration pas encore testée";
+    detail = "Cliquez sur « Tester sans enregistrer » pour vérifier la clé et le modèle.";
+  }
+  $("aiStatus").className = "ai-status " + cls;
+  $("aiStatus").innerHTML = `<span class="icon">${icon}</span><div style="min-width: 0">
+    <strong>${title}</strong><div class="hint" style="margin-top: 2px">${esc(detail)}</div>
+    <div class="facts"><span>Fournisseur : <strong style="font-size: 13px; color: var(--ink)">${esc(p.label)}</strong></span>
+      <span>Modèle : <code>${esc(ai.model)}</code></span>
+      <span>Clé : ${key.set ? `<code>${esc(key.hint)}</code>` : "aucune"}</span>
+      <span>Captures d'écran : ${ai.use_vision ? "envoyées" : "non"}</span>
+      <span>Données : ${esc(p.region)}</span></div></div>`;
+}
+
+function renderProviders(selected) {
+  $("providers").innerHTML = Object.entries(ai.providers).map(([id, p]) => {
+    const key = ai.keys[id] || {};
+    const keyTag = clearKeys.has(id) ? '<span class="tag warn">Clé supprimée à l\'enregistrement</span>'
+      : typedKeys[id] ? '<span class="tag warn">Nouvelle clé à enregistrer</span>'
+      : key.set ? '<span class="tag ok">Clé enregistrée</span>' : '<span class="tag">Pas de clé</span>';
+    return `<label class="provider"><input type="radio" name="provider" value="${id}" ${id === selected ? "checked" : ""}>
+      <strong>${esc(p.label)}</strong><span>${NOTES[id] || ""}</span>
+      <div class="tags">${keyTag}${p.vision ? '<span class="tag">Lit les captures</span>' : ""}${id === ai.provider ? '<span class="tag ok">Utilisé</span>' : ""}</div></label>`;
+  }).join("");
+}
+
+function provider() { return document.querySelector('input[name="provider"]:checked')?.value; }
+
+function renderKeys() {
+  const others = Object.keys(KEY_NAMES).filter(id => id !== provider() && (ai.keys[id]?.set || clearKeys.has(id)));
+  $("otherKeys").hidden = !others.length;
+  $("otherKeysTitle").textContent = `Autres clés enregistrées (${others.length})`;
+  $("keys").innerHTML = others.map(id => {
+    const k = ai.keys[id], cleared = clearKeys.has(id);
+    return `<div class="key-row"><span><strong>${KEY_NAMES[id]}</strong><br>${cleared ? '<span class="state">Sera supprimée</span>' : `<span class="state ok">Enregistrée ${esc(k.hint)}</span>`}</span>
+      <span></span>${cleared ? "<span></span>" : UI.action("clear", `Supprimer la clé ${KEY_NAMES[id]}`, "trash", { danger: true, attrs: `data-clear="${id}"` })}</div>`;
+  }).join("");
+}
+
+function renderModels() {
+  const p = ai.providers[provider()], value = $("aiModel").value.trim();
+  $("aiModels").innerHTML = p.models.map(m => `<option value="${esc(m)}"></option>`).join("");
+  $("aiModelChips").innerHTML = p.models.map(m => `<button type="button" data-model="${esc(m)}" aria-pressed="${m === value}">${esc(m)}${m === p.model ? " · conseillé" : ""}</button>`).join("");
+}
+
+function updateProvider(applyDefaults) {
+  const id = provider(), p = ai.providers[id], key = ai.keys[id] || {};
+  $("aiEndpointField").hidden = id !== "deepseek";
+  if (applyDefaults) { $("aiModel").value = id === ai.provider ? ai.model : p.model; $("aiVision").checked = id === ai.provider ? !!ai.use_vision : p.vision; }
+  $("aiKeyProvider").textContent = p.label;
+  $("aiKeyLink").href = p.console;
+  $("aiKey").value = typedKeys[id] || "";
+  $("aiKey").placeholder = key.set ? "Laisser vide pour garder la clé actuelle" : "Coller la clé d'API";
+  $("aiKeyState").textContent = clearKeys.has(id) ? "La clé sera supprimée." : key.set ? `Clé enregistrée ${key.hint}` : "Aucune clé enregistrée pour ce fournisseur.";
+  $("aiVision").disabled = !p.vision;
+  if (!p.vision) $("aiVision").checked = false;
+  $("aiVisionHint").textContent = p.vision ? "Plus fiable sur les pages complexes, un peu plus coûteux."
+    : `${p.label} ne lit pas les images : l'agent travaille avec le texte de la page.`;
+  renderModels(); renderKeys();
+}
+
+$("providers").addEventListener("change", () => { updateProvider(true); renderProviders(provider()); });
+$("aiKey").addEventListener("input", () => { typedKeys[provider()] = $("aiKey").value.trim(); renderProviders(provider()); });
+$("aiModel").addEventListener("input", renderModels);
+$("aiModelChips").addEventListener("click", (e) => { const b = e.target.closest("[data-model]"); if (b) { $("aiModel").value = b.dataset.model; renderModels(); } });
+$("aiModelDefault").onclick = () => { const p = ai.providers[provider()]; $("aiModel").value = p.model; $("aiVision").checked = p.vision; renderModels(); };
+$("keys").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-clear]");
+  if (!b) return;
+  clearKeys.add(b.dataset.clear); renderKeys(); renderProviders(provider());
+});
+
+function aiBody() {
+  const keys = {};
+  for (const [id, value] of Object.entries(typedKeys)) if (value) keys[id] = value;
+  return { provider: provider(), model: $("aiModel").value.trim(), use_vision: $("aiVision").checked,
+           deepseek_endpoint: $("aiEndpoint").value.trim(), api_keys: keys, clear_keys: [...clearKeys] };
+}
+
+function showResult(ok, text) { const r = $("aiResult"); r.className = "result " + (ok ? "ok" : "bad"); r.textContent = text; r.hidden = false; }
+
+async function runTest(body) {
+  try {
+    const r = await api("/api/admin/settings/test", { method: "POST", body: JSON.stringify(body) });
+    return { ok: true, text: `Connexion réussie. Réponse du modèle : « ${r.reply} ».` };
+  } catch (err) { return { ok: false, text: err.message }; }
+}
+
+$("tabAI").onsubmit = async (e) => {
+  e.preventDefault();
+  $("aiSaveBtn").disabled = true; $("aiResult").hidden = true;
+  try {
+    const body = aiBody();
+    await api("/api/admin/settings", { method: "PUT", body: JSON.stringify(body) });
+    const test = await runTest({ ...body, api_keys: {}, clear_keys: [] });  // the saved configuration, as the agents will use it
+    await loadAI();
+    showResult(test.ok, test.ok ? `Enregistré. ${test.text}` : `Enregistré, mais le test a échoué : ${test.text}`);
+  } catch (err) { showResult(false, err.message); }
+  $("aiSaveBtn").disabled = false;
+};
+$("aiTestBtn").onclick = async () => {
+  $("aiTestBtn").disabled = true; $("aiResult").hidden = true;
+  const test = await runTest(aiBody());
+  showResult(test.ok, test.ok ? `${test.text} Pensez à enregistrer.` : test.text);
+  ai = await api("/api/admin/settings"); renderStatus();
+  $("aiTestBtn").disabled = false;
+};
+
+let tfaPolicy = "none";
+const tfaRequiredFor = (u) => tfaPolicy === "all" || (tfaPolicy === "admins" && u.admin);
+function renderPolicy() {
+  document.querySelectorAll("#tfaPolicy [data-policy]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.policy === tfaPolicy)));
+}
+$("tfaPolicy").addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-policy]"); if (!b || b.dataset.policy === tfaPolicy) return;
+  try {
+    const sec = await api("/api/admin/security", { method: "PUT", body: JSON.stringify({ require_2fa: b.dataset.policy }) });
+    tfaPolicy = sec.require_2fa; renderPolicy(); await loadUsers();
+    toast(tfaPolicy === "none" ? "Double authentification facultative." : `Double authentification obligatoire pour ${tfaPolicy === "all" ? "tout le monde" : "les administrateurs"}.`, true);
+  } catch (err) { toast(err.message); }
+});
+
+api("/api/admin/security").then(sec => {
+  tfaPolicy = sec.require_2fa || "none"; renderPolicy(); if (typeof users !== "undefined" && users.length) loadUsers();
+}).catch(() => {});
+
+loadUsers().catch(err => toast(err.message));
+if (location.hash === "#ia") showTab("ai");
+if (location.hash === "#integrations") showTab("int");
+</script>
+</body>
+</html>

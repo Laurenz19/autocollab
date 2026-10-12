@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="fr" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="google" content="notranslate">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<title>Connexion · AutoCollab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<link rel="stylesheet" href="/static/app.css">
+<script src="/static/i18n.js"></script>
+<style>
+  .login { min-height: 100vh; display: flex; flex-wrap: wrap; }
+  .pitch { flex: 1 1 420px; background: radial-gradient(120% 90% at 0% 0%, #0B4A36 0%, var(--hero) 55%); color: var(--hero-ink); padding: 48px; display: flex; flex-direction: column; justify-content: space-between; gap: 40px; }
+  .pitch h1 { margin: 0; font-size: 34px; line-height: 1.18; font-weight: 650; letter-spacing: -.028em; max-width: 480px; }
+  .pitch p { margin: 16px 0 0; color: var(--hero-muted); font-size: 16px; max-width: 460px; }
+  .pitch .foot { font-size: 13px; color: var(--hero-muted); opacity: .8; }
+  .pane { flex: 1 1 420px; display: grid; place-items: center; padding: 48px 24px; }
+  form { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 18px; }
+  form h2 { margin: 0; font-size: 24px; font-weight: 650; letter-spacing: -.022em; }
+  form .intro { margin: 4px 0 0; color: var(--muted); }
+  @media (max-width: 600px) { .pitch { padding: 28px 20px; gap: 24px; } .pitch h1 { font-size: 26px; } }
+  .seg { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
+  .seg button { border: 0; background: transparent; color: var(--muted); font-weight: 600; font-size: 13px; padding: 6px 12px; border-radius: 8px; }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+  .pw { position: relative; }
+  .pw .input { width: 100%; padding-right: 44px; }
+  .pw-toggle { position: absolute; top: 50%; right: 6px; transform: translateY(-50%); display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; }
+  .pw-toggle:hover { color: inherit; background: var(--panel); }
+  .pw-toggle svg { width: 18px; height: 18px; }
+  .pw-toggle .eye-off, .pw-toggle[aria-pressed="true"] .eye { display: none; }
+  .pw-toggle[aria-pressed="true"] .eye-off { display: block; }
+</style>
+</head>
+<body>
+<div class="seg" role="group" aria-label="Langue" style="position: fixed; top: 16px; right: 16px; z-index: 2">
+  <button type="button" data-lang="fr">FR</button><button type="button" data-lang="en">EN</button>
+</div>
+<div class="login">
+  <aside class="pitch">
+    <div class="brand">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l5 13.5 2.2-6.3L16.5 8z"/><path d="M13 13l2.6 8 1.3-3.7 3.7-1.3z"/></svg></span>
+      <span class="brand-name"><strong>AutoCollab</strong></span>
+    </div>
+    <div>
+      <h1>Vos tâches répétitives, confiées à des agents que vous suivez en direct.</h1>
+      <p>Factures, relevés, pièces manquantes : chaque étape est visible, chaque fichier est conservé.</p>
+    </div>
+    <span class="foot">Bourdat Finance · usage interne</span>
+  </aside>
+  <main class="pane">
+    <form id="form">
+      <div>
+        <h2>Connexion</h2>
+        <p class="intro">Utilisez l'identifiant ou l'e-mail fourni par votre administrateur.</p>
+      </div>
+      <div class="field">
+        <label for="username">Identifiant ou e-mail</label>
+        <input class="input" id="username" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="prenom.nom@bourdatfinance.com" autofocus required>
+      </div>
+      <div class="field">
+        <label for="password">Mot de passe</label>
+        <div class="pw">
+          <input class="input" id="password" type="password" autocomplete="current-password" required>
+          <button type="button" class="pw-toggle" id="pwToggle" aria-pressed="false" aria-label="Afficher le mot de passe" title="Afficher le mot de passe">
+            <svg class="eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.2A10.4 10.4 0 0 1 12 4c6.5 0 10 8 10 8a17.6 17.6 0 0 1-2.2 3.2M6.6 6.6C3.9 8.4 2 12 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M2 2l20 20"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="field" id="codeField" hidden>
+        <label for="code" id="codeLabel">Code de l'application d'authentification</label>
+        <input class="input" id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="9" spellcheck="false"
+               style="font-family: var(--mono); font-size: 20px; letter-spacing: .25em; text-align: center" placeholder="123 456">
+        <span class="hint" id="codeHint">Ouvrez votre application (Google Authenticator, Microsoft Authenticator…) et saisissez le code à 6 chiffres affiché pour AutoCollab.</span>
+        <button type="button" class="btn btn-text" id="useRecovery" style="align-self: flex-start; padding: 0">Utiliser un code de secours</button>
+      </div>
+      <button class="btn btn-primary" id="btn" style="min-height: 46px; font-size: 15px">Se connecter</button>
+      <p class="form-err" id="err" role="alert"></p>
+      <p class="info" style="margin: 0">Mot de passe oublié ? Demandez à un administrateur de le réinitialiser.</p>
+    </form>
+  </main>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+document.querySelectorAll("[data-lang]").forEach(b => {
+  b.setAttribute("aria-pressed", String(b.dataset.lang === (window.I18N ? I18N.lang : "fr")));
+  b.onclick = () => window.I18N && b.dataset.lang !== I18N.lang && I18N.setLang(b.dataset.lang, false);
+});
+$("pwToggle").onclick = () => {
+  const show = $("password").type === "password", label = show ? "Masquer le mot de passe" : "Afficher le mot de passe";
+  $("password").type = show ? "text" : "password";
+  $("pwToggle").setAttribute("aria-pressed", String(show));
+  $("pwToggle").setAttribute("aria-label", label); $("pwToggle").title = label;
+  $("password").focus();
+};
+// Two steps when two-factor authentication is on: the password gives a short ticket, the code opens the session.
+let ticket = null, recovery = false;
+const next = new URLSearchParams(location.search).get("next");
+const done = () => location.replace(next && next.startsWith("/oauth/authorize?") ? next : "/");
+function askCode() {
+  for (const id of ["username", "password"]) $(id).closest(".field").hidden = true;
+  $("codeField").hidden = false; $("btn").textContent = "Valider";
+  document.querySelector("form .intro").textContent = "Dernière étape : la double authentification protège votre compte.";
+  $("code").focus();
+}
+$("useRecovery").onclick = () => {
+  recovery = !recovery;
+  $("codeLabel").textContent = recovery ? "Code de secours" : "Code de l'application d'authentification";
+  $("codeHint").textContent = recovery ? "Un des 10 codes de secours notés à l'activation (format abcd-efgh). Chacun ne sert qu'une fois."
+    : "Ouvrez votre application (Google Authenticator, Microsoft Authenticator…) et saisissez le code à 6 chiffres affiché pour AutoCollab.";
+  $("useRecovery").textContent = recovery ? "Utiliser le code de l'application" : "Utiliser un code de secours";
+  $("code").placeholder = recovery ? "abcd-efgh" : "123 456"; $("code").style.letterSpacing = recovery ? ".08em" : ".25em";
+  $("code").value = ""; $("code").focus();
+};
+$("form").onsubmit = async (e) => {
+  e.preventDefault();
+  $("btn").disabled = true; $("btn").setAttribute("aria-busy", "true"); $("err").textContent = "";
+  try {
+    const r = ticket
+      ? await fetch("/api/login/2fa", { method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ticket, code: $("code").value.trim() }) })
+      : await fetch("/api/login", { method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: $("username").value, password: $("password").value }) });
+    if (r.ok) {
+      const data = await r.json();
+      if (data.two_factor) { ticket = data.ticket; askCode(); $("btn").disabled = false; $("btn").removeAttribute("aria-busy"); return; }
+      if (data.recovery_used) sessionStorage.setItem("ac_recovery_left", String(data.recovery_left));
+      return done();
+    }
+    if (ticket && r.status === 401 && (await r.clone().json().catch(() => ({}))).detail?.startsWith("Session de connexion expirée")) {
+      ticket = null; location.reload(); return;
+    }
+    let d = "Connexion impossible."; try { d = (await r.json()).detail || d; } catch {}
+    $("err").textContent = d;
+    if (ticket) { $("code").value = ""; $("code").focus(); } else { $("password").value = ""; $("password").focus(); }
+  } catch { $("err").textContent = "Serveur injoignable."; }
+  $("btn").disabled = false; $("btn").removeAttribute("aria-busy");
+};
+</script>
+</body>
+</html>

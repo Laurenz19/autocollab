@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<title>Guide d'utilisation · AutoCollab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<link rel="stylesheet" href="/static/app.css">
+<script src="/static/assistant.js" defer></script>
+<style>
+  .guide-top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 16px; padding: 12px 24px; background: var(--side); border-bottom: 1px solid var(--side-line); }
+  .guide-top .back { margin-left: auto; font-size: 14px; font-weight: 550; text-decoration: none; }
+  .guide { display: flex; gap: 40px; max-width: 1180px; margin: 0 auto; padding: 32px 24px 80px; align-items: flex-start; }
+  .toc { flex: 0 0 230px; position: sticky; top: 84px; max-height: calc(100vh - 100px); overflow-y: auto; font-size: 13.5px; }
+  .toc strong { display: block; font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .04em; }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .toc a { display: block; padding: 5px 10px; border-radius: 7px; color: var(--ink-2); text-decoration: none; }
+  .toc a:hover { background: var(--hair); color: var(--ink); }
+  .toc a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  @media (max-width: 900px) { .toc { display: none; } .guide { padding: 24px 16px 64px; } }
+  article { flex: 1; min-width: 0; max-width: 820px; }
+  article h1 { font-size: 30px; letter-spacing: -.025em; margin: 0 0 8px; line-height: 1.2; }
+  article .lead { font-size: 16px; color: var(--muted); margin: 0 0 28px; }
+  article section { padding-top: 12px; margin-bottom: 40px; scroll-margin-top: 70px; }
+  article h2 { font-size: 21px; letter-spacing: -.015em; margin: 0 0 12px; display: flex; align-items: center; gap: 10px; }
+  article h2 .num { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); font-size: 14px; flex: none; }
+  article h3 { font-size: 16px; margin: 24px 0 8px; }
+  article p, article li { font-size: 15px; line-height: 1.65; }
+  article ul, article ol { padding-left: 22px; }
+  article li + li { margin-top: 4px; }
+  article code { font-family: var(--mono); font-size: 13px; background: var(--hair); border-radius: 5px; padding: 1px 6px; }
+  figure { margin: 18px 0 22px; }
+  figure a { display: block; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-xs); }
+  figure img { display: block; width: 100%; height: auto; }
+  figcaption { font-size: 13px; color: var(--muted); margin-top: 8px; text-align: center; }
+  .tip-box, .warn-box { border-radius: 12px; padding: 14px 16px; margin: 16px 0; font-size: 14.5px; line-height: 1.6; }
+  .tip-box { background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); }
+  .warn-box { background: var(--warn-soft); border: 1px solid color-mix(in srgb, var(--warn) 30%, transparent); }
+  .tip-box strong:first-child, .warn-box strong:first-child { display: block; margin-bottom: 4px; }
+  .steps-list { counter-reset: s; list-style: none; padding: 0; }
+  .steps-list > li { counter-increment: s; position: relative; padding-left: 40px; margin-bottom: 12px; }
+  .steps-list > li::before { content: counter(s); position: absolute; left: 0; top: 1px; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-size: 13px; font-weight: 650; }
+  .compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin: 14px 0; }
+  .compare div { border-radius: 12px; padding: 14px 16px; font-size: 14px; line-height: 1.55; }
+  .compare .bad { background: var(--err-soft); }
+  .compare .good { background: var(--ok-soft); }
+  .compare b { display: block; margin-bottom: 6px; }
+  .words { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14.5px; }
+  .words th, .words td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .words th { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .words td:first-child { font-weight: 600; white-space: nowrap; }
+  details { border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin: 8px 0; background: var(--panel); }
+  details summary { cursor: pointer; font-weight: 600; font-size: 15px; }
+  details p { margin: 10px 0 0; }
+  /* Search (Ctrl K) */
+  .search-trigger { margin-left: auto; display: flex; align-items: center; gap: 10px; width: min(340px, 40vw); min-height: 38px; padding: 0 8px 0 12px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--panel); color: var(--muted); font: inherit; font-size: 14px; cursor: pointer; text-align: left; }
+  .search-trigger:hover { border-color: var(--muted); color: var(--ink-2); }
+  .search-trigger svg { width: 16px; height: 16px; flex: none; }
+  .search-trigger span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .guide-top .back { margin-left: 0; }
+  kbd { font-family: var(--sans); font-size: 11.5px; font-weight: 600; color: var(--muted); background: var(--hair); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; white-space: nowrap; }
+  @media (max-width: 640px) { .search-trigger { width: auto; } .search-trigger span, .search-trigger kbd, .guide-top .back { display: none; } }
+  #searchDlg { width: min(680px, calc(100vw - 32px)); padding: 0; margin: 10vh auto auto; max-height: 76vh; }
+  #searchDlg[open] { display: flex; flex-direction: column; }
+  .search-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .search-head svg { width: 18px; height: 18px; color: var(--accent); flex: none; }
+  .search-head input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: var(--ink); font: inherit; font-size: 16px; padding: 6px 0; }
+  .search-head input::-webkit-search-cancel-button { display: none; }
+  .search-results { overflow-y: auto; padding: 8px; min-height: 0; }
+  .search-group { font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; padding: 10px 10px 4px; }
+  .search-item { display: block; padding: 9px 12px; border-radius: 9px; color: var(--ink); text-decoration: none; border-left: 3px solid transparent; }
+  .search-item .crumb { display: block; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+  .search-item .title { display: block; font-size: 14.5px; font-weight: 600; }
+  .search-item .snippet { font-size: 13px; color: var(--ink-2); line-height: 1.5; margin-top: 2px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .search-item[aria-selected="true"] { background: var(--accent-soft); border-left-color: var(--accent); }
+  .search-item mark { background: color-mix(in srgb, var(--accent) 22%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; }
+  .search-empty { padding: 28px 16px; text-align: center; color: var(--muted); font-size: 14px; }
+  .search-foot { display: flex; gap: 16px; flex-wrap: wrap; padding: 10px 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+  .search-foot span { display: inline-flex; align-items: center; gap: 6px; }
+  .search-hit { animation: search-hit 2s ease-out; border-radius: 6px; }
+  @keyframes search-hit { 0%, 30% { background: color-mix(in srgb, var(--accent) 18%, transparent); box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent); } 100% { background: transparent; box-shadow: 0 0 0 6px transparent; } }
+  @media (prefers-reduced-motion: reduce) { .search-hit { animation: none; outline: 2px solid var(--accent); outline-offset: 4px; } }
+</style>
+</head>
+<body>
+<header class="guide-top">
+  <a class="brand" href="/" style="padding: 0">
+    <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l5 13.5 2.2-6.3L16.5 8z"/><path d="M13 13l2.6 8 1.3-3.7 3.7-1.3z"/></svg></span>
+    <span class="brand-name"><strong>AutoCollab</strong><span>Guide d'utilisation</span></span>
+  </a>
+  <button type="button" class="search-trigger" id="searchOpen" aria-haspopup="dialog" aria-keyshortcuts="Control+K">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <span>Rechercher dans le guide…</span><kbd id="searchKbd">Ctrl K</kbd>
+  </button>
+  <a class="back" href="/">← Retour à l'application</a>
+</header>
+
+<dialog id="searchDlg" aria-label="Rechercher dans le guide">
+  <div class="search-head">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input type="search" id="searchInput" placeholder="Rechercher : planifier, double authentification, fichiers…" autocomplete="off" spellcheck="false"
+      role="combobox" aria-expanded="true" aria-controls="searchResults" aria-autocomplete="list" aria-label="Rechercher dans le guide">
+    <kbd>Échap</kbd>
+  </div>
+  <div class="search-results" id="searchResults" role="listbox" aria-label="Résultats"></div>
+  <div class="search-foot" aria-hidden="true"><span><kbd>↑</kbd><kbd>↓</kbd> se déplacer</span><span><kbd>Entrée</kbd> ouvrir</span><span><kbd>Échap</kbd> fermer</span></div>
+</dialog>
+
+<div class="guide">
+  <nav class="toc" aria-label="Sommaire">
+    <strong>Sommaire</strong>
+    <ol>
+      <li><a href="#principe">Le principe</a></li>
+      <li><a href="#connexion">Se connecter</a></li>
+      <li><a href="#sites">1. Connecter vos sites et applications</a></li>
+      <li><a href="#tache">2. Lancer une tâche</a></li>
+      <li><a href="#suivre">3. Suivre une exécution</a></li>
+      <li><a href="#agent">4. Créer un agent</a></li>
+      <li><a href="#consigne">Bien écrire une consigne</a></li>
+      <li><a href="#garde-fous">Les garde-fous</a></li>
+      <li><a href="#planification">Planifier</a></li>
+      <li><a href="#chaines">Enchaîner des agents</a></li>
+      <li><a href="#contexte">Le contexte</a></li>
+      <li><a href="#fichiers">Les fichiers</a></li>
+      <li><a href="#tableau">Tableau de bord et historique</a></li>
+      <li><a href="#partage">Voir le travail des collègues</a></li>
+      <li><a href="#securite">Sécuriser votre compte</a></li>
+      <li><a href="#admin">Administrateurs</a></li>
+      <li><a href="#capacite">Capacité et performances</a></li>
+      <li><a href="#developpeurs">Assistants IA et n8n</a></li>
+      <li><a href="#faq">Questions fréquentes</a></li>
+    </ol>
+  </nav>
+
+  <article>
+    <h1>Guide d'utilisation</h1>
+    <p class="lead">AutoCollab confie à des agents IA le travail répétitif que vous faites dans un navigateur : télécharger des relevés, récupérer des factures, les importer dans le logiciel comptable, relever des pièces manquantes… Ce guide vous mène de la première connexion à un agent planifié qui travaille seul chaque mois.</p>
+
+    <section id="principe">
+      <h2>Le principe en une minute</h2>
+      <p>Vous écrivez une <strong>consigne</strong> en français, comme à un collègue. Un agent ouvre un navigateur sur le serveur, se rend sur les sites avec <strong>vos</strong> sessions, et fait le travail étape par étape. Vous suivez tout en direct : ce qu'il pense, ce qu'il clique, une capture de chaque écran. À la fin, il rend un <strong>résultat</strong> et les fichiers téléchargés.</p>
+      <table class="words">
+        <thead><tr><th>Mot</th><th>Ce que c'est</th></tr></thead>
+        <tbody>
+          <tr><td>Tâche ponctuelle</td><td>Une consigne lancée une seule fois, pour un besoin du moment.</td></tr>
+          <tr><td>Agent</td><td>Une consigne enregistrée avec ses réglages, que l'on relance quand on veut ou que l'on planifie.</td></tr>
+          <tr><td>Exécution</td><td>Une fois où un agent (ou une tâche) a travaillé, avec ses étapes, son résultat et ses fichiers.</td></tr>
+          <tr><td>Chaîne</td><td>Plusieurs agents qui s'enchaînent : chacun passe son résultat et ses fichiers au suivant.</td></tr>
+          <tr><td>Contexte</td><td>Ce que les agents savent avant de commencer : règles du cabinet, vocabulaire, notes sur chaque site.</td></tr>
+        </tbody>
+      </table>
+      <div class="tip-box"><strong>Le bon ordre pour démarrer</strong>Connectez vos sites, essayez une tâche ponctuelle, regardez comment l'agent s'y prend, puis enregistrez-la comme agent et planifiez-la. Les sections 1 à 4 suivent cet ordre.</div>
+    </section>
+
+    <section id="connexion">
+      <h2>Se connecter</h2>
+      <p>Ouvrez l'adresse de l'application donnée par votre administrateur et connectez-vous avec votre identifiant (ou votre e-mail) et votre mot de passe.</p>
+<figure><a href="/static/guide/connexion.png" target="_blank"><img src="/static/guide/connexion.png" alt="Écran de connexion d'AutoCollab" loading="lazy"></a><figcaption>L'écran de connexion.</figcaption></figure>
+      <p>Si la <a href="#securite">double authentification</a> est activée sur votre compte, une deuxième étape demande le code à 6 chiffres affiché par votre application :</p>
+      <figure><a href="/static/guide/connexion-code.png" target="_blank"><img src="/static/guide/connexion-code.png" alt="Deuxième étape de connexion : code de l'application d'authentification" loading="lazy"></a><figcaption>Le code de l'application, ou un code de secours si vous n'avez pas votre téléphone.</figcaption></figure>
+      <ul>
+        <li><strong>Première connexion</strong> : votre mot de passe a été défini par un administrateur. L'application vous demande aussitôt d'en choisir un que vous seul connaissez (10 caractères minimum).</li>
+        <li><strong>Changer de mot de passe</strong> plus tard : icône clé à côté de votre nom, en bas du menu. Vos autres sessions sont alors déconnectées.</li>
+        <li><strong>Langue</strong> : le bouton <strong>EN</strong> / <strong>FR</strong> en bas du menu passe l'interface en anglais ou en français. Le choix suit votre compte d'un poste à l'autre.</li>
+        <li><strong>Double authentification</strong> : voir <a href="#securite">Sécuriser votre compte</a>. Votre cabinet peut la rendre obligatoire.</li>
+        <li>Après 5 mots de passe erronés, la connexion est bloquée 15 minutes. Mot de passe oublié : demandez à un administrateur de le réinitialiser.</li>
+      </ul>
+    </section>
+
+    <section id="sites">
+      <h2><span class="num">1</span>Connecter vos sites et applications</h2>
+      <p>La page <strong>Mes connexions</strong> donne à vos agents l'accès à vos outils, de deux façons :</p>
+      <ul>
+        <li><strong>Applications</strong> (Gmail, Google Drive, Sheets, Slack…) : l'agent les utilise directement, sans ouvrir de page. C'est plus rapide et plus fiable.</li>
+        <li><strong>Mes sites</strong> (logiciel comptable, banque, portails…) : l'agent les ouvre dans <strong>votre propre navigateur d'agent</strong>, distinct de celui de vos collègues, avec la session que vous y avez ouverte.</li>
+      </ul>
+      <figure><a href="/static/guide/connexions.png" target="_blank"><img src="/static/guide/connexions.png" alt="Page Mes connexions : applications connectées et sites avec leur état" loading="lazy"></a><figcaption>Mes connexions : deux onglets, <strong>Sites</strong> (avec leur état Connecté / Non connecté) et <strong>Applications</strong>.</figcaption></figure>
+      <h3>Connecter une application</h3>
+      <ol class="steps-list">
+        <li>Sur la tuile de l'application, cliquez sur <strong>Connecter</strong>.</li>
+        <li>Choisissez <strong>Lecture seule</strong> (recommandé : l'agent peut chercher et lire, rien envoyer ni modifier) ou <strong>Lecture et écriture</strong>.</li>
+        <li>Connectez-vous sur la page de Google ou de Slack et acceptez : vous revenez dans AutoCollab, la tuile affiche « Connecté ».</li>
+      </ol>
+      <p>L'interrupteur met une application en pause pour vos agents ; l'icône ↻ vérifie qu'elle répond ; la corbeille la déconnecte (l'accès est aussi retiré chez Google ou Slack). Les applications proposées sont choisies par l'administrateur ; « À configurer par un administrateur » signifie qu'elles ne sont pas encore prêtes. Chaque appel d'une application apparaît dans les étapes de l'exécution, avec son logo.</p>
+      <h3>Connecter un site</h3>
+      <ol class="steps-list">
+        <li>Cliquez sur <strong>Ajouter une connexion</strong>. Choisissez une suggestion (Gmail, Pennylane, impots.gouv…) ou saisissez un nom et l'adresse de la page de connexion.</li>
+        <li>Cliquez sur <strong>Se connecter</strong> : le navigateur de vos agents s'affiche dans la page.</li>
+        <li>Connectez-vous comme d'habitude : clics, clavier, <code>Ctrl+V</code> pour coller, molette pour défiler. La double authentification fonctionne aussi.</li>
+        <li>Cliquez sur <strong>Terminer</strong>. La session est gardée pour vos prochaines exécutions.</li>
+      </ol>
+      <div class="tip-box"><strong>Vos identifiants restent à vous</strong>Vous les tapez directement sur le site, comme dans votre navigateur habituel : l'application ne les voit pas et ne les enregistre pas. Elle garde seulement la session ouverte, comme un navigateur qui « se souvient de vous ».</div>
+      <ul>
+        <li>Pendant que la page Mes connexions est ouverte, vos exécutions attendent : un seul navigateur peut utiliser votre profil à la fois. Le navigateur se ferme seul après 10 minutes sans action, ou quand vous quittez la page.</li>
+        <li>Chaque site affiche son état : <strong>Connecté</strong> ou <strong>Non connecté</strong>, vérifié quand vous cliquez sur Terminer et pendant les exécutions de vos agents. Quand une session expire (la banque déconnecte souvent après quelques jours), le site repasse en « Non connecté » : repassez simplement par <strong>Se connecter</strong>.</li>
+        <li>Avec beaucoup de sites, utilisez la recherche, les filtres (Connectés, Non connectés, Jamais vérifiés) et la vue <strong>Liste</strong>.</li>
+        <li><strong>Réinitialiser</strong> efface votre navigateur d'agent : déconnexion de tous les sites. Utile si vous changez d'accès ou quittez le cabinet.</li>
+      </ul>
+    </section>
+
+    <section id="tache">
+      <h2><span class="num">2</span>Lancer une tâche ponctuelle</h2>
+      <p>La page <strong>Tâches</strong> sert aux besoins du moment et aux essais. Cliquez sur <strong>Nouvelle tâche</strong>, écrivez la consigne (ou partez d'un exemple), puis cliquez sur <strong>Lancer</strong>.</p>
+<figure><a href="/static/guide/tache-fenetre.png" target="_blank"><img src="/static/guide/tache-fenetre.png" alt="Fenêtre Nouvelle tâche avec une consigne saisie" loading="lazy"></a><figcaption>La fenêtre Nouvelle tâche : consigne, exemples, pièces jointes et options.</figcaption></figure>
+      <ul>
+        <li><strong>Joindre des fichiers</strong> (ou les glisser dans la zone) : l'agent pourra les envoyer sur un site, par exemple importer une facture.</li>
+        <li><strong>Afficher le navigateur</strong> : ouvre une vraie fenêtre sur le serveur pendant l'exécution. Inutile en temps normal, puisque la page montre déjà chaque écran.</li>
+        <li><strong>Étapes max</strong> : garde-fou qui arrête l'agent s'il tourne en rond. Une étape correspond à une action (ouvrir une page, cliquer, saisir…).</li>
+        <li><strong>Enregistrer comme agent</strong> : transforme la consigne en agent réutilisable, sans la retaper.</li>
+      </ul>
+      <p>Vos tâches se suivent : si une exécution est déjà en cours, la nouvelle attend dans la file (10 au plus) et démarre automatiquement. Une tâche en attente peut être retirée de la file.</p>
+      <figure><a href="/static/guide/taches.png" target="_blank"><img src="/static/guide/taches.png" alt="Page Tâches avec la liste des tâches ponctuelles" loading="lazy"></a><figcaption>La page Tâches : vos tâches ponctuelles, avec leur statut, leur durée et les icônes Relancer et Ouvrir.</figcaption></figure>
+    </section>
+
+    <section id="suivre">
+      <h2><span class="num">3</span>Suivre une exécution</h2>
+      <p>Dès le lancement, la page de l'exécution s'ouvre et se met à jour en direct.</p>
+      <figure><a href="/static/guide/execution.png" target="_blank"><img src="/static/guide/execution.png" alt="Page d'une exécution terminée avec résultat, navigateur et étapes" loading="lazy"></a><figcaption>Une exécution terminée : le résultat en haut, l'écran de l'agent au centre, les étapes à droite.</figcaption></figure>
+      <ul>
+        <li><strong>Résultat</strong> : la réponse finale de l'agent (une liste, un tableau, un compte rendu).</li>
+        <li><strong>Navigateur</strong> : l'écran de l'agent en direct, puis la dernière capture. <strong>Enregistrement</strong> rejoue toutes les captures, étape par étape.</li>
+        <li><strong>Fichiers</strong> : ce que l'agent a téléchargé ou envoyé, à récupérer d'un clic.</li>
+        <li><strong>Étapes</strong> : pour chacune, l'objectif de l'agent, son évaluation de l'étape précédente et l'action faite. Cliquez sur une étape pour voir sa capture.</li>
+        <li><strong>Voir la consigne</strong> : la consigne exacte envoyée, variables remplies, avec le contexte ajouté.</li>
+        <li><strong>Arrêter</strong> pendant l'exécution (l'agent s'arrête après l'étape en cours), <strong>Relancer</strong> une fois terminée.</li>
+      </ul>
+      <div class="tip-box"><strong>Lisez les étapes des premières exécutions</strong>C'est la meilleure façon d'améliorer une consigne : vous voyez où l'agent hésite, ce qu'il cherche et ce qu'il comprend de travers.</div>
+    </section>
+
+    <section id="agent">
+      <h2><span class="num">4</span>Créer un agent</h2>
+      <p>Un agent est une consigne enregistrée, prête à être relancée chaque mois. La page <strong>Mes agents</strong> les présente en cartes : dernier statut, sites autorisés, mode avec validation, chaîne dont il fait partie (« Étape 2/3 · Clôture mensuelle »), nombre d'exécutions et prochaine exécution planifiée.</p>
+      <figure><a href="/static/guide/agents.png" target="_blank"><img src="/static/guide/agents.png" alt="Page Mes agents avec ses cartes, la barre de recherche et les filtres" loading="lazy"></a><figcaption>Mes agents : barre de recherche, filtres, tri, et sur chaque carte Lancer, Modifier et le menu ⋮.</figcaption></figure>
+      <p>Avec beaucoup d'agents, passez en vue <strong>Liste</strong> (bouton à droite de la barre d'outils) : une ligne par agent, actions en icônes.</p>
+      <figure><a href="/static/guide/agents-liste.png" target="_blank"><img src="/static/guide/agents-liste.png" alt="Vue liste des agents" loading="lazy"></a><figcaption>La vue Liste : nom et consigne, dernière exécution, planification, garde-fous et chaînes, actions.</figcaption></figure>
+      <p>Cliquez sur <strong>Nouvel agent</strong> (ou <strong>Modifier</strong> sur une carte) :</p>
+      <figure><a href="/static/guide/agent-fenetre.png" target="_blank"><img src="/static/guide/agent-fenetre.png" alt="Fenêtre de modification d'un agent : nom, consigne, variables, pièces jointes" loading="lazy"></a><figcaption>Nom, consigne et variables.</figcaption></figure>
+      <ul>
+        <li><strong>Nom</strong> : court et parlant, il apparaît partout (« Factures fournisseurs du mois »).</li>
+        <li><strong>Consigne</strong> : ce que l'agent doit faire. Voir <a href="#consigne">Bien écrire une consigne</a>.</li>
+        <li><strong>Variables</strong> : cliquez sur une variable pour l'insérer. Elle est remplacée au lancement, ce qui permet de garder la même consigne tous les mois. <strong>Aperçu avec les variables remplies</strong> montre le texte final.</li>
+        <li><strong>Pièces jointes</strong> : fichiers fournis à chaque exécution (un modèle, une liste fixe…). Pour des fichiers qui changent chaque mois, faites-les plutôt télécharger par l'agent.</li>
+      </ul>
+      <table class="words">
+        <thead><tr><th>Variable</th><th>Devient (lancé le 11/10/2026)</th></tr></thead>
+        <tbody>
+          <tr><td><code>{date}</code></td><td>11/10/2026</td></tr>
+          <tr><td><code>{mois}</code> / <code>{mois_precedent}</code></td><td>octobre 2026 / septembre 2026</td></tr>
+          <tr><td><code>{debut_mois_precedent}</code> / <code>{fin_mois_precedent}</code></td><td>01/09/2026 / 30/09/2026</td></tr>
+          <tr><td><code>{annee}</code> / <code>{annee_precedente}</code></td><td>2026 / 2025</td></tr>
+          <tr><td><code>{resultat_precedent}</code></td><td>Dans une chaîne : le résultat de l'étape précédente.</td></tr>
+        </tbody>
+      </table>
+      <p>Plus bas dans la même fenêtre, les <strong>garde-fous</strong> et la <strong>planification</strong>. Les icônes <strong>(i)</strong> affichent une explication au survol :</p>
+      <figure><a href="/static/guide/agent-fenetre-2.png" target="_blank"><img src="/static/guide/agent-fenetre-2.png" alt="Bas de la fenêtre agent : garde-fous et planification, avec une info-bulle" loading="lazy"></a><figcaption>Sites autorisés, mode avec validation, planification.</figcaption></figure>
+    </section>
+
+    <section id="consigne">
+      <h2>Bien écrire une consigne</h2>
+      <p>L'agent est rapide mais ne connaît ni vos clients ni vos habitudes. Une bonne consigne ressemble à ce que vous écririez à un stagiaire compétent qui découvre le dossier.</p>
+      <div class="compare">
+        <div class="bad"><b>Trop vague</b>« Récupère les factures et mets-les dans la compta. »</div>
+        <div class="good"><b>Précis</b>« Dans la messagerie, cherche les e-mails de {mois_precedent} qui contiennent une facture en PDF. Télécharge chaque facture, puis importe-la dans compta-demo.fr, dossier DUP01, rubrique Achats › Ajouter une pièce. Rends la liste : fournisseur, date, montant. »</div>
+      </div>
+      <ul>
+        <li><strong>Le site et le chemin</strong> : où aller et par quels menus (« Banque › Transactions »).</li>
+        <li><strong>Le périmètre</strong> : quel dossier, quelle période (utilisez les variables), quels documents.</li>
+        <li><strong>Le résultat attendu</strong> : sa forme (liste, tableau date / libellé / montant) et ce qu'il faut signaler.</li>
+        <li><strong>Les cas particuliers</strong> : « s'il n'y a aucune facture, dis-le et arrête-toi ».</li>
+        <li><strong>Une tâche à la fois</strong> : plutôt que tout faire dans une seule consigne, découpez en plusieurs agents et reliez-les par une <a href="#chaines">chaîne</a>.</li>
+      </ul>
+      <div class="tip-box"><strong>Ne répétez pas ce qui vaut pour tous</strong>Les règles communes (« ne jamais supprimer de document »), les sigles du cabinet et le chemin des menus d'un site vont dans le <a href="#contexte">contexte</a> : ils sont ajoutés automatiquement à chaque consigne.</div>
+    </section>
+
+    <section id="garde-fous">
+      <h2>Les garde-fous</h2>
+      <p>Dès qu'un agent modifie des données (envoi, import, validation), activez les deux garde-fous de l'agent.</p>
+      <h3>Sites autorisés</h3>
+      <p>Un site par ligne : l'agent ne pourra ouvrir aucun autre site. Toute navigation ailleurs est bloquée avant même le chargement de la page. <code>*.exemple.fr</code> autorise tous les sous-domaines. Laissez vide pour ne rien restreindre.</p>
+      <h3>Mode avec validation</h3>
+      <p>Avant toute action difficile à annuler (envoyer, valider, supprimer, payer…), l'agent décrit précisément ce qu'il va faire et s'arrête. L'exécution passe en <strong>À valider</strong> : un badge orange apparaît dans le menu, à côté d'Exécutions, et la demande s'affiche en haut de l'exécution.</p>
+      <ul>
+        <li><strong>Valider</strong> : l'agent continue.</li>
+        <li><strong>Refuser</strong> : l'agent n'exécute pas l'action. Vous pouvez ajouter une remarque pour lui dire quoi faire à la place.</li>
+        <li>Sans réponse sous 60 minutes, l'action est refusée. Pendant l'attente, vos autres exécutions patientent.</li>
+      </ul>
+      <div class="warn-box"><strong>Combinez les deux</strong>Les sites autorisés sont un verrou technique. Le mode avec validation repose sur la consigne donnée à l'IA : il réduit fortement le risque sans être absolu, sauf pour l'envoi de fichiers, où chaque envoi attend réellement votre clic.</div>
+    </section>
+
+    <section id="planification">
+      <h2>Planifier un agent ou une chaîne</h2>
+      <p>Dans la fenêtre de l'agent (ou de la chaîne), rubrique <strong>Planification</strong>, choisissez une fréquence et une heure : chaque jour, du lundi au vendredi, certains jours de la semaine, ou un jour du mois (« le 2 », « le dernier jour »).</p>
+      <figure><a href="/static/guide/planification.png" target="_blank"><img src="/static/guide/planification.png" alt="Page Planification listant les agents et les chaînes planifiés" loading="lazy"></a><figcaption>La page Planification : agents et chaînes, la prochaine exécution en premier, avec l'interrupteur pour mettre en pause.</figcaption></figure>
+      <ul>
+        <li>La page regroupe les <strong>agents et les chaînes</strong> planifiés, avec recherche et filtres (Agents, Chaînes, Actifs, En pause).</li>
+        <li>L'interrupteur <strong>Active</strong> met en pause sans perdre la fréquence ; le crayon ouvre la fenêtre de l'agent ou de la chaîne.</li>
+        <li>Un agent utilisé dans une chaîne planifiée l'indique sur sa carte : « Lancé par la chaîne · le 3 de chaque mois à 07h00 ».</li>
+        <li>Les exécutions planifiées sont marquées « planifiée » dans l'historique et passent par la même file que les autres.</li>
+        <li>Le serveur doit tourner à l'heure prévue. Une exécution manquée de plus de 6 heures est ignorée ; la suivante a lieu normalement.</li>
+      </ul>
+      <div class="tip-box"><strong>Planifiez après deux ou trois essais réussis</strong>Un agent qui fonctionne en manuel fonctionnera planifié. Gardez le mode avec validation au début, puis retirez-le si l'agent ne fait que lire des informations.</div>
+    </section>
+
+    <section id="chaines">
+      <h2>Enchaîner des agents</h2>
+      <p>Une <strong>chaîne</strong> lance des agents l'un après l'autre. Exemple « Clôture mensuelle » : Relevés bancaires → Import dans la compta → Pièces manquantes.</p>
+      <figure><a href="/static/guide/chaine-fenetre.png" target="_blank"><img src="/static/guide/chaine-fenetre.png" alt="Fenêtre de modification d'une chaîne à trois étapes" loading="lazy"></a><figcaption>Une chaîne de trois étapes, planifiée le 3 de chaque mois.</figcaption></figure>
+      <ul>
+        <li>Chaque étape reçoit le <strong>résultat de la précédente</strong> (placez <code>{resultat_precedent}</code> dans la consigne de l'agent) et ses <strong>fichiers téléchargés</strong> en pièces jointes.</li>
+        <li><strong>Si échec : arrêter</strong> (par défaut) stoppe la chaîne. <strong>Si échec : continuer</strong> passe à la suite, et l'étape suivante est prévenue de l'échec.</li>
+        <li>Chaque agent garde ses sites autorisés et son mode avec validation ; la chaîne attend votre réponse.</li>
+        <li>Une chaîne se planifie comme un agent. Sa page de progression montre chaque étape et ouvre son exécution détaillée.</li>
+        <li>Il faut au moins un agent pour créer une chaîne : sinon, « Nouvelle chaîne » explique la marche à suivre et propose d'en créer un.</li>
+      </ul>
+      <figure><a href="/static/guide/chaines.png" target="_blank"><img src="/static/guide/chaines.png" alt="Page Chaînes avec la barre d'outils et la fiche d'une chaîne" loading="lazy"></a><figcaption>La page Chaînes se présente comme Mes agents : même barre d'outils, mêmes fiches (Lancer, Modifier, menu ⋮).</figcaption></figure>
+      <ul>
+        <li>Le menu <strong>⋮</strong> d'une fiche ouvre la <strong>dernière exécution</strong>, <strong>duplique</strong> la chaîne (la copie n'est pas planifiée) ou la <strong>supprime</strong> (les agents et l'historique sont conservés).</li>
+        <li>L'historique des chaînes est dans <strong>Exécutions</strong>, filtre <strong>Chaînes</strong> : le lien « Exécutions » sous le titre de la page y mène directement.</li>
+      </ul>
+    </section>
+
+    <section id="contexte">
+      <h2>Le contexte : ce que les agents savent d'avance</h2>
+      <p>La page <strong>Contexte</strong> évite de répéter les mêmes informations dans chaque consigne. Son contenu est ajouté automatiquement au début du travail de l'agent.</p>
+      <figure><a href="/static/guide/contexte.png" target="_blank"><img src="/static/guide/contexte.png" alt="Page Contexte avec règles et aperçu en direct" loading="lazy"></a><figcaption>Règles, glossaire, notes par site, et l'aperçu de ce que l'agent recevra.</figcaption></figure>
+      <ul>
+        <li><strong>Cabinet</strong> : commun à tous, modifiable par les administrateurs. <strong>Personnel</strong> : le vôtre, ajouté après celui du cabinet (vos codes de dossiers, vos habitudes).</li>
+        <li><strong>Règles</strong> : ce que l'agent doit toujours respecter, une règle par ligne. Des suggestions sont proposées en un clic.</li>
+        <li><strong>Glossaire</strong> : les mots du cabinet et leur sens (sigles, noms de dossiers).</li>
+        <li><strong>Sites</strong> : où trouver les choses sur chaque site. Ces notes ne sont ajoutées que si la tâche concerne ce site.</li>
+        <li><strong>Aperçu en direct</strong> : tapez une consigne d'essai pour voir exactement ce que l'agent recevra.</li>
+      </ul>
+      <div class="tip-box"><strong>Court, c'est mieux</strong>Le contexte est relu à chaque étape : un texte court coûte moins cher et distrait moins l'agent. Une phrase utile vaut mieux qu'un paragraphe.</div>
+    </section>
+
+    <section id="fichiers">
+      <h2>Les fichiers</h2>
+      <p>L'agent peut <strong>télécharger</strong> des fichiers sur n'importe quel site (relevés, factures…) et <strong>envoyer</strong> des fichiers sur un site (champ fichier ou bouton « Importer »). Il ne peut envoyer que :</p>
+      <ul>
+        <li>les pièces jointes de la tâche ou de l'agent ;</li>
+        <li>les fichiers qu'il a téléchargés pendant la même exécution (ou l'étape précédente d'une chaîne).</li>
+      </ul>
+      <p>Exemple typique : télécharger les factures dans la messagerie, puis les importer dans le logiciel comptable, en une seule consigne. Chaque envoi apparaît dans les étapes et dans l'onglet Fichiers. Limites : 25 Mo par fichier ; PDF, images, Excel/CSV, Word, texte, XML, ZIP, OFX/QIF.</p>
+    </section>
+
+    <section id="tableau">
+      <h2>Tableau de bord et historique</h2>
+      <p>Le <strong>Tableau de bord</strong> est la page d'accueil : activité des 30 derniers jours, taux de réussite, temps de travail des agents, ce qui attend votre action et les prochaines exécutions.</p>
+      <figure><a href="/static/guide/tableau-de-bord.png" target="_blank"><img src="/static/guide/tableau-de-bord.png" alt="Tableau de bord avec chiffres clés, graphique d'activité et listes" loading="lazy"></a><figcaption>Le tableau de bord. Survolez une barre du graphique pour le détail du jour.</figcaption></figure>
+      <div class="tip-box"><strong>Beaucoup d'agents, de chaînes ou de sites ?</strong>Chaque page a sa barre d'outils : recherche (nom, consigne, site, chaîne), filtres rapides (planifiés, en pause, avec validation, dans une chaîne, dernier échec ; connectés / non connectés pour les sites), tri, et en vue « Tout le cabinet » un filtre par personne. Le bouton <strong>Cartes / Liste</strong> passe à une liste compacte, choisie automatiquement au-delà de 9 éléments ; le choix vaut à la fois pour Mes agents et Chaînes. Votre choix d'affichage et de tri est mémorisé.</div>
+      <p>La page <strong>Exécutions</strong> garde tout l'historique. Chaque ligne montre le <strong>statut</strong>, l'<strong>activité</strong> (agent, tâche ponctuelle ou étape de chaîne, avec son identifiant à copier), l'heure de lancement, le <strong>contexte</strong> (modèle d'IA utilisé, planifiée ou via MCP, chaîne, nombre d'étapes et de fichiers, garde-fous) et la <strong>durée</strong>. L'historique conserve la consigne exacte envoyée, même si l'agent a été modifié ou supprimé depuis.</p>
+      <figure><a href="/static/guide/executions.png" target="_blank"><img src="/static/guide/executions.png" alt="Liste des exécutions avec filtres par type et statut" loading="lazy"></a><figcaption>L'historique : filtres par type (Agents, Tâches, Chaînes) et par statut, recherche par nom ou identifiant, Relancer et Ouvrir en icônes.</figcaption></figure>
+      <p>La recherche porte sur le nom, la consigne, l'identifiant et le modèle. L'historique est découpé en pages : il reste rapide même avec des milliers d'exécutions.</p>
+      <table class="words">
+        <thead><tr><th>Statut</th><th>Signification</th></tr></thead>
+        <tbody>
+          <tr><td>En attente</td><td>Dans la file, démarrera automatiquement.</td></tr>
+          <tr><td>En cours</td><td>L'agent travaille.</td></tr>
+          <tr><td>À valider</td><td>L'agent attend votre accord (mode avec validation).</td></tr>
+          <tr><td>Terminé</td><td>L'agent a fini et rendu un résultat. Lisez-le : « terminé » ne veut pas dire que tout s'est passé comme prévu.</td></tr>
+          <tr><td>Échec</td><td>L'agent n'a pas pu aller au bout ; le résultat ou les étapes expliquent pourquoi.</td></tr>
+          <tr><td>Arrêté / Interrompu</td><td>Arrêté à votre demande, ou coupé par un redémarrage du serveur.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="partage">
+      <h2>Voir le travail des collègues</h2>
+      <p>Sur les pages <strong>Mes agents</strong>, <strong>Chaînes</strong>, <strong>Exécutions</strong> et <strong>Planification</strong>, le bouton <strong>Les miens / Tout le cabinet</strong> affiche aussi les agents, chaînes et exécutions de vos collègues, avec le nom de leur propriétaire.</p>
+      <ul>
+        <li>Vous pouvez tout <strong>consulter</strong> : consigne, garde-fous, planification, étapes, captures, fichiers et résultat d'une exécution.</li>
+        <li>Seul le <strong>propriétaire</strong> peut lancer, modifier, supprimer, arrêter, relancer ou répondre à une validation. Ses éléments apparaissent en « Lecture seule ».</li>
+        <li>Restent <strong>personnels</strong> : Mes connexions (vos sessions sur les sites), vos applications connectées, votre contexte personnel et vos clés d'API.</li>
+      </ul>
+      <figure><a href="/static/guide/agents-cabinet.png" target="_blank"><img src="/static/guide/agents-cabinet.png" alt="Agents du cabinet, ceux des collègues en lecture seule" loading="lazy"></a><figcaption>Vue « Tout le cabinet » : les agents des collègues portent le nom de leur propriétaire et sont en lecture seule.</figcaption></figure>
+      <div class="tip-box"><strong>Réutiliser l'agent d'un collègue</strong>Ouvrez-le pour lire sa consigne, puis créez votre propre agent en vous en inspirant : il s'exécutera avec vos connexions.</div>
+    </section>
+
+    <section id="securite">
+      <h2>Sécuriser votre compte</h2>
+      <p>Votre compte AutoCollab donne accès à vos sessions sur la messagerie, le logiciel comptable ou la banque. Protégez-le avec la <strong>double authentification</strong> : en plus du mot de passe, un code à 6 chiffres affiché par une application sur votre téléphone.</p>
+      <figure><a href="/static/guide/mon-compte.png" target="_blank"><img src="/static/guide/mon-compte.png" alt="Fenêtre Mon compte avec la double authentification" loading="lazy"></a><figcaption>Mon compte (icône clé en bas du menu) : mot de passe et double authentification.</figcaption></figure>
+      <ol class="steps-list">
+        <li>Installez une application d'authentification : Google Authenticator, Microsoft Authenticator, Authy, 1Password…</li>
+        <li>Dans <strong>Mon compte</strong>, cliquez sur <strong>Activer</strong>, puis scannez le QR code avec l'application (ou saisissez la clé à la main).</li>
+        <li>Saisissez le code à 6 chiffres qu'elle affiche, puis <strong>notez les 10 codes de secours</strong> (Télécharger ou Copier). Ils ne seront plus affichés.</li>
+      </ol>
+      <figure><a href="/static/guide/double-authentification.png" target="_blank"><img src="/static/guide/double-authentification.png" alt="Activation de la double authentification avec le QR code" loading="lazy"></a><figcaption>L'activation : QR code à scanner, clé de saisie manuelle et premier code.</figcaption></figure>
+      <ul>
+        <li>Ensuite, chaque connexion demande le code de l'application. Un même code ne sert qu'une fois ; 5 codes faux bloquent la connexion 15 minutes.</li>
+        <li><strong>Téléphone perdu ou changé</strong> : connectez-vous avec un code de secours (« Utiliser un code de secours »), puis générez-en de nouveaux dans Mon compte. Sans code de secours, demandez à un administrateur de réinitialiser votre double authentification.</li>
+        <li>Si votre cabinet la rend obligatoire, l'application vous demande de l'activer dès la connexion, avant tout le reste.</li>
+      </ul>
+      <div class="warn-box"><strong>Rangez les codes de secours à part</strong>Pas sur le téléphone qui porte l'application : dans un gestionnaire de mots de passe ou sur papier, en lieu sûr.</div>
+    </section>
+
+    <section id="admin">
+      <h2>Pour les administrateurs</h2>
+      <p>La page <strong>Administration</strong> (en bas du menu) a trois onglets : Utilisateurs, Intelligence artificielle et Intégrations.</p>
+      <h3>Utilisateurs</h3>
+      <figure><a href="/static/guide/administration.png" target="_blank"><img src="/static/guide/administration.png" alt="Onglet Utilisateurs avec la double authentification obligatoire" loading="lazy"></a><figcaption>Les comptes du cabinet, l'état de leur double authentification, et qui doit l'utiliser.</figcaption></figure>
+      <ul>
+        <li>Créer un compte avec un mot de passe provisoire (bouton Générer), renommer, réinitialiser le mot de passe, donner ou retirer le rôle administrateur, supprimer (icônes crayon et corbeille). Transmettez le mot de passe provisoire par un canal sûr.</li>
+        <li><strong>Double authentification obligatoire</strong> : Personne, Administrateurs ou Tout le monde. Activez-la d'abord sur votre propre compte. La colonne « Double authentification » montre qui l'a activée ; « Modifier » › « Réinitialiser » sert quand quelqu'un a perdu son téléphone.</li>
+      </ul>
+      <h3>Intelligence artificielle</h3>
+      <figure><a href="/static/guide/admin-ia.png" target="_blank"><img src="/static/guide/admin-ia.png" alt="Onglet Intelligence artificielle avec le bandeau d'état" loading="lazy"></a><figcaption>Le bandeau dit si les agents sont prêts ; chaque fournisseur a sa carte, sa clé et ses modèles conseillés.</figcaption></figure>
+      <ul>
+        <li>Le <strong>bandeau</strong> en haut indique l'état : « Les agents sont prêts », « Le dernier test a échoué » ou « Les agents ne peuvent pas démarrer » (clé manquante), avec le fournisseur, le modèle et l'endroit où les données sont traitées.</li>
+        <li>Choisissez un <strong>fournisseur</strong>, collez sa <strong>clé d'API</strong> (lien « Obtenir une clé »), choisissez un <strong>modèle</strong> parmi les suggestions, puis <strong>Enregistrer et tester</strong>. Les clés sont chiffrées et ne sont jamais réaffichées.</li>
+        <li><strong>Envoyer les captures d'écran à l'IA</strong> : l'agent voit les pages en image en plus du texte. Plus fiable sur les sites très visuels, mais plus lent et plus coûteux ; grisé pour les fournisseurs qui ne lisent pas les images.</li>
+      </ul>
+      <h3>Intégrations</h3>
+      <figure><a href="/static/guide/admin-integrations.png" target="_blank"><img src="/static/guide/admin-integrations.png" alt="Onglet Intégrations : applications proposées et application Google" loading="lazy"></a><figcaption>Les applications proposées aux utilisateurs et les accès Google et Slack.</figcaption></figure>
+      <ul>
+        <li>Cochez les <strong>applications proposées</strong> (Gmail, Drive, Docs, Sheets, Agenda, Slack) et, si besoin, autorisez l'ajout d'autres serveurs MCP.</li>
+        <li>Renseignez l'<strong>application Google</strong> (ID client OAuth et code secret, avec l'URI de redirection affichée) et/ou l'<strong>application Slack</strong>, en suivant les étapes indiquées. Une adresse https est nécessaire (<code>PUBLIC_URL</code>).</li>
+        <li>Le contenu lu par les agents (e-mails, fichiers, messages) est envoyé au fournisseur d'IA choisi.</li>
+      </ul>
+      <p>Le <strong>contexte du cabinet</strong> (page Contexte) n'est modifiable que par les administrateurs.</p>
+    </section>
+
+    <section id="capacite">
+      <h2>Capacité et performances</h2>
+      <p>La limite n'est pas un nombre d'exécutions, mais le nombre de <strong>navigateurs ouverts en même temps</strong> sur le serveur : chaque agent travaille dans un vrai navigateur, qui occupe de la mémoire et du processeur pendant toute l'exécution.</p>
+      <h3>Ce qui fixe le rythme</h3>
+      <table class="words">
+        <thead><tr><th>Réglage</th><th>Effet</th></tr></thead>
+        <tbody>
+          <tr><td><code>MAX_PARALLEL_RUNS</code></td><td>Exécutions simultanées sur tout le serveur (2 par défaut, dans le fichier <code>.env</code>). Les autres attendent dans la file et démarrent dès qu'une place se libère.</td></tr>
+          <tr><td>Un navigateur par personne</td><td>Vos exécutions se suivent ; celles de plusieurs collègues tournent en parallèle.</td></tr>
+          <tr><td>File d'attente</td><td>10 exécutions en attente au plus par personne.</td></tr>
+          <tr><td><code>AGENT_MAX_STEPS</code></td><td>40 étapes au plus par exécution (modifiable par agent) : limite la durée et le coût d'une exécution.</td></tr>
+        </tbody>
+      </table>
+      <h3>Combien d'exécutions par heure ?</h3>
+      <p>Une exécution dure en moyenne un peu plus de 2 minutes (environ 11 étapes). Le débit vaut donc à peu près : <strong>exécutions simultanées × 60 ÷ durée moyenne</strong>.</p>
+      <table class="words">
+        <thead><tr><th>Serveur</th><th><code>MAX_PARALLEL_RUNS</code> conseillé</th><th>Par heure</th><th>Par jour (24 h)</th></tr></thead>
+        <tbody>
+          <tr><td>2 processeurs / 4 Go</td><td>2</td><td>~50</td><td>~1 200</td></tr>
+          <tr><td>4 processeurs / 8 Go</td><td>4 à 5</td><td>~110 à 130</td><td>~2 800</td></tr>
+          <tr><td>8 processeurs / 16 Go</td><td>8 à 10</td><td>~220 à 260</td><td>~5 500</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li>Chaque navigateur utilise <strong>300 à 500 Mo de mémoire</strong>. Au-delà d'une dizaine en même temps sur une seule machine, tout ralentit et les pages finissent par ne plus charger à temps.</li>
+        <li><strong>Pour une seule personne</strong>, le plafond est d'environ 25 exécutions par heure, puisque ses exécutions se suivent.</li>
+        <li>Pour un cabinet, un serveur <strong>4 processeurs / 8 Go</strong> avec <code>MAX_PARALLEL_RUNS=4</code> (environ 100 exécutions par heure) est largement suffisant.</li>
+      </ul>
+      <h3>Les autres limites</h3>
+      <ul>
+        <li><strong>Le fournisseur d'IA</strong> : chaque étape est un appel à l'IA, soit une dizaine d'appels par exécution. À fort volume, c'est souvent le plafond de requêtes par minute du compte (DeepSeek, Claude, OpenAI…) qui bloque avant le serveur. Envoyer les captures d'écran augmente nettement le volume envoyé.</li>
+        <li><strong>Les sites eux-mêmes</strong> : messagerie, logiciel comptable ou banque peuvent ralentir ou bloquer un compte qui enchaîne trop d'actions. Étalez les planifications plutôt que de tout lancer à la même heure.</li>
+        <li><strong>Le disque</strong> : une capture pèse environ 135 Ko, soit environ 1,5 Mo par exécution. 1 000 exécutions par jour représentent environ 1,5 Go par jour (45 Go par mois). Les anciennes captures ne sont pas encore supprimées automatiquement : surveillez l'espace du dossier <code>runs/</code>.</li>
+      </ul>
+      <div class="warn-box"><strong>Avant un usage intensif</strong>L'historique est paginé et reste rapide, mais rien n'efface encore les vieilles captures : prévoyez une durée de conservation (ou surveillez le dossier <code>runs/</code>) avant un fort volume.</div>
+      <div class="tip-box"><strong>Augmenter la capacité</strong>Un administrateur du serveur modifie <code>MAX_PARALLEL_RUNS</code> dans le fichier <code>.env</code>, en restant dans les valeurs du tableau selon la mémoire disponible, puis redémarre l'application.</div>
+    </section>
+
+    <section id="developpeurs">
+      <h2>Assistants IA, n8n et API</h2>
+      <p>La page <strong>Développeurs</strong> permet de piloter vos agents depuis un autre outil : un assistant IA compatible MCP (claude.ai, ChatGPT, Claude Code, Cursor, VS Code…), un scénario n8n ou un script.</p>
+      <h3>claude.ai et ChatGPT : connexion en un clic</h3>
+      <figure><a href="/static/guide/developpeurs-mcp.png" target="_blank"><img src="/static/guide/developpeurs-mcp.png" alt="Onglet MCP de la page Développeurs avec la configuration claude.ai" loading="lazy"></a><figcaption>Onglet MCP : la marche à suivre pour chaque outil, et les assistants que vous avez autorisés.</figcaption></figure>
+      <ol class="steps-list">
+        <li>Dans claude.ai (Paramètres › Connecteurs › Ajouter un connecteur personnalisé) ou ChatGPT (Paramètres › Applications et connecteurs › Mode développeur › Créer), saisissez l'adresse indiquée dans l'onglet <strong>MCP</strong>.</li>
+        <li>Vous arrivez sur la page « Autoriser » d'AutoCollab : vérifiez le nom de l'application et l'adresse de retour, puis cliquez sur <strong>Autoriser</strong>. Aucune clé à copier.</li>
+        <li>Les assistants autorisés sont listés dans <strong>Applications autorisées</strong> ; « Révoquer » leur coupe l'accès immédiatement.</li>
+      </ol>
+      <p>Après une mise à jour d'AutoCollab qui ajoute des outils, reconnectez le connecteur et ouvrez une nouvelle conversation : l'assistant garde sinon l'ancienne liste.</p>
+      <h3>Claude Code, Cursor, VS Code, n8n, scripts : clé d'API</h3>
+      <figure><a href="/static/guide/developpeurs.png" target="_blank"><img src="/static/guide/developpeurs.png" alt="Onglet Démarrage de la page Développeurs" loading="lazy"></a><figcaption>Créer une clé d'API et copier les exemples, déjà remplis avec votre clé.</figcaption></figure>
+      <ol class="steps-list">
+        <li>Créez une <strong>clé d'API</strong> et copiez-la tout de suite : elle ne sera plus affichée.</li>
+        <li>Onglet <strong>MCP</strong> : choisissez votre outil et copiez la configuration, déjà remplie avec votre clé.</li>
+      </ol>
+      <p>Votre assistant peut alors lister et créer vos agents et chaînes, les lancer, suivre une exécution, lire et compléter votre contexte, et répondre à une validation sur votre instruction, toujours avec vos droits. Il ne peut rien supprimer. Il peut aussi lire la documentation d'AutoCollab (outil <code>get_documentation</code>, ou <code>/llms.txt</code>).</p>
+      <h3>Construire une tâche avec votre assistant</h3>
+      <p>La bonne méthode : faire rédiger, tester une fois, vérifier, puis seulement enregistrer un agent.</p>
+      <ol class="steps-list">
+        <li><strong>Vérifiez la connexion.</strong> Demandez par exemple « Quels sont mes agents ? » : si l'assistant les liste, il atteint bien AutoCollab.</li>
+        <li><strong>Décrivez le besoin.</strong> Dites simplement ce qu'il faut faire, sur quel site, avec quel compte, et le résultat attendu.</li>
+        <li><strong>Faites rédiger la consigne sans la lancer.</strong> Demandez à l'assistant d'écrire la consigne et de vous la montrer d'abord. Ce brouillon reste dans la conversation : rien n'est créé dans AutoCollab tant que vous ne lancez pas. Vérifiez les sites autorisés, les cas particuliers et le mode avec validation.</li>
+        <li><strong>Testez.</strong> Lancez-la une fois comme tâche ponctuelle, limitée aux sites nécessaires, avec le mode avec validation si elle envoie, supprime ou paie.</li>
+        <li><strong>Regardez le résultat.</strong> Ouvrez l'exécution (étapes, résultat, fichiers) pour confirmer qu'elle a fait exactement ce que vous vouliez.</li>
+        <li><strong>Créez l'agent si besoin.</strong> Seulement si la tâche doit se répéter : remplacez les valeurs fixes par des variables comme <code>{date}</code>, ajoutez une planification, et gardez le mode avec validation pour les premières exécutions.</li>
+      </ol>
+      <div class="warn-box"><strong>Une clé vaut votre mot de passe</strong>Elle agit avec vos droits sur vos agents et vos connexions. Ne la partagez pas, et révoquez-la au moindre doute.</div>
+    </section>
+
+    <section id="faq">
+      <h2>Questions fréquentes</h2>
+      <details><summary>L'agent tombe sur une page de connexion</summary><p>La session du site a expiré. Allez dans Mes connexions, cliquez sur Se connecter pour ce site, reconnectez-vous puis Terminer. Relancez ensuite l'exécution.</p></details>
+      <details><summary>Ma tâche reste « En attente »</summary><p>Une autre de vos exécutions est en cours, attend une validation, ou la page Mes connexions est ouverte. Les exécutions d'une même personne se suivent ; celles de plusieurs personnes tournent en parallèle dans la limite du serveur.</p></details>
+      <details><summary>L'agent tourne en rond ou s'arrête au nombre maximum d'étapes</summary><p>Lisez les étapes pour voir où il bloque, puis précisez la consigne : le chemin exact des menus, le dossier, ce qu'il doit rendre. Ajoutez les chemins qui reviennent souvent dans les notes par site du Contexte.</p></details>
+      <details><summary>« Site non autorisé bloqué » dans les étapes</summary><p>L'agent a voulu ouvrir un site absent de ses sites autorisés (souvent une page de connexion sur un autre domaine). Ajoutez ce domaine à la liste s'il est légitime.</p></details>
+      <details><summary>« Adresse interne bloquée » dans les étapes</summary><p>Une page a tenté de joindre une adresse du réseau du serveur (localhost, réseau privé, adresse de métadonnées du cloud). C'est bloqué pour tous les agents, par sécurité : une page ou un e-mail piégé pourrait sinon leur faire lire des informations internes. Si c'est un site de l'intranet du cabinet dont vos agents ont besoin, demandez à l'administrateur du serveur de l'ajouter à <code>AGENT_ALLOWED_INTERNAL_HOSTS</code>.</p></details>
+      <details><summary>Je n'ai pas répondu à une validation</summary><p>Sans réponse sous 60 minutes, l'action est refusée et l'agent continue sans la faire. Relancez l'exécution quand vous êtes disponible.</p></details>
+      <details><summary>Combien d'exécutions l'application peut-elle faire ?</summary><p>Cela dépend du serveur : environ 50 par heure avec le réglage par défaut (2 en même temps), une centaine avec un serveur plus puissant et 4 en même temps. Voir <a href="#capacite">Capacité et performances</a>.</p></details>
+      <details><summary>J'ai perdu mon téléphone (double authentification)</summary><p>À la connexion, cliquez sur « Utiliser un code de secours » et saisissez un des codes notés à l'activation, puis générez-en de nouveaux dans Mon compte et réactivez l'application sur votre nouveau téléphone. Sans code de secours, un administrateur peut réinitialiser votre double authentification (Administration › Utilisateurs › Modifier).</p></details>
+      <details><summary>Une application affiche « À reconnecter »</summary><p>L'accès a expiré ou a été retiré chez Google ou Slack. Cliquez sur « Reconnecter » sur sa tuile, dans Mes connexions.</p></details>
+      <details><summary>Une exécution est « Interrompu »</summary><p>Le serveur a redémarré pendant qu'elle tournait ou attendait. Relancez-la avec le bouton Relancer.</p></details>
+      <details><summary>Où retrouver un fichier téléchargé par l'agent ?</summary><p>Dans l'onglet Fichiers de l'exécution. Pour un agent, le menu ⋮ › Dernière exécution y mène directement.</p></details>
+    </section>
+  </article>
+</div>
+<script>
+// Search, as on documentation sites: Ctrl K (or /) opens it, results appear as you type,
+// grouped by section with the words found highlighted; Enter jumps to the passage.
+(() => {
+  const dlg = document.getElementById("searchDlg"), input = document.getElementById("searchInput"), out = document.getElementById("searchResults");
+  if (/Mac|iPhone|iPad/.test(navigator.platform)) {
+    document.getElementById("searchKbd").textContent = "⌘ K";
+    document.getElementById("searchOpen").setAttribute("aria-keyshortcuts", "Meta+K");
+  }
+  const esc = (t) => t.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  // Lowercase without accents, one character for one: positions stay aligned with the original text.
+  const fold = (t) => [...t].map(c => { const n = c.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase(); return n.length === 1 ? n : c.toLowerCase(); }).join("");
+  const clean = (t) => t.replace(/\s+/g, " ").trim();
+
+  // The index: every section title, sub-title and passage of the article.
+  const entries = [];
+  document.querySelectorAll("article section[id]").forEach(sec => {
+    const h2 = sec.querySelector("h2");
+    const title = clean([...h2.childNodes].filter(n => !n.classList?.contains("num")).map(n => n.textContent).join(""));
+    entries.push({ kind: "section", section: title, sub: "", text: title, el: sec, id: sec.id });
+    let sub = "";
+    sec.querySelectorAll("h3, p, li, figcaption, summary, td:last-child, .tip-box, .warn-box").forEach(el => {
+      if (el.tagName === "H3") {
+        sub = clean(el.textContent);
+        if (!el.id) el.id = `${sec.id}-${fold(sub).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+        entries.push({ kind: "sub", section: title, sub, text: sub, el, id: el.id });
+        return;
+      }
+      if (el.closest(".tip-box, .warn-box") && !el.matches(".tip-box, .warn-box")) return;  // the box is indexed as a whole
+      if (el.tagName === "LI" && el.querySelector("li")) return;
+      const text = clean(el.matches("td") ? `${el.previousElementSibling?.textContent || ""} : ${el.textContent}` : el.textContent);
+      // In the FAQ, the answer is shown under its question.
+      const summary = el.tagName !== "SUMMARY" && el.closest("details")?.querySelector("summary");
+      const label = summary ? clean(summary.textContent) : "";
+      if (text.length > 2) entries.push({ kind: "text", section: title, sub, label, text, el, id: sec.id });
+    });
+  });
+  entries.forEach(e => { e.f = fold(e.text); e.fs = fold(`${e.section} ${e.sub}`); });
+
+  // The text with <mark> around the words found; long passages are cut around the first one.
+  function highlight(text, terms, max) {
+    const f = fold(text);
+    let start = 0;
+    if (max && text.length > max) {
+      const hits = terms.map(t => f.indexOf(t)).filter(i => i >= 0);
+      const first = hits.length ? Math.min(...hits) : 0;
+      start = Math.max(0, first - 50);
+      if (start > 0) { const sp = text.indexOf(" ", start); if (sp > 0 && sp < first) start = sp + 1; }
+    }
+    const end = max ? Math.min(text.length, start + max) : text.length;
+    const marks = new Array(text.length).fill(false);
+    for (const t of terms) {
+      let i = f.indexOf(t, start);
+      while (i >= 0 && i < end) { for (let k = i; k < i + t.length; k++) marks[k] = true; i = f.indexOf(t, i + t.length); }
+    }
+    let html = "", open = false;
+    for (let i = start; i < end; i++) {
+      if (marks[i] !== open) { html += marks[i] ? "<mark>" : "</mark>"; open = marks[i]; }
+      html += esc(text[i]);
+    }
+    if (open) html += "</mark>";
+    return (start > 0 ? "…" : "") + html + (end < text.length ? "…" : "");
+  }
+
+  const reEscape = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  function search(q) {
+    const terms = fold(q).split(/\s+/).filter(t => t.length > 1 || /\d/.test(t));
+    if (!terms.length) return entries.filter(e => e.kind === "section");
+    const found = [];
+    for (const e of entries) {
+      const hay = `${e.f} ${e.fs}`;
+      if (!terms.every(t => hay.includes(t))) continue;  // every word must be there
+      let score = 0;
+      for (const t of terms) {
+        if (e.kind !== "text" && e.f.includes(t)) score += e.kind === "section" ? 30 : 20;
+        if (e.f.includes(t)) score += 4 + (new RegExp(`(^|[^a-z0-9])${reEscape(t)}`).test(e.f) ? 3 : 0);  // start of a word
+        if (e.fs.includes(t)) score += 2;
+      }
+      found.push({ e, score: score - Math.min(e.text.length / 400, 2) });
+    }
+    // Best first, at most 4 passages per section and 30 in all, grouped by section.
+    found.sort((a, b) => b.score - a.score);
+    const per = {}, kept = [];
+    for (const r of found) {
+      per[r.e.section] = (per[r.e.section] || 0) + 1;
+      if (per[r.e.section] <= 4) kept.push(r.e);
+      if (kept.length >= 30) break;
+    }
+    const order = [...new Set(kept.map(e => e.section))];
+    return order.flatMap(sec => kept.filter(e => e.section === sec));
+  }
+
+  let results = [], active = 0;
+  function render() {
+    const q = input.value.trim(), terms = fold(q).split(/\s+/).filter(Boolean);
+    results = search(q);
+    if (!results.length) {
+      out.innerHTML = `<div class="search-empty">Aucun résultat pour « ${esc(q)} ».<br>Essayez un mot plus simple : agent, chaîne, connexion, validation, fichier…</div>`;
+      input.removeAttribute("aria-activedescendant");
+      return;
+    }
+    let last = null;
+    out.innerHTML = (q ? "" : '<div class="search-group">Sections du guide</div>') + results.map((e, i) => {
+      const group = q && e.section !== last ? `<div class="search-group">${esc(e.section)}</div>` : "";
+      last = e.section;
+      // The section is the group heading: a result only adds its sub-title (h3) and, in the FAQ, the question.
+      const hl = (t, max) => q ? highlight(t, terms, max) : esc(t);
+      const title = e.kind === "text" ? e.label : e.text;
+      const crumb = e.kind === "section" ? (q ? "Section" : "") : e.kind === "text" ? e.sub : "";
+      return `${group}<a class="search-item" role="option" id="sr${i}" href="#${e.id}" data-i="${i}" aria-selected="false">
+        ${crumb ? `<span class="crumb">${esc(crumb)}</span>` : ""}${title ? `<span class="title">${hl(title)}</span>` : ""}
+        ${e.kind === "text" ? `<span class="snippet">${hl(e.text, 170)}</span>` : ""}</a>`;
+    }).join("");
+    select(0);
+  }
+  function select(i) {
+    active = Math.max(0, Math.min(results.length - 1, i));
+    out.querySelectorAll(".search-item").forEach(a => a.setAttribute("aria-selected", String(+a.dataset.i === active)));
+    const el = document.getElementById(`sr${active}`);
+    if (el) { input.setAttribute("aria-activedescendant", el.id); el.scrollIntoView({ block: "nearest" }); }
+  }
+  function go(i) {
+    const e = results[i]; if (!e) return;
+    dlg.close();
+    const el = e.el;
+    el.closest("details")?.setAttribute("open", "");
+    history.replaceState(null, "", `#${e.id}`);
+    el.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: e.kind === "section" ? "start" : "center" });
+    el.classList.remove("search-hit"); void el.offsetWidth; el.classList.add("search-hit");  // restart the flash
+  }
+  function open() {
+    if (dlg.open) return;
+    dlg.showModal(); input.select(); render();
+  }
+
+  document.getElementById("searchOpen").addEventListener("click", open);
+  addEventListener("keydown", (e) => {
+    const t = document.activeElement, typing = /^(INPUT|TEXTAREA|SELECT)$/.test(t?.tagName) || t?.isContentEditable;
+    if ((e.key === "k" || e.key === "K") && (e.ctrlKey || e.metaKey)) { e.preventDefault(); dlg.open ? dlg.close() : open(); }
+    else if (e.key === "/" && !typing && !dlg.open) { e.preventDefault(); open(); }
+  });
+  input.addEventListener("input", render);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); select(active + 1); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); select(active - 1); }
+    else if (e.key === "Enter") { e.preventDefault(); go(active); }
+    else if (e.key === "Escape") { e.preventDefault(); dlg.close(); }  // a search field would first clear itself
+  });
+  out.addEventListener("click", (e) => { const a = e.target.closest(".search-item"); if (a) { e.preventDefault(); go(+a.dataset.i); } });
+  out.addEventListener("mousemove", (e) => { const a = e.target.closest(".search-item"); if (a && +a.dataset.i !== active) select(+a.dataset.i); });
+  dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });  // click on the backdrop
+})();
+</script>
+<script>
+// Highlights the section being read in the table of contents.
+(() => {
+  const links = [...document.querySelectorAll('.toc a[href^="#"]')];
+  const sections = links.map(a => document.getElementById(a.getAttribute("href").slice(1))).filter(Boolean);
+  const toc = document.querySelector(".toc");
+  let current = null, frame = 0;
+  function update() {
+    frame = 0;
+    const atBottom = innerHeight + scrollY >= document.documentElement.scrollHeight - 4;
+    // The last section whose top has passed just under the sticky header.
+    let active = atBottom ? sections[sections.length - 1] : sections[0];
+    if (!atBottom) for (const s of sections) if (s.getBoundingClientRect().top <= 110) active = s;
+    if (active === current) return;
+    current = active;
+    links.forEach(a => {
+      const on = a.getAttribute("href") === `#${active.id}`;
+      if (on) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current");
+      // Keep the highlighted entry visible when the table of contents scrolls on its own.
+      if (on && toc.scrollHeight > toc.clientHeight) {
+        const top = a.getBoundingClientRect().top - toc.getBoundingClientRect().top + toc.scrollTop, bottom = top + a.offsetHeight;
+        if (top < toc.scrollTop) toc.scrollTop = top - 8;
+        else if (bottom > toc.scrollTop + toc.clientHeight) toc.scrollTop = bottom - toc.clientHeight + 8;
+      }
+    });
+  }
+  addEventListener("scroll", () => { if (!frame) frame = requestAnimationFrame(update); }, { passive: true });
+  addEventListener("resize", update);
+  addEventListener("hashchange", () => requestAnimationFrame(update));
+  update();
+})();
+</script>
+</body>
+</html>
