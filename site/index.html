@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="AutoCollab confie vos tâches web répétitives à des agents IA qui travaillent dans un vrai navigateur, sous vos yeux. Hébergé en France.">
+<meta property="og:title" content="AutoCollab">
+<meta property="og:description" content="Moins de copier-coller. Plus de temps pour l'essentiel.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#127A5A">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<title>AutoCollab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: one calm column (1080px). Hero = short promise + one friendly product card; then use cases, 3 steps, plans, questions. Pastel tiles carry the warmth. */
+:root {
+  --bg: #FFFDFA; --surface: #FFFFFF; --soft: #F6F3EE; --line: #ECE6DE;
+  --ink: #1F2A27; --ink-2: #4A5550; --muted: #77817C;
+  --accent: #127A5A; --accent-ink: #FFFFFF; --accent-soft: #E2F3EC;
+  --sun: #FFD873; --mint: #DDF2E8; --peach: #FFE6D6; --sky: #DFEBFF; --lilac: #ECE4FB;
+  --font: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --shadow: 0 2px 4px rgb(60 45 30 / .04), 0 24px 48px -24px rgb(60 45 30 / .22);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141816; --surface: #1C211F; --soft: #222826; --line: #2E3532;
+    --ink: #F1F4F2; --ink-2: #C9D1CD; --muted: #95A09B;
+    --accent: #5BD1A6; --accent-ink: #0B231B; --accent-soft: #1C3A30;
+    --sun: #E8BE4F; --mint: #1F3A30; --peach: #3D2C22; --sky: #233249; --lilac: #2F2843;
+    --shadow: 0 2px 4px rgb(0 0 0 / .3), 0 24px 48px -24px rgb(0 0 0 / .7);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141816; --surface: #1C211F; --soft: #222826; --line: #2E3532;
+  --ink: #F1F4F2; --ink-2: #C9D1CD; --muted: #95A09B;
+  --accent: #5BD1A6; --accent-ink: #0B231B; --accent-soft: #1C3A30;
+  --sun: #E8BE4F; --mint: #1F3A30; --peach: #3D2C22; --sky: #233249; --lilac: #2F2843;
+  --shadow: 0 2px 4px rgb(0 0 0 / .3), 0 24px 48px -24px rgb(0 0 0 / .7);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { animation: none !important; transition: none !important; } }
+body { background: var(--bg); color: var(--ink); font: clamp(16px, 1.05vw, 18px)/1.65 var(--font); -webkit-font-smoothing: antialiased; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+.wrap { width: 100%; max-width: 1360px; margin-inline: auto; padding-inline: clamp(20px, 4vw, 56px); }
+h1, h2, h3 { margin: 0; text-wrap: balance; letter-spacing: -.02em; }
+h1 { font-size: clamp(2rem, 3.7vw, 3.5rem); line-height: 1.05; font-weight: 800; }
+h2 { font-size: clamp(1.7rem, 2.8vw, 2.8rem); line-height: 1.15; font-weight: 800; }
+h3 { font-size: 1.15rem; font-weight: 700; letter-spacing: -.01em; }
+p { margin: 0; }
+section { padding-block: clamp(64px, 9vw, 136px); }
+.head { display: flex; flex-direction: column; gap: 14px; max-width: 720px; margin-bottom: clamp(36px, 4vw, 56px); }
+.head p { color: var(--ink-2); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 24px; border-radius: 999px; font: 700 1rem var(--font); text-decoration: none; border: 1.5px solid transparent; cursor: pointer; transition: transform .15s, background .15s; }
+.btn:hover { transform: translateY(-1px); }
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-soft { background: var(--surface); color: var(--ink); border-color: var(--line); }
+
+/* nav */
+.nav .wrap { display: flex; align-items: center; gap: 20px; min-height: 72px; }
+.logo { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; color: var(--ink); text-decoration: none; letter-spacing: -.02em; }
+.logo i { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }
+.logo svg { width: 16px; height: 16px; }
+.links { display: flex; gap: 24px; margin-left: auto; }
+.links a { white-space: nowrap; }
+@media (max-width: 1080px) { .links { gap: 16px; } }
+@media (max-width: 960px) { .links a[href^="#comparaison"] { display: none; } }
+@media (max-width: 860px) { .links a[href^="#questions"] { display: none; } }
+.links a { color: var(--ink-2); text-decoration: none; font-weight: 600; font-size: .95rem; }
+.links a:hover { color: var(--ink); }
+.lang { display: inline-flex; border: 1.5px solid var(--line); border-radius: 999px; padding: 3px; }
+.lang button { border: 0; background: transparent; color: var(--muted); font: 700 .8rem var(--font); padding: 6px 10px; border-radius: 999px; cursor: pointer; min-width: 40px; min-height: 32px; }
+.lang button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+@media (max-width: 760px) { .links, .nav .btn { display: none; } .lang { margin-left: auto; } }
+
+/* hero */
+.hero { padding-block: clamp(32px, 6vw, 72px) clamp(56px, 8vw, 88px); }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 96px); align-items: center; }
+@media (max-width: 880px) { .hero .wrap { grid-template-columns: minmax(0, 1fr); } }
+.hero-copy { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.hero-copy .sub { font-size: clamp(1.1rem, 1.3vw, 1.3rem); color: var(--ink-2); max-width: 46ch; }
+.hero-copy .sun { background: var(--sun); color: #1F2A27; padding: 0 .18em; border-radius: .25em; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.trust { display: flex; flex-wrap: wrap; gap: 8px; }
+.trust span { display: inline-flex; align-items: center; gap: 6px; background: var(--soft); border-radius: 999px; padding: 5px 12px; font-size: .86rem; font-weight: 600; color: var(--ink-2); }
+.trust svg { width: 14px; height: 14px; color: var(--accent); }
+
+/* product card */
+.stage { position: relative; min-width: 0; padding: 20px; border-radius: 28px; background: var(--mint); }
+.card { background: var(--surface); border-radius: 20px; box-shadow: var(--shadow); padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.card-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.card-top strong { flex: 1; min-width: 180px; font-size: 1.02rem; }
+.badge { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: .78rem; border-radius: 999px; padding: 3px 10px; }
+.badge i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.card ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.card li { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 12px; font-size: .95rem; opacity: 0; animation: pop .4s ease forwards; }
+.card li:nth-child(1) { animation-delay: .2s; } .card li:nth-child(2) { animation-delay: .5s; } .card li:nth-child(3) { animation-delay: .8s; } .card li:nth-child(4) { animation-delay: 1.1s; }
+.card li:last-child { background: var(--soft); }
+@keyframes pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.card li span:first-child { width: 24px; height: 24px; flex: none; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; }
+.card li svg { width: 13px; height: 13px; }
+.card li em { margin-left: auto; font-style: normal; color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.done { display: flex; align-items: center; gap: 12px; background: var(--peach); border-radius: 14px; padding: 12px 14px; font-size: .93rem; }
+.done svg { width: 22px; height: 22px; flex: none; color: var(--ink); }
+.done b { display: block; }
+.done small { color: var(--ink-2); }
+.note { position: absolute; right: -6px; bottom: -14px; background: var(--sun); color: #1F2A27; font-weight: 700; font-size: .85rem; border-radius: 999px; padding: 6px 14px; transform: rotate(-3deg); box-shadow: var(--shadow); }
+@media (max-width: 480px) { .note { right: 8px; } }
+
+/* use cases */
+.cases { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 900px) { .cases { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .cases { grid-template-columns: minmax(0, 1fr); } }
+.case { border-radius: 22px; padding: 22px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.case .ic { width: 42px; height: 42px; border-radius: 14px; background: var(--surface); display: grid; place-items: center; color: var(--ink); }
+.case .ic svg { width: 20px; height: 20px; }
+.case p { color: var(--ink-2); font-size: .95rem; }
+
+/* steps */
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; counter-reset: s; }
+@media (max-width: 820px) { .steps { grid-template-columns: minmax(0, 1fr); } }
+.step { background: var(--surface); border: 1.5px solid var(--line); border-radius: 22px; padding: 24px; display: flex; flex-direction: column; gap: 10px; counter-increment: s; }
+.step::before { content: counter(s); width: 34px; height: 34px; border-radius: 50%; background: var(--sun); color: #1F2A27; font-weight: 800; display: grid; place-items: center; }
+.step p { color: var(--ink-2); font-size: .97rem; }
+
+/* pricing */
+.price-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
+.price-head .head { margin: 0; }
+.bill { display: inline-flex; background: var(--soft); border-radius: 999px; padding: 4px; }
+.bill button { border: 0; background: transparent; color: var(--ink-2); font: 700 .92rem var(--font); padding: 9px 18px; border-radius: 999px; cursor: pointer; min-height: 40px; }
+.bill button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgb(0 0 0 / .1); }
+.bill small { color: var(--accent); font-weight: 700; }
+.plans { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 1020px) { .plans { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .plans { grid-template-columns: minmax(0, 1fr); } }
+.plan.free { background: var(--soft); border-style: dashed; }
+.plan.free .credits { background: var(--surface); }
+.plans .plan .btn { padding: 0 12px; font-size: .94rem; white-space: nowrap; }
+.plan { background: var(--surface); border: 1.5px solid var(--line); border-radius: 24px; padding: 26px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.plan.best { border-color: var(--accent); box-shadow: var(--shadow); }
+.plan-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.plan-top span { background: var(--sun); color: #1F2A27; font-size: .76rem; font-weight: 800; border-radius: 999px; padding: 3px 10px; }
+.plan .who { color: var(--muted); font-size: .93rem; margin-top: -10px; }
+.amount { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.amount b { font-size: 2.3rem; font-weight: 800; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.amount span { color: var(--muted); font-size: .92rem; }
+.yearly { color: var(--muted); font-size: .84rem; min-height: 1.35em; margin-top: -10px; }
+.credits { background: var(--soft); border-radius: 14px; padding: 12px 14px; font-size: .92rem; color: var(--ink-2); }
+.credits b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.plan ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; color: var(--ink-2); font-size: .95rem; flex: 1; }
+.plan li { display: flex; gap: 10px; }
+.plan li svg { width: 16px; height: 16px; flex: none; color: var(--accent); margin-top: 4px; }
+.plan .btn { width: 100%; }
+.fine { margin-top: 20px; color: var(--muted); font-size: .9rem; max-width: 760px; }
+
+/* faq */
+.faq { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 40px; }
+@media (max-width: 820px) { .faq { grid-template-columns: minmax(0, 1fr); gap: 20px; } }
+details { background: var(--surface); border: 1.5px solid var(--line); border-radius: 18px; padding: 16px 20px; }
+details + details { margin-top: 10px; }
+summary { cursor: pointer; font-weight: 700; list-style: none; display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; width: 26px; height: 26px; flex: none; border-radius: 50%; background: var(--soft); display: grid; place-items: center; font-weight: 700; }
+details[open] summary::after { content: "–"; background: var(--sun); color: #1F2A27; }
+details p { margin-top: 10px; color: var(--ink-2); font-size: .97rem; }
+
+/* contact */
+.contact { background: var(--accent); color: var(--accent-ink); border-radius: 32px; padding: clamp(28px, 5vw, 52px); display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 28px; align-items: center; }
+@media (max-width: 820px) { .contact { grid-template-columns: minmax(0, 1fr); } }
+.contact h2 { color: var(--accent-ink); }
+.contact p { margin-top: 10px; opacity: .85; }
+footer { margin-top: clamp(24px, 4vw, 48px); background: var(--soft); border-top: 1px solid var(--line); color: var(--ink-2); font-size: .95rem; }
+.foot-top { display: grid; grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); gap: clamp(28px, 4vw, 56px); padding-block: clamp(48px, 6vw, 80px) clamp(36px, 4vw, 56px); }
+@media (max-width: 900px) { .foot-top { grid-template-columns: repeat(3, minmax(0, 1fr)); } .foot-brand { grid-column: 1 / -1; } }
+@media (max-width: 560px) { .foot-top { grid-template-columns: repeat(2, minmax(0, 1fr)); } .foot-contact { grid-column: 1 / -1; } }
+.foot-brand { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; max-width: 360px; }
+.foot-brand p { color: var(--muted); }
+.foot-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+.foot-badges > span { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-size: .82rem; font-weight: 600; color: var(--ink-2); }
+.foot-badges svg { width: 14px; height: 14px; color: var(--accent); }
+.foot-col h3 { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 14px; }
+.foot-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.foot-col a { color: var(--ink-2); text-decoration: none; font-weight: 500; overflow-wrap: break-word; transition: color .15s; }
+.foot-col a:hover { color: var(--accent); }
+.foot-col .tag-new { margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: .72rem; font-weight: 700; vertical-align: 1px; }
+.foot-bottom { display: flex; justify-content: space-between; align-items: center; gap: 12px 24px; flex-wrap: wrap; padding-block: 20px calc(24px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+.foot-bottom .to-top { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-weight: 600; text-decoration: none; }
+.foot-bottom .to-top:hover { color: var(--accent); }
+.foot-bottom .to-top svg { width: 15px; height: 15px; }
+
+
+.plan li.speed { color: var(--ink); font-weight: 700; }
+.plan li.speed svg { color: #1F2A27; background: var(--sun); border-radius: 50%; padding: 3px; width: 20px; height: 20px; margin-top: 2px; }
+/* --- marketing: pioneer offer, comparison, demo form --- */
+.pioneer { align-self: flex-start; display: inline-flex; align-items: center; gap: 10px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 999px; padding: 5px 14px 5px 5px; font-size: .9rem; font-weight: 600; color: var(--ink); text-decoration: none; box-shadow: 0 1px 2px rgb(0 0 0 / .04); transition: border-color .15s; }
+.pioneer:hover { border-color: var(--accent); }
+.pioneer b { background: var(--sun); color: #1F2A27; border-radius: 999px; padding: 2px 10px; font-size: .8rem; }
+.compare { overflow-x: auto; background: var(--surface); border: 1.5px solid var(--line); border-radius: 22px; }
+.compare table { width: 100%; border-collapse: collapse; min-width: 620px; }
+.compare th, .compare td { padding: 14px 18px; border-bottom: 1px solid var(--line); text-align: center; font-size: .95rem; }
+.compare th:first-child, .compare td:first-child { text-align: left; color: var(--ink-2); }
+.compare thead th { font-weight: 700; color: var(--ink); }
+.compare tr:last-child td { border-bottom: 0; }
+.compare .us { background: var(--accent-soft); }
+.compare thead .us { color: var(--accent); border-radius: 16px 16px 0 0; }
+.compare svg { width: 18px; height: 18px; vertical-align: middle; }
+.compare td svg[aria-label="oui"] { color: var(--accent); }
+.compare td svg[aria-label="non"] { color: var(--muted); }
+.compare .part { font-size: .82rem; font-weight: 700; color: var(--ink-2); background: var(--sun); border-radius: 999px; padding: 2px 10px; }
+.offer { margin-top: 18px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; background: var(--sun); color: #1F2A27; border-radius: 22px; padding: 18px 22px; }
+.offer p { flex: 1; min-width: 240px; }
+.offer strong { font-weight: 800; }
+.offer .btn { background: #1F2A27; color: #FFFDFA; }
+.demo-form { background: var(--surface); color: var(--ink); border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.demo-form .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+@media (max-width: 520px) { .demo-form .row { grid-template-columns: minmax(0, 1fr); } }
+.demo-form label { display: flex; flex-direction: column; gap: 5px; font-size: .86rem; font-weight: 700; color: var(--ink-2); }
+.demo-form input, .demo-form textarea { font: 1rem var(--font); color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; min-height: 44px; width: 100%; }
+.demo-form textarea { min-height: 76px; resize: vertical; }
+.demo-form input:focus, .demo-form textarea:focus { outline: none; border-color: var(--accent); }
+.demo-form .btn { align-self: flex-start; }
+.demo-form .alt { font-size: .84rem; color: var(--muted); }
+.demo-form .alt a { font-weight: 700; }
+.form-msg { font-size: .9rem; font-weight: 600; border-radius: 12px; padding: 10px 12px; background: var(--accent-soft); color: var(--accent); }
+.form-msg.err { background: var(--peach); color: var(--ink); }
+/* --- motion: reveals, parallax, tilt (all off with prefers-reduced-motion) --- */
+.hero { position: relative; isolation: isolate; }
+.nav { position: relative; z-index: 2; }
+.blobs { position: absolute; inset: -80px 0 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.blob { position: absolute; border-radius: 50%; filter: blur(48px); opacity: .7; will-change: transform; }
+.blob.b1 { width: 380px; height: 380px; background: var(--mint); top: 40px; right: 6%; }
+.blob.b2 { width: 260px; height: 260px; background: var(--sun); top: 330px; right: 34%; opacity: .45; }
+.blob.b3 { width: 300px; height: 300px; background: var(--lilac); top: -40px; left: -80px; opacity: .6; }
+.stage { will-change: transform; }
+.card { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .25s ease-out; }
+.card li { opacity: 1; animation: none; }
+.card ol.play li { animation: pop .45s ease both; }
+.card ol.play li:nth-child(1) { animation-delay: .1s; } .card ol.play li:nth-child(2) { animation-delay: .55s; }
+.card ol.play li:nth-child(3) { animation-delay: 1s; } .card ol.play li:nth-child(4) { animation-delay: 1.45s; }
+.card ol.play + .done { animation: pop .5s ease 1.9s both; }
+.card ol.play li:last-child span:first-child { animation: ping 1.2s ease 1.6s 1; }
+@keyframes ping { 0% { box-shadow: 0 0 0 0 var(--accent); } 100% { box-shadow: 0 0 0 12px transparent; } }
+.note { animation: bob 3.6s ease-in-out infinite; }
+@keyframes bob { 0%, 100% { transform: rotate(-3deg) translateY(0); } 50% { transform: rotate(-1deg) translateY(-6px); } }
+.hero h1 .w { display: inline-block; animation: rise .7s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--i) * 60ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+.motion .rv { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .8s cubic-bezier(.2,.7,.2,1); transition-delay: var(--d, 0ms); }
+.motion .rv.in { opacity: 1; transform: none; }
+.case { transition: transform .25s ease, box-shadow .25s ease; }
+.motion .case.rv.in:hover, .case:hover { transform: translateY(-6px) rotate(-.6deg); box-shadow: var(--shadow); transition-delay: 0ms; }
+.case:hover .ic svg { animation: wiggle .5s ease; }
+@keyframes wiggle { 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
+.plan { transition: transform .25s ease, box-shadow .25s ease; }
+.motion .plan.rv.in:hover, .plan:hover { transform: translateY(-4px); box-shadow: var(--shadow); transition-delay: 0ms; }
+.step::before { transition: transform .3s ease; }
+.step:hover::before { transform: scale(1.15) rotate(-8deg); }
+.amount b { transition: opacity .2s ease; }
+.amount b.swap { opacity: 0; }
+.contact { position: relative; overflow: hidden; }
+.contact > * { position: relative; }
+.contact .ring { position: absolute; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--accent-ink) 22%, transparent); pointer-events: none; will-change: transform; }
+.contact .ring.r1 { width: 260px; height: 260px; right: -60px; top: -90px; }
+.contact .ring.r2 { width: 140px; height: 140px; left: 38%; bottom: -70px; }
+@media (prefers-reduced-motion: reduce) {
+  .note, .hero h1 .w, .card ol.play li, .card ol.play + .done { animation: none !important; }
+  .card { transform: none !important; }
+}
+</style>
+<style>
+html { color-scheme: light; }
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Navigation">
+  <div class="wrap">
+    <a class="logo" href="#top"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l5 13.5 2.2-6.3L16.5 8z"/><path d="M13 13l2.6 8 1.3-3.7 3.7-1.3z"/></svg></i>AutoCollab</a>
+    <div class="links">
+      <a href="#usages" data-t="nav_uses">Usages</a>
+      <a href="#comparaison" data-t="nav_why">Pourquoi nous</a>
+      <a href="#tarifs" data-t="nav_pricing">Tarifs</a>
+      <a href="#questions" data-t="nav_faq">Questions</a>
+      <a href="guide/index.html" data-t="nav_guide">Guide</a>
+      <a href="developpeurs/index.html" data-t="nav_dev">Développeurs</a>
+    </div>
+    <div class="lang" role="group" aria-label="Langue / Language">
+      <button type="button" data-lang="fr" aria-pressed="true">FR</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+    <a class="btn btn-primary" href="#contact" data-t="cta_demo">Demander une démo</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="blobs" aria-hidden="true"><span class="blob b1" data-speed="0.18"></span><span class="blob b2" data-speed="0.32"></span><span class="blob b3" data-speed="-0.12"></span></div>
+  <div class="wrap">
+    <div class="hero-copy">
+      <a class="pioneer" href="#tarifs"><b data-t="pio_tag">Pionniers</b><span data-t="pio_line">−50 % à vie sur Équipe et Entreprise pour les 20 premiers clients</span></a>
+      <h1 data-t="h1">Vos tâches web répétitives, faites par des agents IA.</h1>
+      <p class="sub" data-t="sub" data-html>Décrivez une tâche en une phrase. Un agent la fait <span class="sun">dans un vrai navigateur</span> et vous montre chaque étape.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="#contact" data-t="cta_demo">Demander une démo</a>
+        <a class="btn btn-soft" href="#tarifs" data-t="cta_pricing">Voir les tarifs</a>
+      </div>
+      <div class="trust">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-t="trust1">Vous validez avant chaque envoi</span></span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-t="trust2">Hébergé en France</span></span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-t="trust3">Sans code</span></span>
+      </div>
+    </div>
+
+    <div class="stage" data-speed="-0.06">
+      <figure class="card" style="margin: 0" aria-label="Exemple de tâche">
+        <div class="card-top">
+          <strong data-t="run_title">Factures fournisseurs d'octobre</strong>
+          <span class="badge"><i></i><span data-t="run_status">Terminé</span></span>
+        </div>
+        <ol>
+          <li><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span data-t="run_s1">Ouvrir le portail fournisseur</span><em>09:02</em></li>
+          <li><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span data-t="run_s2">Filtrer sur octobre 2026</span><em>09:02</em></li>
+          <li><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span data-t="run_s3">Télécharger les 12 factures</span><em>09:03</em></li>
+          <li><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span data-t="run_s4">Les ranger dans Drive</span><em>09:04</em></li>
+        </ol>
+        <div class="done">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg>
+          <span><b data-t="run_done">12 factures enregistrées</b><small>Drive › Factures › 2026-10</small></span>
+        </div>
+      </figure>
+      <span class="note" data-t="run_note">Pendant que vous faites autre chose</span>
+    </div>
+  </div>
+</header>
+
+<section id="usages" style="padding-top: 0">
+  <div class="wrap">
+    <div class="head">
+      <h2 data-t="uses_h">Pour toutes les tâches qui se répètent sur le web.</h2>
+      <p data-t="uses_p">Si vous le faites à la main chaque semaine dans un navigateur, un agent peut le faire.</p>
+    </div>
+    <div class="cases">
+      <div class="case" style="background: var(--mint)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg></span><h3 data-t="c1_h">Finance</h3><p data-t="c1_p">Relevés bancaires, factures, pièces manquantes, rapprochements.</p></div>
+      <div class="case" style="background: var(--peach)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M17 11l2 2 4-4"/></svg></span><h3 data-t="c2_h">RH</h3><p data-t="c2_p">Déclarations, attestations, plannings, suivi des absences.</p></div>
+      <div class="case" style="background: var(--sky)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></svg></span><h3 data-t="c3_h">E-commerce</h3><p data-t="c3_p">Commandes, stocks, retours, réponses aux avis clients.</p></div>
+      <div class="case" style="background: var(--lilac)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12H5.2L4 17.2z"/><path d="M8 9h8M8 12h5"/></svg></span><h3 data-t="c4_h">Ventes et admin</h3><p data-t="c4_p">CRM, devis, relances par e-mail, mise à jour de tableaux.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="comparaison" style="padding-top: 0">
+  <div class="wrap">
+    <div class="head">
+      <h2 data-t="cmp_h">Pourquoi pas un outil d'automatisation classique ?</h2>
+      <p data-t="cmp_p">Les outils à connecteurs s'arrêtent là où il n'y a pas d'API : portails fournisseurs, banques, sites administratifs. Un agent travaille dans le navigateur, comme vous.</p>
+    </div>
+    <div class="compare">
+      <table>
+        <thead><tr><th></th><th data-t="cmp_c1">Zapier, Make</th><th data-t="cmp_c2">Agents IA dans le cloud</th><th class="us">AutoCollab</th></tr></thead>
+        <tbody>
+          <tr><td data-t="cmp_r1">Fonctionne sur les sites sans API</td><td><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-label="non" role="img"><path d="M18 6 6 18M6 6l12 12"/></svg></td><td><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-label="oui" role="img"><path d="M20 6 9 17l-5-5"/></svg></td><td class="us"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-label="oui" role="img"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+          <tr><td data-t="cmp_r2">Vous voyez chaque étape en direct</td><td><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-label="non" role="img"><path d="M18 6 6 18M6 6l12 12"/></svg></td><td><span class="part" data-t="partial">Partiel</span></td><td class="us"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-label="oui" role="img"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+          <tr><td data-t="cmp_r3">Validation avant chaque envoi</td><td><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-label="non" role="img"><path d="M18 6 6 18M6 6l12 12"/></svg></td><td><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-label="non" role="img"><path d="M18 6 6 18M6 6l12 12"/></svg></td><td class="us"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-label="oui" role="img"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+          <tr><td data-t="cmp_r4">Données hébergées en France</td><td><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-label="non" role="img"><path d="M18 6 6 18M6 6l12 12"/></svg></td><td><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-label="non" role="img"><path d="M18 6 6 18M6 6l12 12"/></svg></td><td class="us"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-label="oui" role="img"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+          <tr><td data-t="cmp_r5">Sans code, une phrase suffit</td><td><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-label="non" role="img"><path d="M18 6 6 18M6 6l12 12"/></svg></td><td><span class="part" data-t="partial">Partiel</span></td><td class="us"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-label="oui" role="img"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section style="background: var(--soft)">
+  <div class="wrap">
+    <div class="head"><h2 data-t="how_h">Simple comme un message à un collègue.</h2></div>
+    <div class="steps">
+      <div class="step"><h3 data-t="s1_h">Décrivez la tâche</h3><p data-t="s1_p">En une phrase : « Télécharge les factures du mois sur le portail fournisseur et range-les dans Drive. »</p></div>
+      <div class="step"><h3 data-t="s2_h">Regardez l'agent travailler</h3><p data-t="s2_p">Il ouvre les sites, clique, remplit et télécharge. Vous suivez chaque étape en direct.</p></div>
+      <div class="step"><h3 data-t="s3_h">Validez, c'est fait</h3><p data-t="s3_p">Avant d'envoyer ou de modifier quoi que ce soit, il vous demande votre accord.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="tarifs">
+  <div class="wrap">
+    <div class="price-head">
+      <div class="head">
+        <h2 data-t="price_h">Des offres simples, des crédits inclus.</h2>
+        <p data-t="price_p">Une tâche courante consomme environ 30 crédits. Prix hors taxes.</p>
+      </div>
+      <div class="bill" role="group" aria-label="Facturation">
+        <button type="button" id="billM" aria-pressed="true" data-t="monthly">Mensuel</button>
+        <button type="button" id="billY" aria-pressed="false"><span data-t="yearly">Annuel</span> <small data-t="save">-2 mois</small></button>
+      </div>
+    </div>
+    <div class="plans">
+      <article class="plan free">
+        <div class="plan-top"><h3 data-t="p0_name">Gratuit</h3></div>
+        <p class="who" data-t="p0_who">Pour essayer</p>
+        <div class="amount"><b data-usd="0|0">0 $</b><span data-t="per_month">/ mois</span></div>
+        <p class="yearly" data-y-text="y0"></p>
+        <div class="credits"><b>100</b> <span data-t="p0_cr">crédits / mois, environ 3 tâches</span></div>
+        <ul>
+          <li class="speed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><span data-t="p1_f0">1 agent à la fois</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-t="p0_f1">3 agents enregistrés</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-t="p0_f2">Historique de 7 jours</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-t="p0_f3">Sans carte bancaire</span></li>
+        </ul>
+        <a class="btn btn-soft" href="#contact" data-t="p0_cta">Essayer gratuitement</a>
+      </article>
+      <article class="plan">
+        <div class="plan-top"><h3>Solo</h3></div>
+        <p class="who" data-t="p1_who">Pour une personne</p>
+        <div class="amount"><b data-usd="20|16.67">20 $</b><span data-t="per_month">/ mois</span></div>
+        <p class="yearly" data-y-text="y1"></p>
+        <div class="credits"><b>3 000</b> <span data-t="p1_cr">crédits / mois, environ 100 tâches</span></div>
+        <ul>
+          <li class="speed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><span data-t="p1_f0">1 agent à la fois</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-t="p1_f1">10 agents enregistrés</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-t="p1_f2">3 tâches planifiées</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-t="p1_f3">Historique de 3 mois</span></li>
+        </ul>
+        <a class="btn btn-soft" href="#contact" data-t="p_start">Commencer</a>
+      </article>
+      <article class="plan best">
+        <div class="plan-top"><h3 data-t="p2_name">Équipe</h3><span data-t="popular">Populaire</span></div>
+        <p class="who" data-t="p2_who">Jusqu'à 10 personnes</p>
+        <div class="amount"><b data-usd="129|107.50">129 $</b><span data-t="per_month">/ mois</span></div>
+        <p class="yearly" data-y-text="y2"></p>
+        <div class="credits"><b>20 000</b> <span data-t="p2_cr">crédits / mois, environ 660 tâches</span></div>
+        <ul>
+          <li class="speed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><span data-t="p2_f0">3 agents en même temps</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-t="p2_f1">Agents et planifications illimités</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-t="p2_f2">Règles et vocabulaire partagés par l'équipe</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-t="p2_f3">Gmail, Drive, Slack, Claude et ChatGPT</span></li>
+        </ul>
+        <a class="btn btn-primary" href="#contact" data-t="cta_demo">Demander une démo</a>
+      </article>
+      <article class="plan">
+        <div class="plan-top"><h3 data-t="p3_name">Entreprise</h3></div>
+        <p class="who" data-t="p3_who">Plusieurs équipes</p>
+        <div class="amount"><span data-t="from">dès</span><b data-usd="449|449">449 $</b><span data-t="per_month">/ mois</span></div>
+        <p class="yearly" data-y-text="y3"></p>
+        <div class="credits"><b>80 000</b> <span data-t="p3_cr">crédits / mois, environ 2 600 tâches</span></div>
+        <ul>
+          <li class="speed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><span data-t="p3_f0">10 agents en même temps, extensible</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-t="p3_f1">Utilisateurs illimités</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-t="p3_f2">Installation sur vos serveurs</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-t="p3_f3">Accompagnement dédié</span></li>
+        </ul>
+        <a class="btn btn-soft" href="#contact" data-t="p_contact">Nous contacter</a>
+      </article>
+    </div>
+    <div class="offer">
+      <p data-t="offer" data-html><strong>Offre Pionniers :</strong> −50 % à vie sur les offres Équipe et Entreprise pour les 20 premiers clients, en échange de vos retours. Et si aucun agent ne fonctionne sur vos tâches le premier mois, nous vous remboursons.</p>
+      <a class="btn" href="#contact" data-t="offer_cta">Réserver ma place</a>
+    </div>
+    <p class="fine" data-t="fine">Besoin de plus ? 10 000 crédits pour 39 $. Avec votre propre clé d'IA, une étape ne coûte que 0,2 crédit. Au-delà du nombre d'agents simultanés, les tâches attendent leur tour : aucune n'est perdue, et une tâche commencée va toujours jusqu'au bout.</p>
+  </div>
+</section>
+
+<section id="questions" style="padding-top: 0">
+  <div class="wrap faq">
+    <div class="head"><h2 data-t="faq_h">Questions fréquentes</h2></div>
+    <div>
+      <details open><summary data-t="q1">Qu'est-ce qu'un crédit ?</summary><p data-t="a1">Chaque étape d'un agent (ouvrir une page, cliquer, lire un tableau) consomme des crédits selon le modèle d'IA choisi. Une tâche courante en utilise une trentaine.</p></details>
+      <details><summary data-t="q2">L'agent peut-il agir sans moi ?</summary><p data-t="a2">Il lit et télécharge seul. Pour envoyer, valider ou supprimer, il vous demande d'abord votre accord. Vous choisissez aussi les sites qu'il a le droit d'ouvrir.</p></details>
+      <details><summary data-t="q3">Où sont mes données ?</summary><p data-t="a3">Sur votre installation, hébergée en France. Seul le texte de chaque étape est envoyé au modèle d'IA que vous choisissez.</p></details>
+      <details><summary data-t="q4">Faut-il savoir programmer ?</summary><p data-t="a4">Non. Vous écrivez la tâche en français ou en anglais, comme à un collègue.</p></details>
+    </div>
+  </div>
+</section>
+
+<section id="contact" style="padding-top: 0">
+  <div class="wrap">
+    <div class="contact">
+      <span class="ring r1" aria-hidden="true" data-speed="0.08"></span><span class="ring r2" aria-hidden="true" data-speed="-0.05"></span>
+      <div>
+        <h2 data-t="contact_h">Montrez-nous une tâche qui vous prend du temps.</h2>
+        <p data-t="contact_p">En 30 minutes, on la confie à un agent devant vous.</p>
+      </div>
+      <!-- data-endpoint: a Formspree or Netlify Forms URL sends the request directly; empty = the visitor's e-mail app opens, pre-filled -->
+      <form class="demo-form" id="demoForm" data-endpoint="" data-to="laurenziosambany@gmail.com" novalidate>
+        <div class="row">
+          <label><span data-t="f_name">Nom</span><input id="fName" name="nom" autocomplete="name" required></label>
+          <label><span data-t="f_mail">E-mail professionnel</span><input id="fMail" name="email" type="email" autocomplete="email" required></label>
+        </div>
+        <label><span data-t="f_org">Entreprise</span><input id="fOrg" name="entreprise" autocomplete="organization"></label>
+        <label><span data-t="f_task">Quelle tâche vous prend le plus de temps ?</span><textarea id="fTask" name="tache" data-tp="f_task_ph" placeholder="Ex. télécharger chaque mois les factures de 30 fournisseurs"></textarea></label>
+        <p class="form-msg" id="formMsg" role="status" hidden></p>
+        <button class="btn btn-primary" type="submit" data-t="f_send">Demander ma démo</button>
+        <p class="alt"><span data-t="f_alt">Ou écrivez directement à</span> <a href="mailto:laurenziosambany@gmail.com">laurenziosambany@gmail.com</a></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="foot-brand">
+        <a class="logo" href="#top"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l5 13.5 2.2-6.3L16.5 8z"/><path d="M13 13l2.6 8 1.3-3.7 3.7-1.3z"/></svg></i>AutoCollab</a>
+        <p data-t="foot_tag">Moins de copier-coller. Plus de temps pour l'essentiel.</p>
+        <div class="foot-badges">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-t="trust2">Hébergé en France</span></span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-t="trust1">Vous validez avant chaque envoi</span></span>
+        </div>
+      </div>
+      <nav class="foot-col" aria-labelledby="fh1">
+        <h3 id="fh1" data-t="foot_h1">Produit</h3>
+        <ul>
+          <li><a href="#usages" data-t="nav_uses">Usages</a></li>
+          <li><a href="#comparaison" data-t="nav_why">Pourquoi nous</a></li>
+          <li><a href="#tarifs" data-t="nav_pricing">Tarifs</a></li>
+          <li><a href="#questions" data-t="nav_faq">Questions</a></li>
+        </ul>
+      </nav>
+      <nav class="foot-col" aria-labelledby="fh2">
+        <h3 id="fh2" data-t="foot_h2">Ressources</h3>
+        <ul>
+          <li><a href="guide/index.html" data-t="foot_guide">Guide d'utilisation</a></li>
+          <li><a href="developpeurs/index.html"><span data-t="foot_dev">Documentation développeurs</span><span class="tag-new">MCP</span></a></li>
+          <li><a href="developpeurs/index.html#api" data-t="foot_api">API REST</a></li>
+        </ul>
+      </nav>
+      <div class="foot-col foot-contact">
+        <h3 data-t="foot_h3">Contact</h3>
+        <ul>
+          <li><a href="#contact" data-t="cta_demo">Demander une démo</a></li>
+          <li><a href="mailto:laurenziosambany@gmail.com">laurenziosambany@gmail.com</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 AutoCollab · <span data-t="foot">Prix hors taxes, à titre indicatif</span></span>
+      <a class="to-top" href="#top"><span data-t="foot_top">Retour en haut</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const T = {
+    fr: {
+      y0: "Toujours gratuit", y1: "200 $ facturés par an", y2: "1 290 $ facturés par an", y3: "Sur devis, engagement annuel",
+      f_subject: "Demande de démo AutoCollab",
+      f_ok: "Merci ! Nous vous répondons sous 24 heures ouvrées.",
+      f_mailapp: "Votre messagerie s'ouvre avec la demande prête : il ne reste qu'à l'envoyer.",
+      f_err_name: "Indiquez votre nom.", f_err_mail: "Indiquez une adresse e-mail valide.",
+      f_err_send: "L'envoi n'a pas abouti. Écrivez-nous directement à l'adresse ci-dessous.",
+    },
+    en: {
+      nav_uses: "Use cases", nav_why: "Why us", nav_pricing: "Pricing", nav_faq: "Questions", nav_guide: "Guide (FR)", foot_guide: "User guide (in French)", nav_dev: "Developers (FR)", foot_dev: "Developer docs (in French)", foot_api: "REST API", foot_tag: "Less copy-paste. More time for what matters.", foot_h1: "Product", foot_h2: "Resources", foot_h3: "Contact", foot_top: "Back to top", cta_demo: "Book a demo", cta_pricing: "See pricing",
+      h1: "Your repetitive web tasks, done by AI agents.",
+      pio_tag: "Pioneers", pio_line: "50% off Team and Enterprise for life for our first 20 customers",
+      cmp_h: "Why not a classic automation tool?",
+      cmp_p: "Connector tools stop where there is no API: supplier portals, banks, government sites. An agent works in the browser, just like you.",
+      cmp_c1: "Zapier, Make", cmp_c2: "Cloud AI agents", partial: "Partial",
+      cmp_r1: "Works on sites without an API", cmp_r2: "You see every step live", cmp_r3: "Approval before anything is sent",
+      cmp_r4: "Data hosted in France", cmp_r5: "No code, one sentence is enough",
+      offer: "<strong>Pioneer offer:</strong> 50% off the Team and Enterprise plans for life for our first 20 customers, in exchange for your feedback. And if no agent works on your tasks in the first month, we refund you.",
+      offer_cta: "Book my spot",
+      f_name: "Name", f_mail: "Work email", f_org: "Company", f_task: "Which task takes you the most time?",
+      f_task_ph: "E.g. downloading invoices from 30 suppliers every month", f_send: "Request my demo", f_alt: "Or write directly to",
+      f_subject: "AutoCollab demo request", f_ok: "Thank you! We will reply within one business day.",
+      f_mailapp: "Your email app is opening with the request ready: just send it.",
+      f_err_name: "Please enter your name.", f_err_mail: "Please enter a valid email address.",
+      f_err_send: "Sending failed. Please write to us directly at the address below.",
+      sub: 'Describe a task in one sentence. An agent does it <span class="sun">in a real browser</span> and shows you every step.',
+      trust1: "You approve before anything is sent", trust2: "Hosted in France", trust3: "No code",
+      run_title: "October supplier invoices", run_status: "Done", run_s1: "Open the supplier portal", run_s2: "Filter on October 2026",
+      run_s3: "Download the 12 invoices", run_s4: "File them in Drive", run_done: "12 invoices saved", run_note: "While you do something else",
+      uses_h: "For every task you repeat on the web.", uses_p: "If you do it by hand every week in a browser, an agent can do it.",
+      c1_h: "Finance", c1_p: "Bank statements, invoices, missing receipts, reconciliations.",
+      c2_h: "HR", c2_p: "Filings, certificates, schedules, absence tracking.",
+      c3_h: "E-commerce", c3_p: "Orders, stock, returns, replies to customer reviews.",
+      c4_h: "Sales and admin", c4_p: "CRM, quotes, email follow-ups, spreadsheet updates.",
+      how_h: "As simple as a message to a colleague.",
+      s1_h: "Describe the task", s1_p: "In one sentence: “Download this month's invoices from the supplier portal and file them in Drive.”",
+      s2_h: "Watch the agent work", s2_p: "It opens sites, clicks, fills in and downloads. You follow every step live.",
+      s3_h: "Approve, and it's done", s3_p: "Before sending or changing anything, it asks for your OK.",
+      price_h: "Simple plans, credits included.", price_p: "A typical task uses about 30 credits. Prices exclude VAT.",
+      monthly: "Monthly", yearly: "Yearly", save: "2 months free", per_month: "/ month", from: "from", popular: "Popular",
+      p0_name: "Free", p0_who: "To try it out", p0_cr: "credits / month, about 3 tasks", p0_f1: "3 saved agents",
+      p0_f2: "7 days of history", p0_f3: "No credit card", p0_cta: "Try for free", y0: "Always free",
+      p1_who: "For one person", p1_cr: "credits / month, about 100 tasks", p1_f1: "10 saved agents", p1_f2: "3 scheduled tasks", p1_f3: "3 months of history", p_start: "Get started",
+      p2_name: "Team", p2_who: "Up to 10 people", p2_cr: "credits / month, about 660 tasks", p2_f1: "Unlimited agents and schedules", p2_f2: "Rules and vocabulary shared by the team", p2_f3: "Gmail, Drive, Slack, Claude and ChatGPT",
+      p3_name: "Enterprise", p3_who: "Several teams", p3_cr: "credits / month, about 2,600 tasks", p3_f1: "Unlimited users", p3_f2: "Installed on your servers", p3_f3: "Dedicated support", p_contact: "Contact us",
+      y1: "$200 billed yearly", y2: "$1,290 billed yearly", y3: "On quote, yearly commitment",
+      fine: "Need more? 10,000 credits for $39. With your own AI key, a step costs only 0.2 credit. Beyond the number of simultaneous agents, tasks wait their turn: none is lost, and a task that has started always finishes.",
+      p1_f0: "1 agent at a time", p2_f0: "3 agents at the same time", p3_f0: "10 agents at the same time, expandable",
+      faq_h: "Frequently asked questions",
+      q1: "What is a credit?", a1: "Each agent step (opening a page, clicking, reading a table) uses credits depending on the AI model chosen. A typical task uses about thirty.",
+      q2: "Can the agent act without me?", a2: "It reads and downloads on its own. To send, approve or delete, it asks for your OK first. You also choose which sites it may open.",
+      q3: "Where is my data?", a3: "On your installation, hosted in France. Only the text of each step is sent to the AI model you choose.",
+      q4: "Do I need to code?", a4: "No. You write the task in English or French, as you would to a colleague.",
+      contact_h: "Show us a task that eats your time.", contact_p: "In 30 minutes, we hand it to an agent in front of you.",
+      foot: "Prices exclude VAT, for guidance only",
+    },
+  };
+  // French is in the page itself: keep it as the reference before switching.
+  const fr = T.fr;
+  document.querySelectorAll("[data-t]").forEach(el => { if (!(el.dataset.t in fr)) fr[el.dataset.t] = el.hasAttribute("data-html") ? el.innerHTML : el.textContent; });
+  document.querySelectorAll("[data-tp]").forEach(el => { fr[el.dataset.tp] = el.placeholder; });
+  const prices = [...document.querySelectorAll(".amount b")];
+  let lang = "fr", yearly = false;
+
+  function render() {
+    const d = T[lang];
+    document.documentElement.lang = lang;
+    document.querySelectorAll("[data-t]").forEach(el => {
+      const v = d[el.dataset.t] ?? fr[el.dataset.t];
+      if (v === undefined) return;
+      if (el.hasAttribute("data-html")) el.innerHTML = v; else el.textContent = v;
+    });
+    document.querySelectorAll("[data-tp]").forEach(el => { el.placeholder = d[el.dataset.tp] ?? fr[el.dataset.tp]; });
+    document.querySelectorAll("[data-lang]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+    $("billM").setAttribute("aria-pressed", String(!yearly)); $("billY").setAttribute("aria-pressed", String(yearly));
+    prices.forEach(b => {
+      const v = b.dataset.usd.split("|")[yearly ? 1 : 0];
+      b.textContent = lang === "en" ? "$" + v : v.replace(".", ",") + " $";
+    });
+    document.querySelectorAll("[data-y-text]").forEach(p => { p.textContent = yearly ? d[p.dataset.yText] : ""; });
+  }
+  function $(id) { return document.getElementById(id); }
+  document.querySelectorAll("[data-lang]").forEach(b => b.onclick = () => {
+    lang = b.dataset.lang; render();
+    try { localStorage.setItem("ac_site_lang", lang); } catch {}
+  });
+  $("billM").onclick = () => { yearly = false; render(); };
+  $("billY").onclick = () => { yearly = true; render(); };
+  // Demo request: sent to the form service when one is set, otherwise handed to the visitor's e-mail app.
+  const form = $("demoForm"), msg = $("formMsg");
+  const say = (key, err) => { msg.textContent = T[lang][key] ?? fr[key]; msg.classList.toggle("err", !!err); msg.hidden = false; };
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = $("fName").value.trim(), mail = $("fMail").value.trim();
+    if (!name) { say("f_err_name", true); return $("fName").focus(); }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) { say("f_err_mail", true); return $("fMail").focus(); }
+    const data = { nom: name, email: mail, entreprise: $("fOrg").value.trim(), tache: $("fTask").value.trim(), langue: lang };
+    if (form.dataset.endpoint) {
+      try {
+        const r = await fetch(form.dataset.endpoint, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(data) });
+        if (!r.ok) throw new Error(r.status);
+        form.reset(); say("f_ok");
+      } catch { say("f_err_send", true); }
+      return;
+    }
+    const body = `${data.nom}${data.entreprise ? " (" + data.entreprise + ")" : ""}\n${data.email}\n\n${data.tache}`;
+    location.href = `mailto:${form.dataset.to}?subject=${encodeURIComponent(T[lang].f_subject ?? fr.f_subject)}&body=${encodeURIComponent(body)}`;
+    say("f_mailapp");
+  });
+  try { const saved = localStorage.getItem("ac_site_lang"); if (saved === "en" || saved === "fr") lang = saved; } catch {}
+  render();
+})();
+</script>
+
+<script>
+// Motion: hero title words, replaying demo, scroll reveals, parallax and card tilt. Nothing runs if the visitor asked for reduced motion.
+(() => {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const steps = document.querySelector(".card ol");
+  const replay = () => { steps.classList.remove("play"); void steps.offsetWidth; steps.classList.add("play"); };
+
+  // Title: one word after the other (again after a language switch rewrites it).
+  const h1 = document.querySelector(".hero h1");
+  const esc = (w) => w.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const splitTitle = () => {
+    if (h1.querySelector(".w")) return;
+    h1.innerHTML = h1.textContent.trim().split(/\s+/).map((w, i) => `<span class="w" style="--i:${i}">${esc(w)}</span>`).join(" ");
+  };
+  splitTitle();
+  new MutationObserver(splitTitle).observe(h1, { childList: true });
+
+  // Demo run plays on load, then every 9 s while it is on screen.
+  replay();
+  let visible = true;
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(steps);
+  setInterval(() => { if (visible && !document.hidden) replay(); }, 9000);
+
+  // Sections appear as they scroll in, siblings one after the other.
+  document.documentElement.classList.add("motion");
+  const targets = document.querySelectorAll("section .head, .case, .step, .plan, .fine, details, .contact, .price-head .bill, .compare, .offer");
+  targets.forEach(el => {
+    el.classList.add("rv");
+    const sibs = [...el.parentElement.children].filter(c => c.matches(".case, .step, .plan, details"));
+    if (sibs.length > 1) el.style.setProperty("--d", sibs.indexOf(el) * 90 + "ms");
+  });
+  const io = new IntersectionObserver(entries => entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+  }), { rootMargin: "0px 0px -8% 0px" });
+  targets.forEach(el => io.observe(el));
+
+  // Parallax: [data-speed] layers move at a fraction of the scroll.
+  const layers = [...document.querySelectorAll("[data-speed]")];
+  let ticking = false;
+  const parallax = () => {
+    const y = window.scrollY;
+    layers.forEach(el => { el.style.transform = `translate3d(0, ${(y * +el.dataset.speed).toFixed(1)}px, 0)`; });
+    ticking = false;
+  };
+  addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(parallax); } }, { passive: true });
+  parallax();
+
+  // The product card tilts a little toward the mouse.
+  const stage = document.querySelector(".stage"), card = document.querySelector(".card");
+  if (matchMedia("(hover: hover)").matches) {
+    stage.addEventListener("mousemove", e => {
+      const r = stage.getBoundingClientRect();
+      card.style.setProperty("--ry", ((e.clientX - r.left) / r.width - .5) * 8 + "deg");
+      card.style.setProperty("--rx", ((e.clientY - r.top) / r.height - .5) * -8 + "deg");
+    });
+    stage.addEventListener("mouseleave", () => { card.style.setProperty("--rx", "0deg"); card.style.setProperty("--ry", "0deg"); });
+  }
+
+  // Prices fade when switching monthly / yearly.
+  document.querySelectorAll(".bill button").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll(".amount b").forEach(el => { el.classList.add("swap"); setTimeout(() => el.classList.remove("swap"), 180); });
+  }));
+})();
+</script>
+</body>
+</html>
