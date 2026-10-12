@@ -189,6 +189,12 @@ login page and the first paint use it too. Switching language reloads the page.
     "Identifiant ou e-mail": "Username or e-mail", "Mot de passe": "Password",
     "Mot de passe oublié ? Demandez à un administrateur de le réinitialiser.": "Forgot your password? Ask an administrator to reset it.",
     "Afficher le mot de passe": "Show password", "Masquer le mot de passe": "Hide password",
+    "Exemple de tâche suivie en direct": "Example of a task followed live", "Factures fournisseurs d'octobre": "October supplier invoices",
+    "Ouvrir le portail fournisseur": "Open the supplier portal",
+    "Filtrer sur octobre 2026": "Filter on October 2026", "Télécharger les 12 factures": "Download the 12 invoices",
+    "Les ranger dans Drive": "File them in Drive", "12 factures enregistrées": "12 invoices saved",
+    "Drive › Factures › 2026-10": "Drive › Invoices › 2026-10", "Hébergé en France": "Hosted in France",
+    "Votre accord avant tout envoi": "Your approval before anything is sent", "Chaque étape visible": "Every step visible",
     // --- assistant panel (static/assistant.js)
     "Assistant": "Assistant", "Ouvrir l'assistant": "Open the assistant", "Fermer l'assistant": "Close the assistant", "Fermer": "Close",
     "Retour à la conversation": "Back to the conversation", "Retour": "Back",

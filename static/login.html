@@ -16,6 +16,44 @@
   .pitch h1 { margin: 0; font-size: 34px; line-height: 1.18; font-weight: 650; letter-spacing: -.028em; max-width: 480px; }
   .pitch p { margin: 16px 0 0; color: var(--hero-muted); font-size: 16px; max-width: 460px; }
   .pitch .foot { font-size: 13px; color: var(--hero-muted); opacity: .8; }
+  .pitch { position: relative; overflow: hidden; }
+  .pitch::after { content: ""; position: absolute; width: 520px; height: 520px; right: -220px; bottom: -240px; border-radius: 50%;
+    background: radial-gradient(circle, rgb(52 211 153 / .16), transparent 65%); pointer-events: none; }
+  .pitch > * { position: relative; z-index: 1; }
+  /* A run, as the app shows it: steps tick one after the other, then the result. */
+  .demo { max-width: 440px; background: rgb(255 255 255 / .06); border: 1px solid rgb(255 255 255 / .12); border-radius: 18px;
+    padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 24px 60px -24px rgb(0 0 0 / .5); backdrop-filter: blur(6px); }
+  .demo-top { display: flex; align-items: center; gap: 10px; }
+  .demo-top strong { flex: 1; font-size: 15px; font-weight: 600; color: var(--hero-ink); }
+  .live { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #6EE7B7;
+    background: rgb(52 211 153 / .12); border-radius: 999px; padding: 3px 10px; }
+  .live i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: blink 1.2s ease-in-out infinite; }
+  .live.done i { animation: none; }
+  .demo ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .demo li { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 10px; font-size: 14px; color: var(--hero-muted);
+    opacity: .35; transition: opacity .35s ease, background .35s ease, color .35s ease; }
+  .demo li .dot { width: 22px; height: 22px; flex: none; border-radius: 50%; display: grid; place-items: center;
+    border: 1.5px solid rgb(255 255 255 / .22); color: transparent; transition: all .3s ease; }
+  .demo li .dot svg { width: 12px; height: 12px; }
+  .demo li em { margin-left: auto; font-style: normal; font-size: 12px; font-variant-numeric: tabular-nums; opacity: 0; transition: opacity .3s ease; }
+  .demo li.now { opacity: 1; color: var(--hero-ink); background: rgb(255 255 255 / .06); }
+  .demo li.now .dot { border-color: #34D399; border-top-color: transparent; animation: spin .8s linear infinite; }
+  .demo li.ok { opacity: 1; color: var(--hero-ink); }
+  .demo li.ok .dot { background: #34D399; border-color: #34D399; color: #052E22; }
+  .demo li.ok em { opacity: .7; }
+  .demo-result { display: flex; align-items: center; gap: 12px; border-radius: 12px; padding: 10px 12px; background: rgb(52 211 153 / .14);
+    font-size: 14px; color: var(--hero-ink); opacity: 0; max-height: 0; padding-block: 0; margin-top: -12px; overflow: hidden;
+    transition: opacity .4s ease, max-height .4s ease, padding .4s ease, margin .4s ease; }
+  .demo-result.show { opacity: 1; max-height: 80px; padding-block: 10px; margin-top: 0; }
+  .demo-result svg { width: 20px; height: 20px; flex: none; color: #6EE7B7; }
+  .demo-result small { display: block; color: var(--hero-muted); font-size: 12px; }
+  .trust { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--hero-muted); }
+  .trust li { display: flex; align-items: center; gap: 7px; }
+  .trust svg { width: 15px; height: 15px; color: #6EE7B7; flex: none; }
+  @keyframes blink { 50% { opacity: .3; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .live i, .demo li.now .dot { animation: none; } .demo li, .demo-result { transition: none; } }
+  @media (max-width: 900px) { .demo, .trust { display: none; } }
   .pane { flex: 1 1 420px; display: grid; place-items: center; padding: 48px 24px; }
   form { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 18px; }
   form h2 { margin: 0; font-size: 24px; font-weight: 650; letter-spacing: -.022em; }
@@ -47,7 +85,30 @@
       <h1>Vos tâches répétitives, confiées à des agents que vous suivez en direct.</h1>
       <p>Factures, relevés, pièces manquantes : chaque étape est visible, chaque fichier est conservé.</p>
     </div>
-    <span class="foot org-name" id="orgFoot" hidden></span>
+    <figure class="demo" style="margin: 0" aria-label="Exemple de tâche suivie en direct">
+      <div class="demo-top">
+        <strong>Factures fournisseurs d'octobre</strong>
+        <span class="live" id="demoState"><i></i><span>En cours</span></span>
+      </div>
+      <ol id="demoSteps">
+        <li><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span>Ouvrir le portail fournisseur</span><em>09:02</em></li>
+        <li><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span>Filtrer sur octobre 2026</span><em>09:02</em></li>
+        <li><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span>Télécharger les 12 factures</span><em>09:03</em></li>
+        <li><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span>Les ranger dans Drive</span><em>09:04</em></li>
+      </ol>
+      <div class="demo-result" id="demoResult">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg>
+        <span><b>12 factures enregistrées</b><small>Drive › Factures › 2026-10</small></span>
+      </div>
+    </figure>
+    <div style="display: flex; flex-direction: column; gap: 14px">
+      <ul class="trust">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Hébergé en France</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Votre accord avant tout envoi</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Chaque étape visible</li>
+      </ul>
+      <span class="foot org-name" id="orgFoot" hidden></span>
+    </div>
   </aside>
   <main class="pane">
     <form id="form">
@@ -95,6 +156,22 @@ $("pwToggle").onclick = () => {
   $("pwToggle").setAttribute("aria-label", label); $("pwToggle").title = label;
   $("password").focus();
 };
+// The demo run on the left: one step after the other, the result, a pause, then again.
+(function demo() {
+  const steps = [...document.querySelectorAll("#demoSteps li")], state = $("demoState"), result = $("demoResult");
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const setState = (done) => { state.classList.toggle("done", done); state.lastElementChild.textContent = done ? "Terminé" : "En cours"; };
+  if (reduced) { steps.forEach(li => li.className = "ok"); result.classList.add("show"); setState(true); return; }
+  let i = 0;
+  const tick = () => {
+    if (i === 0) { steps.forEach(li => li.className = ""); result.classList.remove("show"); setState(false); }
+    if (i > 0) steps[i - 1].className = "ok";
+    if (i < steps.length) { steps[i].className = "now"; i++; setTimeout(tick, 1300); return; }
+    result.classList.add("show"); setState(true); i = 0; setTimeout(tick, 4500);
+  };
+  setTimeout(tick, 400);
+})();
+
 // Two steps when two-factor authentication is on: the password gives a short ticket, the code opens the session.
 let ticket = null, recovery = false;
 fetch("/api/branding").then(r => r.json()).then(b => { if (b.organisation) { $("orgFoot").textContent = b.organisation; $("orgFoot").hidden = false; } }).catch(() => {});
