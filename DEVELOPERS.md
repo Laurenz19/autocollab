@@ -25,7 +25,7 @@ via MCP) et comment le code est organisé. Pour l'installation et l'usage, voir 
 | **Stockage** | `data/app.db` (SQLite : agents, exécutions, connexions, contexte, clés d'API), `data/users.json` (comptes), `data/settings.json` (réglages d'IA et clés des fournisseurs), `data/profils/<utilisateur>/` (sessions de navigateur), `runs/<id>/` (journal, captures, fichiers de chaque exécution). |
 
 Chaque utilisateur ne voit que **ses** agents, exécutions, connexions et clés. Les administrateurs ont en
-plus les routes `/api/admin/*` et le contexte du cabinet ; ils ne voient pas le travail des autres.
+plus les routes `/api/admin/*` et le contexte de l'organisation ; ils ne voient pas le travail des autres.
 
 ## 2. Authentification
 
@@ -163,7 +163,7 @@ Corps d'un agent :
 ou `{"kind": "monthly", "time", "monthday": 1..31 | -1}` (-1 = dernier jour) ; `null` = non planifié.
 `allowed_domains` accepte des adresses ou des hôtes (`*.exemple.fr` pour les sous-domaines).
 
-### Vue « Tout le cabinet »
+### Vue « Toute l'organisation »
 
 `GET /api/agents`, `/api/chains`, `/api/tasks` et `/api/chain-runs` acceptent `?scope=all` : les éléments de tous les
 utilisateurs, avec `owner`, `owner_name` et `mine`. La lecture d'une exécution d'un collègue (`GET /api/tasks/{id}`,
@@ -463,7 +463,7 @@ print(run["status"], run["result"])
 | `app/browsers.py` | Profils de navigateur par utilisateur, choix du binaire, ports |
 | `app/connections.py` | « Mes connexions » : navigateur piloté depuis la page |
 | `app/sites.py` | Liste des connexions de chaque utilisateur |
-| `app/context.py` | Contexte du cabinet et personnel ajouté aux consignes |
+| `app/context.py` | Contexte de l'organisation et personnel ajouté aux consignes |
 | `app/files.py` | Pièces jointes et fichiers des exécutions |
 | `app/settings.py`, `app/llm.py` | Réglages d'IA de l'administrateur, création du modèle |
 | `app/db.py` | Schéma SQLite et migrations automatiques |

@@ -120,7 +120,7 @@ def build(owner: str, task: str, domains: list[str] | None = None) -> str | None
     """The context block for one run, or None when nothing applies."""
     folded = _fold(task)
     parts = [
-        _section("CONTEXTE DU CABINET (à respecter) :", load("cabinet"), folded, domains or []),
+        _section("CONTEXTE DE L'ORGANISATION (à respecter) :", load("cabinet"), folded, domains or []),
         _section("CONTEXTE DE L'UTILISATEUR :", load(scope_of(owner)), folded, domains or []),
     ]
     text = "\n\n".join(p for p in parts if p)

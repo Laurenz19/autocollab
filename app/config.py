@@ -27,9 +27,13 @@ BROWSER_HEADLESS = _bool("BROWSER_HEADLESS", True)
 
 AGENT_MAX_STEPS = int(os.getenv("AGENT_MAX_STEPS", "40"))
 
-# The address people use to reach the app, e.g. https://autocollab.cabinet.fr. Google and Slack send
+# The address people use to reach the app, e.g. https://autocollab.exemple.fr. Google and Slack send
 # users back to it after they connect an application. Empty = the address of the current request.
 PUBLIC_URL = os.getenv("PUBLIC_URL", "").strip().rstrip("/")
+
+# Name of the organisation using this installation, shown under the logo and on the login page.
+# Administrators can change it in Administration; this is only the starting value.
+ORG_NAME = os.getenv("ORG_NAME", "").strip()
 
 APP_HOST = os.getenv("APP_HOST", "127.0.0.1")
 APP_PORT = int(os.getenv("APP_PORT", "8800"))

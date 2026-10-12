@@ -13,7 +13,7 @@ TOPICS = mcp.DOC_TOPICS
 
 OVERVIEW = """# AutoCollab
 
-> Outil interne d'un cabinet d'expertise comptable (Bourdat Finance) : des agents IA travaillent dans un
+> Outil pour les cabinets d'expertise comptable et les équipes administratives : des agents IA travaillent dans un
 > navigateur ou directement dans des applications (Gmail, Drive, Slack…) pour les tâches répétitives :
 > télécharger des relevés, récupérer des factures, relancer des pièces manquantes, importer dans Pennylane.
 
@@ -28,7 +28,7 @@ OVERVIEW = """# AutoCollab
   de la précédente.
 - **Garde-fous** : sites autorisés (le navigateur ne peut pas aller ailleurs) et mode avec validation
   (l'agent s'arrête et demande l'accord d'un humain avant toute action difficile à annuler).
-- **Contexte** : glossaire, règles et notes par site du cabinet et de l'utilisateur, ajoutés à chaque consigne.
+- **Contexte** : glossaire, règles et notes par site de l'organisation et de l'utilisateur, ajoutés à chaque consigne.
 - **Connexions** : chaque utilisateur a son propre navigateur d'agent (ses sessions sur ses sites) et peut
   connecter des applications (Gmail, Drive, Slack…) que ses agents utilisent sans navigateur.
 - **Droits** : tout se fait avec les droits de l'utilisateur connecté ; il ne voit que ses agents et exécutions.

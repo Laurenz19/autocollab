@@ -13,7 +13,7 @@ from datetime import datetime
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 
-from . import auth, mcp
+from . import auth, mcp, settings
 from .db import connect
 from .llm import create_llm
 
@@ -29,7 +29,7 @@ TOOL_NAMES = {t["name"] for t in TOOLS}
 _SPECS = [{"type": "function", "function": {"name": t["name"], "description": t["description"], "parameters": t["inputSchema"]}}
           for t in TOOLS]
 
-SYSTEM = """Tu es l'assistant intégré d'AutoCollab, l'outil interne du cabinet Bourdat Finance : des agents IA \
+SYSTEM = """Tu es l'assistant intégré d'AutoCollab, l'outil de l'organisation de l'utilisateur : des agents IA \
 travaillent dans un navigateur (Gmail, Pennylane, banques…) à partir d'une consigne écrite.
 
 Ton rôle : répondre aux questions sur AutoCollab, expliquer une exécution (pourquoi elle a échoué, ce qu'elle a fait), \
@@ -136,8 +136,9 @@ def _history(conversation_id: str) -> list:
 def _system(user: str, page: str, lang: str) -> str:
     who = f"{auth.display_name(user)} (identifiant {user}{', administrateur' if auth.is_admin(user) else ''})"
     language = "anglais" if lang == "en" else "français"
-    lines = [SYSTEM, "", f"Utilisateur : {who}.", f"Aujourd'hui : {datetime.now().strftime('%d/%m/%Y %H:%M')}.",
-             f"Réponds en {language}."]
+    org = settings.organisation_name()
+    lines = [SYSTEM, "", f"Utilisateur : {who}.", *([f"Organisation : {org}."] if org else []),
+             f"Aujourd'hui : {datetime.now().strftime('%d/%m/%Y %H:%M')}.", f"Réponds en {language}."]
     if page:
         lines.append(f"Page ouverte dans l'application : {page} (ex. /#/executions/<id> : l'exécution <id>, "
                      "à lire avec get_run si la question s'y rapporte).")

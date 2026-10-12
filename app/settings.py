@@ -106,6 +106,18 @@ def update_section(name: str, value: dict) -> None:
         _save(data)
 
 
+ORG_NAME_MAX = 80
+
+
+def organisation_name() -> str:
+    """The organisation's display name: set in Administration, else ORG_NAME from .env, else empty."""
+    return ((load().get("organisation") or {}).get("name") or config.ORG_NAME or "").strip()
+
+
+def set_organisation_name(name: str) -> None:
+    update_section("organisation", {"name": " ".join(name.split())[:ORG_NAME_MAX]})
+
+
 def api_key(name: str) -> str:
     return load()["api_keys"].get(name, "")
 

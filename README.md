@@ -8,7 +8,7 @@ et la page montre en direct chaque étape (ce que l'agent pense, ce qu'il fait, 
 Double-cliquez sur `lancer.bat`. La page http://127.0.0.1:8800 s'ouvre.
 
 Pour apprendre à s'en servir : **Guide d'utilisation** en bas du menu (http://127.0.0.1:8800/guide),
-un tutoriel illustré pour les utilisateurs du cabinet (`static/guide.html`, captures dans `static/guide/`).
+un tutoriel illustré pour les utilisateurs de l'organisation (`static/guide.html`, captures dans `static/guide/`).
 
 Ou dans un terminal :
 
@@ -32,7 +32,7 @@ La page demande un identifiant (ou l'adresse e-mail du compte) et un mot de pass
 **Premier compte** : créez-le dans un terminal, avec le rôle administrateur :
 
 ```powershell
-.venv\Scripts\python.exe manage_users.py ajouter jdupont --nom "Jean Dupont" --email jean.dupont@bourdatfinance.com --admin
+.venv\Scripts\python.exe manage_users.py ajouter jdupont --nom "Jean Dupont" --email jean.dupont@exemple.fr --admin
 ```
 
 Ensuite, les administrateurs gèrent les comptes depuis la page **Administration** (lien en haut
@@ -97,9 +97,9 @@ Relevés bancaires → Import Pennylane → Pièces manquantes.
 La page **Contexte** contient ce que les agents savent avant de commencer ; c'est ajouté
 automatiquement à leurs consignes :
 
-- **Cabinet** (modifiable par les administrateurs, pour tout le monde) et **Personnel** (chacun pour
-  ses propres exécutions, ajouté après celui du cabinet) ;
-- **règles générales** (« ne jamais supprimer de document »…), **glossaire** des mots-clés du cabinet
+- **Organisation** (modifiable par les administrateurs, pour tout le monde) et **Personnel** (chacun pour
+  ses propres exécutions, ajouté après celui de l'organisation) ;
+- **règles générales** (« ne jamais supprimer de document »…), **glossaire** des mots-clés de l'organisation
   (sigles, noms de dossiers) et **notes par site** (où trouver les choses sur Pennylane, la banque…).
 
 Pour garder le contexte court, les notes d'un site ne sont ajoutées que si la tâche concerne ce site
@@ -340,7 +340,7 @@ l'application.
 - `app/agents.py` : agents enregistrés et variables de date.
 - `app/db.py` : base SQLite (`data/app.db`) : agents et historique des tâches.
 - `app/schedule.py` : fréquences, calcul des prochaines exécutions, planificateur.
-- `app/context.py` : contexte du cabinet et des utilisateurs ajouté aux consignes.
+- `app/context.py` : contexte de l'organisation et des utilisateurs ajouté aux consignes.
 - `app/browsers.py` : profils de navigateur par utilisateur, choix du navigateur, ports.
 - `app/connections.py` : « Mes connexions », navigateur affiché et piloté depuis la page.
 - `app/llm.py` : création du modèle d'IA.

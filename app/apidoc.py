@@ -43,7 +43,8 @@ DOCS: dict[str, dict] = {
         "description": "Ouvre une session (cookie). Accepte l'identifiant ou l'e-mail. 5 échecs en 15 min bloquent (429). Pour un script, préférez une clé d'API.",
         "body": {"username": "jdupont", "password": "••••••••••"}, "response": {"username": "jdupont", "name": "Jean Dupont", "must_change_password": False}},
     "POST /api/logout": {"group": "compte", "summary": "Se déconnecter", "public": True, "response": {"ok": True}},
-    "GET /api/me": {"group": "compte", "summary": "Mon compte", "response": {"username": "jdupont", "name": "Jean Dupont", "email": "jean.dupont@bourdatfinance.com", "admin": False, "must_change_password": False}},
+    "GET /api/me": {"group": "compte", "summary": "Mon compte", "response": {"username": "jdupont", "name": "Jean Dupont", "email": "jean.dupont@exemple.fr", "admin": False, "must_change_password": False, "organisation": "Cabinet Exemple"}},
+    "GET /api/branding": {"group": "compte", "summary": "Nom de l'organisation", "public": True, "response": {"organisation": "Cabinet Exemple"}},
     "PATCH /api/me": {"group": "compte", "summary": "Mes préférences", "description": "Langue de l'interface : fr ou en.", "body": {"lang": "en"}, "response": {"lang": "en"}},
     "POST /api/me/password": {"group": "compte", "summary": "Changer mon mot de passe",
         "description": "10 caractères minimum, différent de l'actuel. Déconnecte les autres sessions et renvoie un nouveau cookie.",
@@ -66,7 +67,7 @@ DOCS: dict[str, dict] = {
     "GET /api/tasks/{task_id}/events": {"group": "taches", "summary": "Flux d'événements (SSE)", "description": "Server-Sent Events : rejoue l'historique puis diffuse en direct jusqu'à « done ». Voir l'onglet Événements.", "binary": "text/event-stream"},
     "GET /api/tasks/{task_id}/live": {"group": "taches", "summary": "Capture en direct", "description": "PNG de l'écran de l'agent (204 si aucune). En-têtes X-Page-Url et X-Page-Title (encodés URL).", "binary": "image/png"},
     "GET /api/tasks/{task_id}/screenshots/{step}": {"group": "taches", "summary": "Capture d'une étape", "binary": "image/png"},
-    "GET /api/tasks/{task_id}/context": {"group": "taches", "summary": "Contexte utilisé par l'exécution", "response": {"text": "CONTEXTE DU CABINET (à respecter) :\n…"}},
+    "GET /api/tasks/{task_id}/context": {"group": "taches", "summary": "Contexte utilisé par l'exécution", "response": {"text": "CONTEXTE DE L'ORGANISATION (à respecter) :\n…"}},
     "GET /api/tasks/{task_id}/files": {"group": "fichiers", "summary": "Fichiers d'une exécution",
         "description": "source = fourni (pièce jointe) ou telecharge (téléchargé par l'agent).", "response": [{"name": "Facture_FR600MXL.pdf", "size": 51234, "source": "telecharge"}]},
     "GET /api/tasks/{task_id}/files/{source}/{name}": {"group": "fichiers", "summary": "Télécharger un fichier d'une exécution", "binary": "fichier"},
@@ -102,11 +103,11 @@ DOCS: dict[str, dict] = {
     "GET /api/connections": {"group": "connexions", "summary": "État de mon navigateur", "response": {"open": False, "browser": "Chromium (intégré)", "busy": False}},
     "GET /api/connections/sites": {"group": "connexions", "summary": "Mes sites", "response": {"sites": [{"id": "c0ffee123456", "name": "Pennylane", "url": "https://app.pennylane.com", "last_opened_at": None}], "suggestions": []}},
     "POST /api/connections/sites": {"group": "connexions", "summary": "Ajouter un site", "body": {"name": "Ma banque", "url": "https://www.mabanque.fr/pro"}, "response": {"id": "c0ffee123456", "name": "Ma banque", "url": "https://www.mabanque.fr/pro"}},
-    "PATCH /api/connections/sites/{site_id}": {"group": "connexions", "summary": "Modifier un site", "body": {"name": "Banque du cabinet", "url": "https://www.mabanque.fr/pro"}},
+    "PATCH /api/connections/sites/{site_id}": {"group": "connexions", "summary": "Modifier un site", "body": {"name": "Banque pro", "url": "https://www.mabanque.fr/pro"}},
     "DELETE /api/connections/sites/{site_id}": {"group": "connexions", "summary": "Retirer un site", "response": {"ok": True}},
-    "GET /api/integrations": {"group": "connexions", "summary": "Applications connectées (MCP)", "description": "Applications proposées par le cabinet et connexions de l'utilisateur. Les jetons ne sont jamais renvoyés.",
+    "GET /api/integrations": {"group": "connexions", "summary": "Applications connectées (MCP)", "description": "Applications proposées par l'organisation et connexions de l'utilisateur. Les jetons ne sont jamais renvoyés.",
                               "response": {"catalog": [{"kind": "gmail", "name": "Gmail", "provider": "google", "available": True, "can_write": True}],
-                                           "connections": [{"id": "a1b2c3d4e5f6", "kind": "gmail", "name": "Gmail", "account": "prenom@cabinet.fr", "read_only": True, "enabled": True, "last_used_at": None, "last_error": None}],
+                                           "connections": [{"id": "a1b2c3d4e5f6", "kind": "gmail", "name": "Gmail", "account": "prenom@exemple.fr", "read_only": True, "enabled": True, "last_used_at": None, "last_error": None}],
                                            "allow_custom": False}},
     "POST /api/integrations/connect": {"group": "connexions", "summary": "Connecter une application", "description": "Renvoie l'adresse de connexion Google ou Slack vers laquelle envoyer l'utilisateur ; il revient ensuite sur « Mes connexions ».",
                                        "body": {"kind": "gmail", "read_only": True}, "response": {"url": "https://accounts.google.com/o/oauth2/v2/auth?…"}},
@@ -125,9 +126,9 @@ DOCS: dict[str, dict] = {
     "POST /api/connections/reset": {"group": "connexions", "summary": "Réinitialiser mon navigateur", "description": "Efface le profil : déconnexion de tous les sites.", "response": {"ok": True}},
     # --- contexte
     "GET /api/context": {"group": "contexte", "summary": "Lire le contexte", "response": {"cabinet": {"instructions": "Ne supprime jamais de document.", "glossary": [{"term": "FNP", "definition": "Factures non parvenues"}], "sites": []}, "personal": {"instructions": "", "glossary": [], "sites": []}, "can_edit_cabinet": False}},
-    "PUT /api/context/cabinet": {"group": "contexte", "summary": "Enregistrer le contexte du cabinet", "body": {"instructions": "Ne supprime jamais de document.", "glossary": [{"term": "FNP", "definition": "Factures non parvenues"}], "sites": [{"site": "app.pennylane.com", "notes": "Factures fournisseurs : Achats › Factures."}]}},
+    "PUT /api/context/cabinet": {"group": "contexte", "summary": "Enregistrer le contexte de l'organisation", "body": {"instructions": "Ne supprime jamais de document.", "glossary": [{"term": "FNP", "definition": "Factures non parvenues"}], "sites": [{"site": "app.pennylane.com", "notes": "Factures fournisseurs : Achats › Factures."}]}},
     "PUT /api/context/personal": {"group": "contexte", "summary": "Enregistrer mon contexte", "body": {"instructions": "Mes clients prioritaires : SARL Dupont.", "glossary": [], "sites": []}},
-    "POST /api/context/preview": {"group": "contexte", "summary": "Aperçu du contexte pour une consigne", "body": {"task": "Va sur Pennylane et liste les FNP"}, "response": {"text": "CONTEXTE DU CABINET…", "chars": 286, "tokens": 72,
+    "POST /api/context/preview": {"group": "contexte", "summary": "Aperçu du contexte pour une consigne", "body": {"task": "Va sur Pennylane et liste les FNP"}, "response": {"text": "CONTEXTE DE L'ORGANISATION…", "chars": 286, "tokens": 72,
                   "summary": {"cabinet": {"rules": 4, "terms_sent": 3, "terms_total": 3, "sites_kept": ["app.pennylane.com"], "sites_skipped": ["impots.gouv.fr"]},
                               "personal": {"rules": 0, "terms_sent": 0, "terms_total": 0, "sites_kept": [], "sites_skipped": []}}}},
     # --- clés
@@ -138,7 +139,7 @@ DOCS: dict[str, dict] = {
     "GET /api/docs": {"group": "autres", "summary": "Cette référence, au format JSON"},
     # --- admin
     "GET /api/admin/users": {"group": "admin", "summary": "Lister les comptes", "response": [{"username": "jdupont", "name": "Jean Dupont", "email": "", "admin": False, "temporary_password": True, "me": False}]},
-    "POST /api/admin/users": {"group": "admin", "summary": "Créer un compte", "description": "Le mot de passe est provisoire : la personne le remplace à sa première connexion.", "body": {"username": "jdupont", "name": "Jean Dupont", "email": "jean.dupont@bourdatfinance.com", "password": "provisoire-123", "admin": False}},
+    "POST /api/admin/users": {"group": "admin", "summary": "Créer un compte", "description": "Le mot de passe est provisoire : la personne le remplace à sa première connexion.", "body": {"username": "jdupont", "name": "Jean Dupont", "email": "jean.dupont@exemple.fr", "password": "provisoire-123", "admin": False}},
     "PATCH /api/admin/users/{username}": {"group": "admin", "summary": "Modifier un compte", "body": {"password": "nouveau-provisoire-456"}},
     "DELETE /api/admin/users/{username}": {"group": "admin", "summary": "Supprimer un compte", "description": "Révoque aussi ses clés d'API.", "response": {"ok": True}},
     # --- in-app assistant (read only)
@@ -164,6 +165,7 @@ DOCS: dict[str, dict] = {
     "GET /api/admin/settings": {"group": "admin", "summary": "Réglages d'IA", "description": "Les clés des fournisseurs ne sont jamais renvoyées, seulement leurs dernières lettres.",
         "response": {"provider": "anthropic", "model": "claude-sonnet-5-5", "use_vision": True, "keys": {"anthropic": {"set": True, "hint": "…6789"}}}},
     "PUT /api/admin/settings": {"group": "admin", "summary": "Enregistrer les réglages d'IA", "body": {"provider": "anthropic", "model": "claude-sonnet-5-5", "use_vision": True, "api_keys": {"anthropic": "sk-ant-…"}, "clear_keys": []}},
+    "PUT /api/admin/organisation": {"group": "admin", "summary": "Renommer l'organisation", "description": "Affiché sous le logo et sur la page de connexion. 80 caractères maximum.", "body": {"name": "Cabinet Exemple"}, "response": {"organisation": "Cabinet Exemple"}},
     "POST /api/admin/settings/test": {"group": "admin", "summary": "Tester les réglages d'IA", "body": {"provider": "anthropic", "model": "claude-sonnet-5-5"}, "response": {"ok": True, "reply": "OK"}},
 }
 

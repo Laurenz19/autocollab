@@ -490,7 +490,7 @@
   <nav class="side" aria-label="Navigation principale">
     <a class="brand" href="#/tableau-de-bord">
       <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l5 13.5 2.2-6.3L16.5 8z"/><path d="M13 13l2.6 8 1.3-3.7 3.7-1.3z"/></svg></span>
-      <span class="brand-name"><strong>AutoCollab</strong><span>Bourdat Finance</span></span>
+      <span class="brand-name"><strong>AutoCollab</strong><span class="org-name" id="orgName" hidden></span></span>
     </a>
     <div class="nav">
       <a href="#/tableau-de-bord" data-nav="dashboard">
@@ -621,7 +621,7 @@
         <h1 id="agentsTitle">Mes agents</h1>
         <p>Des consignes enregistrées, prêtes à relancer chaque mois. Leur historique est dans <a href="#/executions" data-runs-kind="agent">Exécutions</a>.</p>
       </div>
-      <div class="head-actions"><div class="seg scope-seg" role="group" aria-label="Afficher"><button type="button" data-scope="mine" aria-pressed="true">Les miens</button><button type="button" data-scope="all" aria-pressed="false">Tout le cabinet</button></div>
+      <div class="head-actions"><div class="seg scope-seg" role="group" aria-label="Afficher"><button type="button" data-scope="mine" aria-pressed="true">Les miens</button><button type="button" data-scope="all" aria-pressed="false">Toute l'organisation</button></div>
       <button class="btn btn-primary" id="newAgentBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
         Nouvel agent
@@ -663,7 +663,7 @@
         <h1>Exécutions</h1>
         <p>Toutes vos tâches, avec leurs étapes, captures et fichiers.</p>
       </div>
-      <div class="seg scope-seg" role="group" aria-label="Afficher"><button type="button" data-scope="mine" aria-pressed="true">Les miens</button><button type="button" data-scope="all" aria-pressed="false">Tout le cabinet</button></div>
+      <div class="seg scope-seg" role="group" aria-label="Afficher"><button type="button" data-scope="mine" aria-pressed="true">Les miens</button><button type="button" data-scope="all" aria-pressed="false">Toute l'organisation</button></div>
     </header>
     <section class="card">
       <div class="toolbar" id="runsToolbar">
@@ -687,7 +687,7 @@
         <h1>Planification</h1>
         <p>Les agents et les chaînes qui se lancent tout seuls, à l'heure prévue.</p>
       </div>
-      <div class="seg scope-seg" role="group" aria-label="Afficher"><button type="button" data-scope="mine" aria-pressed="true">Les miens</button><button type="button" data-scope="all" aria-pressed="false">Tout le cabinet</button></div>
+      <div class="seg scope-seg" role="group" aria-label="Afficher"><button type="button" data-scope="mine" aria-pressed="true">Les miens</button><button type="button" data-scope="all" aria-pressed="false">Toute l'organisation</button></div>
     </header>
     <section class="card">
       <h2 class="label">Agents et chaînes planifiés</h2>
@@ -746,7 +746,7 @@
         <p class="info" style="margin: 0">Vous tapez vos identifiants directement sur le site, comme dans votre navigateur habituel : l'application ne les voit pas et ne les enregistre pas. Navigateur : <span id="connBrowser"></span>.</p>
       </section>
       <section class="card danger-zone">
-        <p><strong>Réinitialiser mon navigateur</strong><br>Déconnecte tous vos sites et efface les données de navigation de vos agents. Utile si vous changez d'accès ou quittez le cabinet.</p>
+        <p><strong>Réinitialiser mon navigateur</strong><br>Déconnecte tous vos sites et efface les données de navigation de vos agents. Utile si vous changez d'accès ou quittez l'organisation.</p>
         <button class="btn btn-danger btn-sm" id="connResetBtn">Réinitialiser</button>
       </section>
       </div>
@@ -786,14 +786,14 @@
     <header class="page-head">
       <div>
         <h1>Contexte des agents</h1>
-        <p>Ce que vos agents savent avant de commencer : les règles à respecter, le vocabulaire du cabinet et les particularités des sites.</p>
+        <p>Ce que vos agents savent avant de commencer : les règles à respecter, le vocabulaire de l'organisation et les particularités des sites.</p>
       </div>
     </header>
 
     <div class="scope-tabs" role="tablist" aria-label="Portée du contexte">
       <button type="button" role="tab" data-scope="cabinet" aria-selected="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
-        Cabinet <span class="who">· tout le monde</span> <span class="lock" id="ctxLock" hidden>lecture seule</span>
+        <span class="org-name" id="orgTabName" hidden></span><span id="orgTabDefault">Organisation</span> <span class="who">· tout le monde</span> <span class="lock" id="ctxLock" hidden>lecture seule</span>
       </button>
       <button type="button" role="tab" data-scope="personal" aria-selected="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
@@ -958,10 +958,10 @@
           <thead><tr><th>Outil</th><th>Arguments</th><th>Effet</th><th>Nature</th></tr></thead>
           <tbody>
             <tr><td class="main"><code>get_documentation</code></td><td><code>topic?</code></td><td>Documentation d'AutoCollab (vue d'ensemble, agents, chaînes, exécutions, MCP, API) ; aussi en ressources <code>autocollab://docs/…</code> et sur <a href="/llms.txt" target="_blank">/llms.txt</a></td><td><span class="acc public">lecture</span></td></tr>
-            <tr><td class="main"><code>get_context</code></td><td><code>—</code></td><td>Règles, glossaire et notes par site (cabinet et personnels) ajoutés à chaque consigne</td><td><span class="acc public">lecture</span></td></tr>
+            <tr><td class="main"><code>get_context</code></td><td><code>—</code></td><td>Règles, glossaire et notes par site (organisation et personnels) ajoutés à chaque consigne</td><td><span class="acc public">lecture</span></td></tr>
             <tr><td class="main"><code>preview_context</code></td><td><code>task, allowed_domains?</code></td><td>Contexte exact qu'un agent recevrait avec cette consigne</td><td><span class="acc public">lecture</span></td></tr>
             <tr><td class="main"><code>update_personal_context</code></td><td><code>add_rules?, instructions?, set_terms?, remove_terms?, set_sites?, remove_sites?</code></td><td>Modifie votre contexte personnel (modifications ciblées)</td><td><span class="acc">modifie</span></td></tr>
-            <tr><td class="main"><code>update_firm_context</code></td><td><code>idem</code></td><td>Modifie le contexte du cabinet — administrateurs</td><td><span class="acc admin">admin</span></td></tr>
+            <tr><td class="main"><code>update_firm_context</code></td><td><code>idem</code></td><td>Modifie le contexte de l'organisation — administrateurs</td><td><span class="acc admin">admin</span></td></tr>
             <tr><td class="main"><code>list_agents</code></td><td><code>—</code></td><td>Vos agents : consigne, garde-fous, planification, dernière exécution</td><td><span class="acc public">lecture</span></td></tr>
             <tr><td class="main"><code>list_variables</code></td><td><code>—</code></td><td>Variables utilisables dans une consigne</td><td><span class="acc public">lecture</span></td></tr>
             <tr><td class="main"><code>create_agent</code></td><td><code>name, instructions, allowed_domains?, approval_mode?, schedule?…</code></td><td>Crée un agent (sans le lancer)</td><td><span class="acc ">modifie</span></td></tr>
@@ -1030,7 +1030,7 @@
         <h1>Chaînes</h1>
         <p>Des agents qui s'enchaînent : chacun passe son résultat et ses fichiers au suivant. Leur historique est dans <a href="#/executions" data-runs-kind="chain">Exécutions</a>.</p>
       </div>
-      <div class="head-actions"><div class="seg scope-seg" role="group" aria-label="Afficher"><button type="button" data-scope="mine" aria-pressed="true">Les miens</button><button type="button" data-scope="all" aria-pressed="false">Tout le cabinet</button></div>
+      <div class="head-actions"><div class="seg scope-seg" role="group" aria-label="Afficher"><button type="button" data-scope="mine" aria-pressed="true">Les miens</button><button type="button" data-scope="all" aria-pressed="false">Toute l'organisation</button></div>
       <button class="btn btn-primary" id="newChainBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
         Nouvelle chaîne
@@ -1356,7 +1356,7 @@
     <div class="dialog-body">
       <div class="field">
         <label for="mcpName">Nom</label>
-        <input class="input" id="mcpName" required maxlength="40" placeholder="Notion du cabinet">
+        <input class="input" id="mcpName" required maxlength="40" placeholder="Notion de l'équipe">
       </div>
       <div class="field">
         <label for="mcpUrl">Adresse du serveur (Streamable HTTP)</label>
@@ -1386,7 +1386,7 @@
       </div>
       <div class="field">
         <label for="siteName">Nom</label>
-        <input class="input" id="siteName" required maxlength="60" placeholder="Banque du cabinet">
+        <input class="input" id="siteName" required maxlength="60" placeholder="Banque pro">
       </div>
       <div class="field">
         <label for="siteUrl">Adresse de la page de connexion</label>
@@ -1767,7 +1767,7 @@ function setTeam(on) {
   team = on;
   try { localStorage.setItem("ac_scope", on ? "all" : "mine"); } catch {}
   document.querySelectorAll(".scope-seg [data-scope]").forEach(b => b.setAttribute("aria-pressed", String((b.dataset.scope === "all") === team)));
-  $("agentsTitle").textContent = team ? "Agents du cabinet" : "Mes agents";
+  $("agentsTitle").textContent = team ? "Agents de l'organisation" : "Mes agents";
   ["runsTableWrap", "schedTableWrap"].forEach(UI.resetPage);
   if (team) loadTeam().catch(err => toast(err.message));
   else { renderAgents(); renderChains(); renderSchedules(); reloadRunTables(); }
@@ -2743,8 +2743,8 @@ function appTile(app, conn) {
     ? [conn.last_error ? `<span class="tag err" title="${esc(conn.last_error)}">À reconnecter</span>` : '<span class="tag ok">Connecté</span>',
        `<span class="tag">${conn.read_only ? "Lecture seule" : "Lecture et écriture"}</span>`,
        conn.enabled ? "" : '<span class="tag warn">En pause</span>',
-       app.offered === false ? '<span class="tag warn">Désactivée par le cabinet</span>' : ""].join("")
-    : app && !app.available ? `<span class="tag">${app.offered === false ? "Non activée par le cabinet" : "À configurer par un administrateur"}</span>` : "";
+       app.offered === false ? '<span class="tag warn">Désactivée par votre organisation</span>' : ""].join("")
+    : app && !app.available ? `<span class="tag">${app.offered === false ? "Non activée par votre organisation" : "À configurer par un administrateur"}</span>` : "";
   const sub = conn ? (conn.account || conn.url.replace(/^https:\/\//, "")) : app.description;
   const foot = conn
     ? `<label class="switch" title="Utilisée par mes agents"><input type="checkbox" data-act="toggle" ${conn.enabled ? "checked" : ""} aria-label="Utilisée par mes agents : ${esc(name)}"><span></span></label>
@@ -3122,8 +3122,8 @@ function switchScope(scope, initial) {
   document.querySelectorAll("#viewContext .scope-tabs button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.scope === scope)));
   $("ctxLock").hidden = ctxData.can_edit_cabinet;
   $("ctxScopeHint").textContent = scope === "cabinet"
-    ? `S'applique à toutes les exécutions du cabinet · ${ctxData.can_edit_cabinet ? "modifiable par les administrateurs" : "lecture seule, modifiable par les administrateurs"}`
-    : "S'applique seulement à vos exécutions, après le contexte du cabinet";
+    ? `S'applique à toutes les exécutions de l'organisation · ${ctxData.can_edit_cabinet ? "modifiable par les administrateurs" : "lecture seule, modifiable par les administrateurs"}`
+    : "S'applique seulement à vos exécutions, après le contexte de l'organisation";
   setSaveState(d.updated_at ? "saved" : "", d.updated_at ? `Enregistré ${whenLabel(d.updated_at).toLowerCase()}${d.updated_by ? " · " + d.updated_by : ""}` : "Jamais modifié");
   const ro = !canEditCtx();
   $("ruleAdd").hidden = ro; $("termAdd").hidden = ro; $("siteNoteAdd").hidden = ro;
@@ -3222,9 +3222,9 @@ async function saveContext() {
 function keptRows(s, scope) {
   if (!s) return [];
   const cab = scope === "cabinet", rows = [];
-  if (s.rules) rows.push([true, cab ? `${countLabel(s.rules, "règle", "")} du cabinet` : `Vos ${countLabel(s.rules, "règle", "")} personnelles`]);
+  if (s.rules) rows.push([true, cab ? `${countLabel(s.rules, "règle", "")} de l'organisation` : `Vos ${countLabel(s.rules, "règle", "")} personnelles`]);
   if (s.terms_total) {
-    const whose = cab ? "du cabinet" : "personnel";
+    const whose = cab ? "de l'organisation" : "personnel";
     rows.push(s.terms_sent === s.terms_total ? [true, `Tout le vocabulaire ${whose} (${countLabel(s.terms_total, "mot", "")})`]
       : s.terms_sent ? [true, `${s.terms_sent} mot${s.terms_sent > 1 ? "s" : ""} du vocabulaire ${whose} sur ${s.terms_total} : ceux que la consigne cite`]
       : [false, `Vocabulaire ${whose} : aucun mot cité, laissé de côté`]);
@@ -3779,7 +3779,7 @@ async function openTwoFactorSetup(forced = false) {
   tfaForced = forced; tfaMode = "setup";
   const data = await apiRequest("/api/me/2fa/setup", { method: "POST" });
   $("tfaTitle").textContent = forced ? "Activez la double authentification" : "Activer la double authentification";
-  $("tfaIntro").textContent = (forced ? "Votre cabinet l'exige pour votre compte. " : "")
+  $("tfaIntro").textContent = (forced ? "Votre organisation l'exige pour votre compte. " : "")
     + "À chaque connexion, en plus du mot de passe, un code à 6 chiffres affiché par une application sur votre téléphone vous sera demandé. Un mot de passe volé ne suffit plus.";
   $("tfaQr").innerHTML = data.qr_svg; $("tfaSecret").textContent = data.secret;
   $("tfaCode").value = ""; $("tfaErr").textContent = "";
@@ -3854,6 +3854,12 @@ if (window.I18N) {
 }
 $("logoutBtn").onclick = async () => { await fetch("/api/logout", { method: "POST" }).catch(() => {}); location.replace("/login"); };
 
+// The organisation's own name (Administration) under the logo and on the shared context tab.
+function showOrganisation(name) {
+  $("orgName").textContent = name || ""; $("orgName").hidden = !name;
+  $("orgTabName").textContent = name || ""; $("orgTabName").hidden = !name; $("orgTabDefault").hidden = !!name;
+}
+
 async function boot() {
   let me = await api("/api/me");
   if (window.I18N) I18N.sync(me.lang);
@@ -3873,6 +3879,7 @@ async function boot() {
   $("meEmail").textContent = me.email || me.username;
   $("avatar").textContent = me.name.split(/[\s.]+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join("");
   $("adminLink").hidden = !me.admin;
+  showOrganisation(me.organisation);
   meUser = me.username;
   isAdmin = !!me.admin;
   if (appCatalog.length) renderApps();

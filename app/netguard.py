@@ -8,7 +8,7 @@ allowed sites: internal addresses are refused before anything leaves the browser
 checked after DNS resolution, so a public name pointing to an internal IP is caught too.
 
 A firm that really needs an intranet site lists it in AGENT_ALLOWED_INTERNAL_HOSTS (.env):
-host names, IPs or networks, comma separated, e.g. "compta.cabinet.lan, 192.168.10.0/24".
+host names, IPs or networks, comma separated, e.g. "compta.entreprise.lan, 192.168.10.0/24".
 """
 
 import asyncio

@@ -288,7 +288,7 @@ def authorize_url(owner: str, kind: str, read_only: bool, base_url: str) -> str:
     if not (oauth["client_id"] and oauth["client_secret"]):
         raise ValueError(f"{OAUTH[provider]['label']} n'est pas encore configuré par un administrateur.")
     if kind not in admin_config()["enabled"]:
-        raise ValueError(f"{app_['name']} n'est pas proposé par votre cabinet.")
+        raise ValueError(f"{app_['name']} n'est pas proposé par votre organisation.")
     scopes = app_["read"] + ([] if read_only else app_["write"])
     state = secrets.token_urlsafe(24)
     verifier = secrets.token_urlsafe(48)
@@ -411,7 +411,7 @@ async def check(integration_id: str, owner: str) -> dict:
 
 async def add_custom(owner: str, name: str, url: str, token: str, read_only: bool) -> dict:
     if not admin_config()["allow_custom"]:
-        raise ValueError("Votre cabinet n'autorise pas l'ajout d'autres serveurs MCP.")
+        raise ValueError("Votre organisation n'autorise pas l'ajout d'autres serveurs MCP.")
     try:
         async with MCPClient(url, token or None, timeout=20) as client:
             await client.list_tools()

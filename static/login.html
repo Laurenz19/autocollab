@@ -47,7 +47,7 @@
       <h1>Vos tâches répétitives, confiées à des agents que vous suivez en direct.</h1>
       <p>Factures, relevés, pièces manquantes : chaque étape est visible, chaque fichier est conservé.</p>
     </div>
-    <span class="foot">Bourdat Finance · usage interne</span>
+    <span class="foot org-name" id="orgFoot" hidden></span>
   </aside>
   <main class="pane">
     <form id="form">
@@ -57,7 +57,7 @@
       </div>
       <div class="field">
         <label for="username">Identifiant ou e-mail</label>
-        <input class="input" id="username" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="prenom.nom@bourdatfinance.com" autofocus required>
+        <input class="input" id="username" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="prenom.nom@exemple.fr" autofocus required>
       </div>
       <div class="field">
         <label for="password">Mot de passe</label>
@@ -97,6 +97,7 @@ $("pwToggle").onclick = () => {
 };
 // Two steps when two-factor authentication is on: the password gives a short ticket, the code opens the session.
 let ticket = null, recovery = false;
+fetch("/api/branding").then(r => r.json()).then(b => { if (b.organisation) { $("orgFoot").textContent = b.organisation; $("orgFoot").hidden = false; } }).catch(() => {});
 const next = new URLSearchParams(location.search).get("next");
 const done = () => location.replace(next && next.startsWith("/oauth/authorize?") ? next : "/");
 function askCode() {

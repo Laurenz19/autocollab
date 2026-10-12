@@ -224,6 +224,10 @@ class MeChanges(BaseModel):
     lang: Literal["fr", "en"]
 
 
+class Organisation(BaseModel):
+    name: str = Field(max_length=settings.ORG_NAME_MAX)
+
+
 class PasswordChange(BaseModel):
     current_password: str
     new_password: str
@@ -398,7 +402,14 @@ def me(user: str = Depends(current_user)):
         "must_change_password": auth.must_change_password(user),
         "lang": auth.load_users().get(user, {}).get("lang"),
         "two_factor": twofa.status(user),  # None until the user picks one
+        "organisation": settings.organisation_name(),
     }
+
+
+@app.get("/api/branding")
+def branding():
+    """Public on purpose: the login page shows the organisation's name before anyone signs in."""
+    return {"organisation": settings.organisation_name()}
 
 
 @app.patch("/api/me")
@@ -552,6 +563,12 @@ def admin_save_security(body: SecurityIn, admin: str = Depends(current_admin)):
 @app.get("/api/admin/settings")
 def admin_get_settings(admin: str = Depends(current_admin)):
     return settings.public_view()
+
+
+@app.put("/api/admin/organisation")
+def admin_save_organisation(body: Organisation, admin: str = Depends(current_admin)):
+    settings.set_organisation_name(body.name)
+    return {"organisation": settings.organisation_name()}
 
 
 @app.put("/api/admin/settings")

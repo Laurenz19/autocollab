@@ -148,7 +148,7 @@
           <tr><td>Agent</td><td>Une consigne enregistrée avec ses réglages, que l'on relance quand on veut ou que l'on planifie.</td></tr>
           <tr><td>Exécution</td><td>Une fois où un agent (ou une tâche) a travaillé, avec ses étapes, son résultat et ses fichiers.</td></tr>
           <tr><td>Chaîne</td><td>Plusieurs agents qui s'enchaînent : chacun passe son résultat et ses fichiers au suivant.</td></tr>
-          <tr><td>Contexte</td><td>Ce que les agents savent avant de commencer : règles du cabinet, vocabulaire, notes sur chaque site.</td></tr>
+          <tr><td>Contexte</td><td>Ce que les agents savent avant de commencer : règles de l'organisation, vocabulaire, notes sur chaque site.</td></tr>
         </tbody>
       </table>
       <div class="tip-box"><strong>Le bon ordre pour démarrer</strong>Connectez vos sites, essayez une tâche ponctuelle, regardez comment l'agent s'y prend, puis enregistrez-la comme agent et planifiez-la. Les sections 1 à 4 suivent cet ordre.</div>
@@ -164,7 +164,7 @@
         <li><strong>Première connexion</strong> : votre mot de passe a été défini par un administrateur. L'application vous demande aussitôt d'en choisir un que vous seul connaissez (10 caractères minimum).</li>
         <li><strong>Changer de mot de passe</strong> plus tard : icône clé à côté de votre nom, en bas du menu. Vos autres sessions sont alors déconnectées.</li>
         <li><strong>Langue</strong> : le bouton <strong>EN</strong> / <strong>FR</strong> en bas du menu passe l'interface en anglais ou en français. Le choix suit votre compte d'un poste à l'autre.</li>
-        <li><strong>Double authentification</strong> : voir <a href="#securite">Sécuriser votre compte</a>. Votre cabinet peut la rendre obligatoire.</li>
+        <li><strong>Double authentification</strong> : voir <a href="#securite">Sécuriser votre compte</a>. Votre organisation peut la rendre obligatoire.</li>
         <li>Après 5 mots de passe erronés, la connexion est bloquée 15 minutes. Mot de passe oublié : demandez à un administrateur de le réinitialiser.</li>
       </ul>
     </section>
@@ -196,7 +196,7 @@
         <li>Pendant que la page Mes connexions est ouverte, vos exécutions attendent : un seul navigateur peut utiliser votre profil à la fois. Le navigateur se ferme seul après 10 minutes sans action, ou quand vous quittez la page.</li>
         <li>Chaque site affiche son état : <strong>Connecté</strong> ou <strong>Non connecté</strong>, vérifié quand vous cliquez sur Terminer et pendant les exécutions de vos agents. Quand une session expire (la banque déconnecte souvent après quelques jours), le site repasse en « Non connecté » : repassez simplement par <strong>Se connecter</strong>.</li>
         <li>Avec beaucoup de sites, utilisez la recherche, les filtres (Connectés, Non connectés, Jamais vérifiés) et la vue <strong>Liste</strong>.</li>
-        <li><strong>Réinitialiser</strong> efface votre navigateur d'agent : déconnexion de tous les sites. Utile si vous changez d'accès ou quittez le cabinet.</li>
+        <li><strong>Réinitialiser</strong> efface votre navigateur d'agent : déconnexion de tous les sites. Utile si vous changez d'accès ou quittez l'organisation.</li>
       </ul>
     </section>
 
@@ -271,7 +271,7 @@
         <li><strong>Les cas particuliers</strong> : « s'il n'y a aucune facture, dis-le et arrête-toi ».</li>
         <li><strong>Une tâche à la fois</strong> : plutôt que tout faire dans une seule consigne, découpez en plusieurs agents et reliez-les par une <a href="#chaines">chaîne</a>.</li>
       </ul>
-      <div class="tip-box"><strong>Ne répétez pas ce qui vaut pour tous</strong>Les règles communes (« ne jamais supprimer de document »), les sigles du cabinet et le chemin des menus d'un site vont dans le <a href="#contexte">contexte</a> : ils sont ajoutés automatiquement à chaque consigne.</div>
+      <div class="tip-box"><strong>Ne répétez pas ce qui vaut pour tous</strong>Les règles communes (« ne jamais supprimer de document »), les sigles de l'organisation et le chemin des menus d'un site vont dans le <a href="#contexte">contexte</a> : ils sont ajoutés automatiquement à chaque consigne.</div>
     </section>
 
     <section id="garde-fous">
@@ -326,9 +326,9 @@
       <p>La page <strong>Contexte</strong> évite de répéter les mêmes informations dans chaque consigne. Son contenu est ajouté automatiquement au début du travail de l'agent.</p>
       <figure><a href="/static/guide/contexte.png" target="_blank"><img src="/static/guide/contexte.png" alt="Page Contexte avec règles et aperçu en direct" loading="lazy"></a><figcaption>Règles, glossaire, notes par site, et l'aperçu de ce que l'agent recevra.</figcaption></figure>
       <ul>
-        <li><strong>Cabinet</strong> : commun à tous, modifiable par les administrateurs. <strong>Personnel</strong> : le vôtre, ajouté après celui du cabinet (vos codes de dossiers, vos habitudes).</li>
+        <li><strong>Organisation</strong> : commun à tous, modifiable par les administrateurs. <strong>Personnel</strong> : le vôtre, ajouté après celui de l'organisation (vos codes de dossiers, vos habitudes).</li>
         <li><strong>Règles</strong> : ce que l'agent doit toujours respecter, une règle par ligne. Des suggestions sont proposées en un clic.</li>
-        <li><strong>Glossaire</strong> : les mots du cabinet et leur sens (sigles, noms de dossiers).</li>
+        <li><strong>Glossaire</strong> : les mots de l'organisation et leur sens (sigles, noms de dossiers).</li>
         <li><strong>Sites</strong> : où trouver les choses sur chaque site. Ces notes ne sont ajoutées que si la tâche concerne ce site.</li>
         <li><strong>Aperçu en direct</strong> : tapez une consigne d'essai pour voir exactement ce que l'agent recevra.</li>
       </ul>
@@ -349,7 +349,7 @@
       <h2>Tableau de bord et historique</h2>
       <p>Le <strong>Tableau de bord</strong> est la page d'accueil : activité des 30 derniers jours, taux de réussite, temps de travail des agents, ce qui attend votre action et les prochaines exécutions.</p>
       <figure><a href="/static/guide/tableau-de-bord.png" target="_blank"><img src="/static/guide/tableau-de-bord.png" alt="Tableau de bord avec chiffres clés, graphique d'activité et listes" loading="lazy"></a><figcaption>Le tableau de bord. Survolez une barre du graphique pour le détail du jour.</figcaption></figure>
-      <div class="tip-box"><strong>Beaucoup d'agents, de chaînes ou de sites ?</strong>Chaque page a sa barre d'outils : recherche (nom, consigne, site, chaîne), filtres rapides (planifiés, en pause, avec validation, dans une chaîne, dernier échec ; connectés / non connectés pour les sites), tri, et en vue « Tout le cabinet » un filtre par personne. Le bouton <strong>Cartes / Liste</strong> passe à une liste compacte, choisie automatiquement au-delà de 9 éléments ; le choix vaut à la fois pour Mes agents et Chaînes. Votre choix d'affichage et de tri est mémorisé.</div>
+      <div class="tip-box"><strong>Beaucoup d'agents, de chaînes ou de sites ?</strong>Chaque page a sa barre d'outils : recherche (nom, consigne, site, chaîne), filtres rapides (planifiés, en pause, avec validation, dans une chaîne, dernier échec ; connectés / non connectés pour les sites), tri, et en vue « Toute l'organisation » un filtre par personne. Le bouton <strong>Cartes / Liste</strong> passe à une liste compacte, choisie automatiquement au-delà de 9 éléments ; le choix vaut à la fois pour Mes agents et Chaînes. Votre choix d'affichage et de tri est mémorisé.</div>
       <p>La page <strong>Exécutions</strong> garde tout l'historique. Chaque ligne montre le <strong>statut</strong>, l'<strong>activité</strong> (agent, tâche ponctuelle ou étape de chaîne, avec son identifiant à copier), l'heure de lancement, le <strong>contexte</strong> (modèle d'IA utilisé, planifiée ou via MCP, chaîne, nombre d'étapes et de fichiers, garde-fous) et la <strong>durée</strong>. L'historique conserve la consigne exacte envoyée, même si l'agent a été modifié ou supprimé depuis.</p>
       <figure><a href="/static/guide/executions.png" target="_blank"><img src="/static/guide/executions.png" alt="Liste des exécutions avec filtres par type et statut" loading="lazy"></a><figcaption>L'historique : filtres par type (Agents, Tâches, Chaînes) et par statut, recherche par nom ou identifiant, Relancer et Ouvrir en icônes.</figcaption></figure>
       <p>La recherche porte sur le nom, la consigne, l'identifiant et le modèle. L'historique est découpé en pages : il reste rapide même avec des milliers d'exécutions.</p>
@@ -368,13 +368,13 @@
 
     <section id="partage">
       <h2>Voir le travail des collègues</h2>
-      <p>Sur les pages <strong>Mes agents</strong>, <strong>Chaînes</strong>, <strong>Exécutions</strong> et <strong>Planification</strong>, le bouton <strong>Les miens / Tout le cabinet</strong> affiche aussi les agents, chaînes et exécutions de vos collègues, avec le nom de leur propriétaire.</p>
+      <p>Sur les pages <strong>Mes agents</strong>, <strong>Chaînes</strong>, <strong>Exécutions</strong> et <strong>Planification</strong>, le bouton <strong>Les miens / Toute l'organisation</strong> affiche aussi les agents, chaînes et exécutions de vos collègues, avec le nom de leur propriétaire.</p>
       <ul>
         <li>Vous pouvez tout <strong>consulter</strong> : consigne, garde-fous, planification, étapes, captures, fichiers et résultat d'une exécution.</li>
         <li>Seul le <strong>propriétaire</strong> peut lancer, modifier, supprimer, arrêter, relancer ou répondre à une validation. Ses éléments apparaissent en « Lecture seule ».</li>
         <li>Restent <strong>personnels</strong> : Mes connexions (vos sessions sur les sites), vos applications connectées, votre contexte personnel et vos clés d'API.</li>
       </ul>
-      <figure><a href="/static/guide/agents-cabinet.png" target="_blank"><img src="/static/guide/agents-cabinet.png" alt="Agents du cabinet, ceux des collègues en lecture seule" loading="lazy"></a><figcaption>Vue « Tout le cabinet » : les agents des collègues portent le nom de leur propriétaire et sont en lecture seule.</figcaption></figure>
+      <figure><a href="/static/guide/agents-cabinet.png" target="_blank"><img src="/static/guide/agents-cabinet.png" alt="Agents de l'organisation, ceux des collègues en lecture seule" loading="lazy"></a><figcaption>Vue « Toute l'organisation » : les agents des collègues portent le nom de leur propriétaire et sont en lecture seule.</figcaption></figure>
       <div class="tip-box"><strong>Réutiliser l'agent d'un collègue</strong>Ouvrez-le pour lire sa consigne, puis créez votre propre agent en vous en inspirant : il s'exécutera avec vos connexions.</div>
     </section>
 
@@ -391,7 +391,7 @@
       <ul>
         <li>Ensuite, chaque connexion demande le code de l'application. Un même code ne sert qu'une fois ; 5 codes faux bloquent la connexion 15 minutes.</li>
         <li><strong>Téléphone perdu ou changé</strong> : connectez-vous avec un code de secours (« Utiliser un code de secours »), puis générez-en de nouveaux dans Mon compte. Sans code de secours, demandez à un administrateur de réinitialiser votre double authentification.</li>
-        <li>Si votre cabinet la rend obligatoire, l'application vous demande de l'activer dès la connexion, avant tout le reste.</li>
+        <li>Si votre organisation la rend obligatoire, l'application vous demande de l'activer dès la connexion, avant tout le reste.</li>
       </ul>
       <div class="warn-box"><strong>Rangez les codes de secours à part</strong>Pas sur le téléphone qui porte l'application : dans un gestionnaire de mots de passe ou sur papier, en lieu sûr.</div>
     </section>
@@ -400,7 +400,7 @@
       <h2>Pour les administrateurs</h2>
       <p>La page <strong>Administration</strong> (en bas du menu) a trois onglets : Utilisateurs, Intelligence artificielle et Intégrations.</p>
       <h3>Utilisateurs</h3>
-      <figure><a href="/static/guide/administration.png" target="_blank"><img src="/static/guide/administration.png" alt="Onglet Utilisateurs avec la double authentification obligatoire" loading="lazy"></a><figcaption>Les comptes du cabinet, l'état de leur double authentification, et qui doit l'utiliser.</figcaption></figure>
+      <figure><a href="/static/guide/administration.png" target="_blank"><img src="/static/guide/administration.png" alt="Onglet Utilisateurs avec la double authentification obligatoire" loading="lazy"></a><figcaption>Les comptes de l'organisation, l'état de leur double authentification, et qui doit l'utiliser.</figcaption></figure>
       <ul>
         <li>Créer un compte avec un mot de passe provisoire (bouton Générer), renommer, réinitialiser le mot de passe, donner ou retirer le rôle administrateur, supprimer (icônes crayon et corbeille). Transmettez le mot de passe provisoire par un canal sûr.</li>
         <li><strong>Double authentification obligatoire</strong> : Personne, Administrateurs ou Tout le monde. Activez-la d'abord sur votre propre compte. La colonne « Double authentification » montre qui l'a activée ; « Modifier » › « Réinitialiser » sert quand quelqu'un a perdu son téléphone.</li>
@@ -419,7 +419,7 @@
         <li>Renseignez l'<strong>application Google</strong> (ID client OAuth et code secret, avec l'URI de redirection affichée) et/ou l'<strong>application Slack</strong>, en suivant les étapes indiquées. Une adresse https est nécessaire (<code>PUBLIC_URL</code>).</li>
         <li>Le contenu lu par les agents (e-mails, fichiers, messages) est envoyé au fournisseur d'IA choisi.</li>
       </ul>
-      <p>Le <strong>contexte du cabinet</strong> (page Contexte) n'est modifiable que par les administrateurs.</p>
+      <p>Le <strong>contexte de l'organisation</strong> (page Contexte) n'est modifiable que par les administrateurs.</p>
     </section>
 
     <section id="capacite">
@@ -448,7 +448,7 @@
       <ul>
         <li>Chaque navigateur utilise <strong>300 à 500 Mo de mémoire</strong>. Au-delà d'une dizaine en même temps sur une seule machine, tout ralentit et les pages finissent par ne plus charger à temps.</li>
         <li><strong>Pour une seule personne</strong>, le plafond est d'environ 25 exécutions par heure, puisque ses exécutions se suivent.</li>
-        <li>Pour un cabinet, un serveur <strong>4 processeurs / 8 Go</strong> avec <code>MAX_PARALLEL_RUNS=4</code> (environ 100 exécutions par heure) est largement suffisant.</li>
+        <li>Pour une organisation, un serveur <strong>4 processeurs / 8 Go</strong> avec <code>MAX_PARALLEL_RUNS=4</code> (environ 100 exécutions par heure) est largement suffisant.</li>
       </ul>
       <h3>Les autres limites</h3>
       <ul>
@@ -497,7 +497,7 @@
       <details><summary>Ma tâche reste « En attente »</summary><p>Une autre de vos exécutions est en cours, attend une validation, ou la page Mes connexions est ouverte. Les exécutions d'une même personne se suivent ; celles de plusieurs personnes tournent en parallèle dans la limite du serveur.</p></details>
       <details><summary>L'agent tourne en rond ou s'arrête au nombre maximum d'étapes</summary><p>Lisez les étapes pour voir où il bloque, puis précisez la consigne : le chemin exact des menus, le dossier, ce qu'il doit rendre. Ajoutez les chemins qui reviennent souvent dans les notes par site du Contexte.</p></details>
       <details><summary>« Site non autorisé bloqué » dans les étapes</summary><p>L'agent a voulu ouvrir un site absent de ses sites autorisés (souvent une page de connexion sur un autre domaine). Ajoutez ce domaine à la liste s'il est légitime.</p></details>
-      <details><summary>« Adresse interne bloquée » dans les étapes</summary><p>Une page a tenté de joindre une adresse du réseau du serveur (localhost, réseau privé, adresse de métadonnées du cloud). C'est bloqué pour tous les agents, par sécurité : une page ou un e-mail piégé pourrait sinon leur faire lire des informations internes. Si c'est un site de l'intranet du cabinet dont vos agents ont besoin, demandez à l'administrateur du serveur de l'ajouter à <code>AGENT_ALLOWED_INTERNAL_HOSTS</code>.</p></details>
+      <details><summary>« Adresse interne bloquée » dans les étapes</summary><p>Une page a tenté de joindre une adresse du réseau du serveur (localhost, réseau privé, adresse de métadonnées du cloud). C'est bloqué pour tous les agents, par sécurité : une page ou un e-mail piégé pourrait sinon leur faire lire des informations internes. Si c'est un site de l'intranet de votre organisation dont vos agents ont besoin, demandez à l'administrateur du serveur de l'ajouter à <code>AGENT_ALLOWED_INTERNAL_HOSTS</code>.</p></details>
       <details><summary>Je n'ai pas répondu à une validation</summary><p>Sans réponse sous 60 minutes, l'action est refusée et l'agent continue sans la faire. Relancez l'exécution quand vous êtes disponible.</p></details>
       <details><summary>Combien d'exécutions l'application peut-elle faire ?</summary><p>Cela dépend du serveur : environ 50 par heure avec le réglage par défaut (2 en même temps), une centaine avec un serveur plus puissant et 4 en même temps. Voir <a href="#capacite">Capacité et performances</a>.</p></details>
       <details><summary>J'ai perdu mon téléphone (double authentification)</summary><p>À la connexion, cliquez sur « Utiliser un code de secours » et saisissez un des codes notés à l'activation, puis générez-en de nouveaux dans Mon compte et réactivez l'application sur votre nouveau téléphone. Sans code de secours, un administrateur peut réinitialiser votre double authentification (Administration › Utilisateurs › Modifier).</p></details>

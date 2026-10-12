@@ -16,7 +16,7 @@ from . import agents, config, schedule
 SERVER_INFO = {"name": "autocollab", "title": "AutoCollab", "version": "1.2.0"}
 PROTOCOL_VERSIONS = ["2025-06-18", "2025-03-26", "2024-11-05"]
 INSTRUCTIONS = (
-    "AutoCollab, l'outil du cabinet : des agents IA travaillent dans un navigateur (Gmail, Pennylane, banques...).\n"
+    "AutoCollab, l'outil de l'organisation : des agents IA travaillent dans un navigateur (Gmail, Pennylane, banques...).\n"
     "- Lancer : run_task (consigne ponctuelle), run_agent (agent enregistré), run_chain (suite d'agents).\n"
     "- Construire : create_agent / update_agent, create_chain / update_chain. list_variables donne les variables "
     "utilisables dans une consigne ({mois_precedent}, {resultat_precedent} dans une chaîne...).\n"
@@ -28,11 +28,11 @@ INSTRUCTIONS = (
     "- Les exécutions sont asynchrones : suis-les avec get_run ou get_chain_run jusqu'à un statut final. "
     "Si le statut est a_valider, montre la demande à l'utilisateur et n'appelle answer_approval qu'avec sa décision.\n"
     "- La suppression d'un agent ou d'une chaîne se fait uniquement dans l'application.\n"
-    "- Contexte : les règles, le glossaire et les notes par site du cabinet et de l'utilisateur sont ajoutés "
+    "- Contexte : les règles, le glossaire et les notes par site de l'organisation et de l'utilisateur sont ajoutés "
     "automatiquement à chaque consigne. Lis-les (get_context) avant d'écrire un agent, ne les répète pas dans la "
     "consigne et ne les contredis pas ; preview_context montre ce qu'un agent recevra.\n"
     "- Pour modifier le contexte (update_personal_context, update_firm_context), montre d'abord le changement exact "
-    "(avant / après) et attends l'accord de l'utilisateur ; le contexte du cabinet s'applique à tous les collègues.\n"
+    "(avant / après) et attends l'accord de l'utilisateur ; le contexte de l'organisation s'applique à tous les collègues.\n"
     "- En cas de doute sur le fonctionnement (variables, planification, chaînes, statuts), appelle get_documentation."
 )
 
@@ -133,7 +133,7 @@ TOOLS = [
 ]
 TOOLS += [
     _tool("get_context", "Lire le contexte",
-          "Règles, glossaire et notes par site du cabinet et de l'utilisateur, ajoutés automatiquement à chaque consigne d'agent. "
+          "Règles, glossaire et notes par site de l'organisation et de l'utilisateur, ajoutés automatiquement à chaque consigne d'agent. "
           "À lire avant d'écrire un agent.", {}),
     _tool("preview_context", "Aperçu du contexte",
           "Le texte de contexte exact qu'un agent recevrait avec cette consigne (seules les notes des sites concernés sont incluses).",
@@ -141,8 +141,8 @@ TOOLS += [
     _tool("update_personal_context", "Modifier mon contexte",
           "Modifie le contexte personnel de l'utilisateur : ajoute des règles, ajoute ou retire des mots du glossaire et des notes par site. "
           "Montrer le changement à l'utilisateur avant.", _CONTEXT_CHANGES, (), {**BUILD, "destructiveHint": True}),
-    _tool("update_firm_context", "Modifier le contexte du cabinet",
-          "Modifie le contexte du cabinet, appliqué aux agents de tous les collègues. Réservé aux administrateurs ; "
+    _tool("update_firm_context", "Modifier le contexte de l'organisation",
+          "Modifie le contexte de l'organisation, appliqué aux agents de tous les collègues. Réservé aux administrateurs ; "
           "montrer le changement exact et obtenir l'accord explicite de l'utilisateur avant.", _CONTEXT_CHANGES, (), {**BUILD, "destructiveHint": True}),
 ]
 TOOL_NAMES = {t["name"] for t in TOOLS}
@@ -299,7 +299,7 @@ def _context_tool(name: str, args: dict, user: str) -> dict:
         text = ctx.build(user, ag.render(task), domains) or ""
         return {"text": text or "Aucun contexte ne s'applique à cette consigne.", "chars": len(text), "tokens": round(len(text) / 4)}
     if name == "update_firm_context" and not auth.is_admin(user):
-        raise ToolError("Seul un administrateur peut modifier le contexte du cabinet. Proposez plutôt update_personal_context.")
+        raise ToolError("Seul un administrateur peut modifier le contexte de l'organisation. Proposez plutôt update_personal_context.")
     scope = "cabinet" if name == "update_firm_context" else ctx.scope_of(user)
     data, done = _apply_context_changes(ctx.load(scope), args)
     data, error = ctx.clean(data)
