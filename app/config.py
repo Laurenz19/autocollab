@@ -4,10 +4,13 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent.parent
-RUNS_DIR = ROOT / "runs"
-DATA_DIR = ROOT / "data"
 
 load_dotenv(ROOT / ".env")
+
+# Where accounts, settings and the database live, and where runs keep their screenshots and files.
+# Overridable so a separate instance (e.g. the guide's demo, tools/guide_screenshots.py) never touches real data.
+DATA_DIR = Path(os.getenv("AUTOCOLLAB_DATA_DIR", "").strip() or ROOT / "data")
+RUNS_DIR = Path(os.getenv("AUTOCOLLAB_RUNS_DIR", "").strip() or ROOT / "runs")
 
 
 def _bool(name: str, default: bool) -> bool:
@@ -46,3 +49,12 @@ COOKIE_SECURE = _bool("COOKIE_SECURE", False)
 
 # How long an agent in approval mode waits for someone to click Valider or Refuser.
 APPROVAL_TIMEOUT_MINUTES = int(os.getenv("APPROVAL_TIMEOUT_MINUTES", "60"))
+
+# Billing with Stripe (app/billing.py). Empty secret key = billing off and no limits (an installation on the
+# client's own servers, or before launch). The price ids come from the Stripe dashboard (Products).
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "").strip()
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "").strip()
+STRIPE_PRICES = {
+    f"{plan}_{period}": os.getenv(f"STRIPE_PRICE_{plan.upper()}_{period.upper()}", "").strip()
+    for plan in ("solo", "equipe", "entreprise") for period in ("monthly", "yearly")
+} | {"credits": os.getenv("STRIPE_PRICE_CREDITS", "").strip()}

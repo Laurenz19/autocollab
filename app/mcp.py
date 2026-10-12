@@ -11,7 +11,7 @@ Stateless: no session id, no server-to-client stream.
 
 import json
 
-from . import agents, config, schedule
+from . import agents, billing, config, schedule
 
 SERVER_INFO = {"name": "autocollab", "title": "AutoCollab", "version": "1.2.0"}
 PROTOCOL_VERSIONS = ["2025-06-18", "2025-03-26", "2024-11-05"]
@@ -478,6 +478,6 @@ def handle(message: dict, user: str, manager, chain_manager=None, docs=None) -> 
             return {"jsonrpc": "2.0", "id": id_, "result": {
                 "content": [{"type": "text", "text": json.dumps(data, ensure_ascii=False, indent=1)}],
                 "structuredContent": data, "isError": False}}
-        except ToolError as e:
+        except (ToolError, billing.LimitReached) as e:
             return {"jsonrpc": "2.0", "id": id_, "result": {"content": [{"type": "text", "text": str(e)}], "isError": True}}
     return _error(id_, -32601, f"Méthode non prise en charge : {method}")

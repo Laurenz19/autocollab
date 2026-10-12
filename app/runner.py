@@ -31,7 +31,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from . import browsers, config, files, integrations, netguard
+from . import billing, browsers, config, files, integrations, netguard, pricing, usage
 from .mcp_client import MCPClient, result_text
 from . import context as agent_context  # run() has a local `context` (the browser context)
 from .db import connect
@@ -171,6 +171,10 @@ class TaskRun:
         self.queue_position: int | None = None
         self.provider: str | None = None
         self.model: str | None = None
+        self.tokens = usage.empty()
+        self.cost_usd: float | None = 0.0
+        self.credits = 0.0
+        self._meter: usage.UsageMeter | None = None
         self._events: list[dict] | None = []
         self.live_screenshot: bytes | None = None
         self.live_url = ""
@@ -215,6 +219,11 @@ class TaskRun:
         run._events = None
         run.provider = row["provider"] if "provider" in row.keys() else None
         run.model = row["model"] if "model" in row.keys() else None
+        keys = row.keys()
+        run.tokens = {**usage.empty(), **{field: row[field] for field in pricing.TOKEN_FIELDS if field in keys}}
+        run.cost_usd = row["cost_usd"] if "cost_usd" in keys else None
+        run.credits = row["credits"] if "credits" in keys else 0.0
+        run._meter = None
         run.live_screenshot = None
         run.live_url = ""
         run.live_title = ""
@@ -236,11 +245,15 @@ class TaskRun:
         with connect() as conn:
             conn.execute(
                 "INSERT INTO runs (id, owner, agent_id, agent_name, task, status, created_at, finished_at, result, steps, trigger,"
-                " chain_run_id, chain_name, provider, model)"
+                " chain_run_id, chain_name, provider, model,"
+                " input_tokens, output_tokens, cache_read_tokens, cache_write_tokens, cost_usd, credits)"
                 " VALUES (:id, :owner, :agent_id, :agent_name, :task, :status, :created_at, :finished_at, :result, :steps, :trigger,"
-                " :chain_run_id, :chain_name, :provider, :model)"
+                " :chain_run_id, :chain_name, :provider, :model,"
+                " :input_tokens, :output_tokens, :cache_read_tokens, :cache_write_tokens, :cost_usd, :credits)"
                 " ON CONFLICT(id) DO UPDATE SET status = :status, finished_at = :finished_at,"
-                " result = :result, steps = :steps, provider = :provider, model = :model",
+                " result = :result, steps = :steps, provider = :provider, model = :model,"
+                " input_tokens = :input_tokens, output_tokens = :output_tokens, cache_read_tokens = :cache_read_tokens,"
+                " cache_write_tokens = :cache_write_tokens, cost_usd = :cost_usd, credits = :credits",
                 {
                     "id": self.id, "owner": self.owner, "agent_id": self.agent_id, "agent_name": self.agent_name,
                     "task": self.task, "status": self.status, "created_at": self.created_at,
@@ -248,6 +261,8 @@ class TaskRun:
                     "trigger": self.trigger,
                     "chain_run_id": self.chain_run_id, "chain_name": self.chain_name,
                     "provider": self.provider, "model": self.model,
+                    **{field: self.tokens[field] for field in pricing.TOKEN_FIELDS},
+                    "cost_usd": self.cost_usd, "credits": self.credits,
                 },
             )
 
@@ -298,6 +313,8 @@ class TaskRun:
             "approval_mode": self.approval_mode,
             "provider": self.provider,
             "model": self.model,
+            "usage": {**{field: self.tokens[field] for field in pricing.TOKEN_FIELDS},
+                      "cost_usd": None if self.cost_usd is None else round(self.cost_usd, 6), "credits": self.credits},
             "allowed_domains": self.allowed_domains,
             "files": len(self.all_files()) if with_files else None,
             "uploads": self.uploads,
@@ -698,9 +715,12 @@ class TaskRun:
                     allowed_domains=self.allowed_domains or None,
                 ),
             )
+            llm = create_llm()
+            self._meter = usage.UsageMeter()
+            llm.callbacks = [self._meter]
             self._agent = Agent(
                 task=self.task,
-                llm=create_llm(),
+                llm=llm,
                 browser=browser,
                 browser_context=context,
                 controller=self._controller(),
@@ -746,6 +766,7 @@ class TaskRun:
             last_error = _explain_error(str(e))
             self.publish("error", message=last_error)
         finally:
+            self._account(step=False)  # calls after the last step (e.g. reading a page for the result)
             if live_task:
                 live_task.cancel()
             for closable in (context, browser):
@@ -803,6 +824,7 @@ class TaskRun:
                 actions.append({"name": name, "params": params})
 
         self._record_sign_in(state)
+        step_usage = self._account(step=True)
         move = json.dumps([getattr(state, "url", ""), actions], sort_keys=True, default=str)
         self._repeats = self._repeats + 1 if move == self._last_move else 1
         self._last_move = move
@@ -820,7 +842,32 @@ class TaskRun:
             next_goal=brain.next_goal if brain else "",
             actions=actions,
             screenshot=screenshot_url,
+            usage=step_usage,
         )
+
+    def _account(self, step: bool) -> dict | None:
+        """Adds the tokens used since the last call to the run's totals, with their cost and credits.
+
+        A step costs at least pricing.MIN_CREDITS_PER_STEP; calls outside a step (after the last one)
+        only add their real cost.
+        """
+        if not self._meter:
+            return None
+        delta = self._meter.take()
+        if not delta["calls"] and not step:
+            return None
+        for field in pricing.TOKEN_FIELDS:
+            self.tokens[field] += delta[field]
+        self.tokens["calls"] += delta["calls"]
+        cost = pricing.cost_usd(self.provider, self.model, delta)
+        if cost is None:
+            self.cost_usd = None
+        elif self.cost_usd is not None:
+            self.cost_usd += cost
+        credits = pricing.step_credits(cost) if step else round((cost or 0) / pricing.CREDIT_VALUE_USD, 1)
+        self.credits = round(self.credits + credits, 1)
+        return {**{field: delta[field] for field in pricing.TOKEN_FIELDS}, "calls": delta["calls"],
+                "cost_usd": None if cost is None else round(cost, 6), "credits": credits}
 
     def _record_sign_in(self, state) -> None:
         """Keep "Mes connexions" honest: an agent sent to a login page means the session has expired."""
@@ -965,6 +1012,7 @@ class TaskManager:
     ) -> TaskRun:
         if sum(1 for r in self.waiting if r.owner == owner) >= MAX_WAITING_PER_USER:
             raise RuntimeError(f"Vous avez déjà {MAX_WAITING_PER_USER} tâches en attente. Attendez qu'elles avancent.")
+        billing.check_credits()  # a run already started always goes to the end, even past the credits
         own_busy = browsers.owner_lock(owner).locked() or any(
             r.owner == owner and r.status in ACTIVE_STATUSES for r in self.runs.values()
         )
@@ -987,6 +1035,9 @@ class TaskManager:
             if run.status != "en_attente":
                 return  # removed from the queue while waiting
             async with self.slots:
+                # The plan's agents at the same time, when lower than the server's browsers.
+                while (limit := billing.parallel_limit()) and len(self.running) >= limit and run.status == "en_attente":
+                    await asyncio.sleep(2)
                 if run.status != "en_attente":
                     return
                 run.status = "en_cours"  # out of the queue before the others move up

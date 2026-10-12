@@ -67,6 +67,13 @@
   @media (max-width: 700px) { .key-row { grid-template-columns: 1fr; } }
   .warning { padding: 12px 14px; border-radius: 10px; background: var(--warn-soft); color: var(--ink); font-size: 14px; }
   .warning strong { color: var(--warn); }
+  .bill-plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .bill-plan { border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .bill-plan.current { border-color: var(--ink); }
+  .bill-plan h3 { margin: 0; font-size: 15px; }
+  .bill-plan ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13px; flex: 1; }
+  .meter { height: 8px; border-radius: 999px; background: var(--hair); overflow: hidden; }
+  .meter span { display: block; height: 100%; background: var(--ink); }
   .result { padding: 10px 12px; border-radius: 8px; font-size: 14px; }
   .result.ok { background: var(--ok-soft); color: var(--ok); }
   .result.bad { background: var(--err-soft); color: var(--err); }
@@ -159,6 +166,7 @@
       <button class="tab" role="tab" id="tabUsersBtn" aria-controls="tabUsers" aria-selected="true">Utilisateurs</button>
       <button class="tab" role="tab" id="tabAIBtn" aria-controls="tabAI" aria-selected="false">Intelligence artificielle</button>
       <button class="tab" role="tab" id="tabIntBtn" aria-controls="tabInt" aria-selected="false">Intégrations</button>
+      <button class="tab" role="tab" id="tabBillBtn" aria-controls="tabBill" aria-selected="false">Abonnement</button>
     </div>
 
     <div id="tabUsers" role="tabpanel" aria-labelledby="tabUsersBtn" style="display: flex; flex-direction: column; gap: 18px">
@@ -289,6 +297,35 @@
       <p class="hint" style="margin: 0" id="intPublicHint"></p>
       <div class="actions"><button class="btn btn-primary" id="intSaveBtn">Enregistrer</button></div>
     </form>
+
+    <div id="tabBill" role="tabpanel" aria-labelledby="tabBillBtn" hidden style="display: flex; flex-direction: column; gap: 18px">
+      <p class="notice" id="billOff" hidden>La facturation n'est pas activée sur cette installation : aucune limite de crédits ni de formule.</p>
+      <section class="card" style="display: flex; flex-direction: column; gap: 12px">
+        <div class="row-head">
+          <div>
+            <h2 class="label" style="margin: 0">Formule <span id="billPlan"></span></h2>
+            <p class="hint" style="margin: 2px 0 0" id="billRenew"></p>
+          </div>
+          <button type="button" class="btn btn-outline" id="billPortalBtn" hidden>Gérer l'abonnement</button>
+        </div>
+        <div class="meter" aria-hidden="true"><span id="billMeter"></span></div>
+        <p style="margin: 0" id="billCredits"></p>
+        <div class="row-head" id="billPackRow" hidden>
+          <p class="hint" style="margin: 0" id="billPackText"></p>
+          <button type="button" class="btn btn-outline" id="billPackBtn">Acheter un pack</button>
+        </div>
+      </section>
+      <section class="card" id="billChoose" style="display: flex; flex-direction: column; gap: 14px" hidden>
+        <div class="row-head">
+          <h2 class="label" style="margin: 0">Changer de formule</h2>
+          <div class="seg" role="group" aria-label="Facturation" id="billPeriod">
+            <button type="button" data-period="monthly" aria-pressed="true">Mensuel</button><button type="button" data-period="yearly" aria-pressed="false">Annuel (−2 mois)</button>
+          </div>
+        </div>
+        <div class="bill-plans" id="billPlans"></div>
+        <p class="hint" style="margin: 0">Prix hors taxes, en dollars. Paiement sécurisé par Stripe ; factures, carte et résiliation dans « Gérer l'abonnement ».</p>
+      </section>
+    </div>
   </main>
 </div>
 
@@ -516,18 +553,80 @@ $("orgForm").onsubmit = async (e) => {
 // --- tabs -------------------------------------------------------------------------
 
 function showTab(name) {
-  const panels = { users: "tabUsers", ai: "tabAI", int: "tabInt" };
+  const panels = { users: "tabUsers", ai: "tabAI", int: "tabInt", bill: "tabBill" };
   for (const [key, id] of Object.entries(panels)) {
     $(id).hidden = key !== name;
     $(id + "Btn").setAttribute("aria-selected", String(key === name));
   }
-  history.replaceState(null, "", { ai: "#ia", int: "#integrations" }[name] || "#");
+  history.replaceState(null, "", { ai: "#ia", int: "#integrations", bill: "#abonnement" }[name] || "#");
+  if (name === "bill") loadBilling().catch(err => toast(err.message));
   if (name === "ai") loadAI().catch(err => toast(err.message));
   if (name === "int") loadIntegrations().catch(err => toast(err.message));
 }
 $("tabUsersBtn").onclick = () => showTab("users");
 $("tabAIBtn").onclick = () => showTab("ai");
 $("tabIntBtn").onclick = () => showTab("int");
+$("tabBillBtn").onclick = () => showTab("bill");
+
+// --- subscription (Stripe) ------------------------------------------------------------
+
+let billPeriod = "monthly", bill = null;
+const num = (n) => Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+const dateFr = (iso) => new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+const limitText = (n, one, many, none) => n === null ? `${many[0].toUpperCase() + many.slice(1)} : illimité` : n === 0 ? none : `${n} ${n > 1 ? many : one}`;
+
+async function loadBilling() {
+  bill = await api("/api/admin/billing");
+  $("billOff").hidden = bill.enabled;
+  $("billChoose").hidden = !bill.enabled;
+  $("billPortalBtn").hidden = !bill.enabled || !bill.customer;
+  const c = bill.credits, total = c.included + c.extra;
+  $("billPlan").textContent = bill.label + (bill.period ? (bill.period === "yearly" ? " (annuel)" : " (mensuel)") : "");
+  $("billRenew").textContent = bill.renews_at
+    ? (bill.cancel_at_period_end ? "Résiliée, active jusqu'au " : "Renouvelée le ") + dateFr(bill.renews_at)
+      + (bill.status === "past_due" ? " · Dernier paiement refusé : mettez à jour votre carte." : "")
+    : "";
+  $("billMeter").style.width = (total ? Math.min(100, c.used / total * 100) : 100) + "%";
+  $("billCredits").innerHTML = `<strong>${num(c.remaining)}</strong> crédits restants sur ${num(total)}`
+    + (c.extra ? ` (dont ${num(c.extra)} de packs)` : "") + `, jusqu'au ${dateFr(c.period_end)}`;
+  $("billPackRow").hidden = !bill.enabled || !bill.pack.available;
+  $("billPackText").textContent = `Besoin de plus ? ${num(bill.pack.credits)} crédits pour ${bill.pack.usd} $, reportés d'un mois sur l'autre.`;
+  renderPlans();
+}
+
+function renderPlans() {
+  for (const b of $("billPeriod").querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.period === billPeriod));
+  const paid = bill.plan !== "gratuit";
+  $("billPlans").innerHTML = bill.plans.filter(p => p.key !== "gratuit").map(p => {
+    const yearly = billPeriod === "yearly", price = p.usd[billPeriod], current = p.key === bill.plan;
+    const action = current ? `<button type="button" class="btn btn-outline" disabled>Formule actuelle</button>`
+      : !p.periods.includes(billPeriod) ? `<span class="hint">Sur demande</span>`
+      : paid ? `<button type="button" class="btn btn-outline" data-portal>Changer</button>`
+      : `<button type="button" class="btn btn-primary" data-plan="${esc(p.key)}">Choisir</button>`;
+    return `<div class="bill-plan${current ? " current" : ""}">
+      <h3>${esc(p.label)}</h3>
+      <div><strong>${num(yearly ? price / 12 : price)} $</strong> <span class="hint">/ mois${yearly ? `, ${num(price)} $ par an` : ""}</span></div>
+      <ul><li>${num(p.credits)} crédits / mois</li>
+        <li>${limitText(p.limits.parallel, "agent à la fois", "agents en même temps")}</li>
+        <li>${limitText(p.limits.agents, "agent enregistré", "agents enregistrés")}</li>
+        <li>${limitText(p.limits.schedules, "tâche planifiée", "tâches planifiées", "Sans planification")}</li>
+        <li>${limitText(p.limits.users, "utilisateur", "utilisateurs")}</li></ul>
+      ${action}</div>`;
+  }).join("");
+}
+
+async function goTo(path, body) {
+  const r = await api(path, { method: "POST", body: JSON.stringify(body || {}) });
+  location.href = r.url;
+}
+$("billPeriod").onclick = (e) => { const b = e.target.closest("button"); if (b) { billPeriod = b.dataset.period; renderPlans(); } };
+$("billPlans").onclick = (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.plan) goTo("/api/admin/billing/checkout", { plan: b.dataset.plan, period: billPeriod }).catch(err => toast(err.message));
+  else if ("portal" in b.dataset) goTo("/api/admin/billing/portal").catch(err => toast(err.message));
+};
+$("billPortalBtn").onclick = () => goTo("/api/admin/billing/portal").catch(err => toast(err.message));
+$("billPackBtn").onclick = () => goTo("/api/admin/billing/checkout", { pack: true }).catch(err => toast(err.message));
 
 // --- integrations (MCP applications) -----------------------------------------------
 
@@ -742,6 +841,11 @@ api("/api/admin/security").then(sec => {
 loadUsers().catch(err => toast(err.message));
 if (location.hash === "#ia") showTab("ai");
 if (location.hash === "#integrations") showTab("int");
+if (location.hash.startsWith("#abonnement")) {
+  const paidNow = location.hash.includes("paiement=ok");
+  showTab("bill");
+  if (paidNow) toast("Paiement reçu. La formule et les crédits se mettent à jour dans quelques secondes.", true);
+}
 </script>
 </body>
 </html>

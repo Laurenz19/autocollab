@@ -4,6 +4,8 @@ import os
 import hmac
 import ipaddress
 import json
+import re
+from datetime import datetime
 from typing import Literal
 from urllib.parse import quote, urlparse
 
@@ -13,8 +15,8 @@ from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Resp
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import (agents, apidoc, assistant, auth, browsers, chains, config, connections, context, files, guide, integrations, mcp,
-               netguard, oauth, schedule, settings, sites, tokens, twofa)
+from . import (agents, apidoc, assistant, auth, billing, browsers, chains, config, connections, context, files, guide, integrations, mcp,
+               netguard, oauth, pricing, schedule, settings, sites, tokens, twofa, usage)
 from html import escape
 from .llm import create_llm
 from .auth import current_admin, current_user
@@ -63,6 +65,11 @@ SECURITY_HEADERS = {
     "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()",
     "Cross-Origin-Opener-Policy": "same-origin",
 }
+
+
+@app.exception_handler(billing.LimitReached)
+async def limit_reached(request: Request, exc: billing.LimitReached):
+    return JSONResponse({"detail": str(exc)}, status_code=402)
 
 
 @app.middleware("http")
@@ -479,6 +486,7 @@ def admin_create_user(body: NewUser, admin: str = Depends(current_admin)):
             raise HTTPException(409, f"Le compte « {username} » existe déjà.")
         if error := auth.email_error(email, users):
             raise HTTPException(400, error)
+        billing.check_new_user(len(users))
         users[username] = {
             "name": body.name.strip() or username,
             "email": email,
@@ -563,6 +571,77 @@ def admin_save_security(body: SecurityIn, admin: str = Depends(current_admin)):
 @app.get("/api/admin/settings")
 def admin_get_settings(admin: str = Depends(current_admin)):
     return settings.public_view()
+
+
+@app.get("/api/admin/usage")
+def admin_usage(month: str | None = None, admin: str = Depends(current_admin)):
+    """Tokens billed by the AI providers, their cost and the credits they make, for one month."""
+    month = month or datetime.now().strftime("%Y-%m")
+    if not re.fullmatch(r"\d{4}-\d{2}", month):
+        raise HTTPException(400, "Mois au format AAAA-MM, par exemple 2026-10.")
+    return usage.monthly_report(month)
+
+
+@app.get("/api/admin/pricing")
+def admin_pricing(admin: str = Depends(current_admin)):
+    """The price table behind credits, with the typical credits per agent step of each model."""
+    return {
+        "credit_value_usd": pricing.CREDIT_VALUE_USD,
+        "min_credits_per_step": pricing.MIN_CREDITS_PER_STEP,
+        "models": [{"provider": provider, "model": model, **price, "credits_per_step": pricing.estimate_per_step(provider, model)}
+                   for provider, models in pricing.PRICES.items() for model, price in models.items()],
+    }
+
+
+class Checkout(BaseModel):
+    plan: str | None = None
+    period: Literal["monthly", "yearly"] = "monthly"
+    pack: bool = False
+
+
+@app.get("/api/admin/billing")
+def admin_billing(admin: str = Depends(current_admin)):
+    return billing.status()
+
+
+@app.post("/api/admin/billing/checkout")
+async def admin_billing_checkout(body: Checkout, request: Request, admin: str = Depends(current_admin)):
+    """Address of the Stripe page where the administrator pays a plan or a credit pack."""
+    if not billing.enabled():
+        raise HTTPException(400, "La facturation n'est pas activée sur cette installation.")
+    try:
+        url = await asyncio.to_thread(billing.checkout, config.PUBLIC_URL or _base_url(request), body.plan, body.period, body.pack)
+    except RuntimeError as e:
+        raise HTTPException(400, str(e))
+    return {"url": url}
+
+
+@app.post("/api/admin/billing/portal")
+async def admin_billing_portal(request: Request, admin: str = Depends(current_admin)):
+    """Address of Stripe's customer portal (card, invoices, plan change, cancellation)."""
+    if not billing.enabled():
+        raise HTTPException(400, "La facturation n'est pas activée sur cette installation.")
+    try:
+        url = await asyncio.to_thread(billing.portal, config.PUBLIC_URL or _base_url(request))
+    except RuntimeError as e:
+        raise HTTPException(400, str(e))
+    return {"url": url}
+
+
+@app.post("/api/stripe/webhook", include_in_schema=False)
+async def stripe_webhook(request: Request):
+    """Stripe tells the app about payments and subscription changes; the signature proves it is Stripe."""
+    if not billing.enabled():
+        raise HTTPException(404)
+    try:
+        event = billing.verify(await request.body(), request.headers.get("stripe-signature", ""))
+    except ValueError:
+        raise HTTPException(400, "Signature invalide")
+    try:
+        await asyncio.to_thread(billing.handle, event)
+    except RuntimeError as e:  # Stripe could not be reached: answering an error makes Stripe send it again
+        raise HTTPException(502, str(e))
+    return {"received": True}
 
 
 @app.put("/api/admin/organisation")

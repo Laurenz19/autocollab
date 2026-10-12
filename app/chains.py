@@ -11,7 +11,7 @@ import logging
 import uuid
 from datetime import datetime
 
-from . import agents, config, files
+from . import agents, billing, config, files
 from .db import connect
 
 logger = logging.getLogger(__name__)
@@ -76,6 +76,8 @@ def _next_run_at(schedule_def: dict | None, enabled: bool) -> str | None:
 
 
 def create(owner: str, name: str, steps: list[dict], schedule_def: dict | None, schedule_enabled: bool, via: str = "app") -> dict:
+    if schedule_def and schedule_enabled:
+        billing.check_new_schedule()
     now = _now()
     row = {"id": uuid.uuid4().hex[:12], "owner": owner, "name": name, "steps": json.dumps(steps),
            "schedule": json.dumps(schedule_def) if schedule_def else None,
@@ -96,6 +98,8 @@ def update(chain_id: str, owner: str, changes: dict, via: str = "app") -> dict |
     sets = {"name": merged["name"], "steps": json.dumps(merged["steps"]),
             "schedule": json.dumps(merged["schedule"]) if merged["schedule"] else None,
             "schedule_enabled": int(enabled), "updated_at": _now(), "updated_via": via}
+    if enabled and not current["schedule_enabled"]:
+        billing.check_new_schedule()
     if merged["schedule"] != current["schedule"] or enabled != current["schedule_enabled"]:
         sets["next_run_at"] = _next_run_at(merged["schedule"], enabled)
     with connect() as conn:

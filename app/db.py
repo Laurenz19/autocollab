@@ -189,6 +189,13 @@ _MIGRATIONS = [
     ("runs", "model", "TEXT"),
     ("sites", "signed_in", "INTEGER"),                             # 1 / 0, last seen by "Mes connexions" or an agent; NULL = unknown
     ("sites", "checked_at", "TEXT"),
+    # Tokens billed by the AI provider (app/usage.py), their cost and the credits they make (app/pricing.py)
+    ("runs", "input_tokens", "INTEGER NOT NULL DEFAULT 0"),
+    ("runs", "output_tokens", "INTEGER NOT NULL DEFAULT 0"),
+    ("runs", "cache_read_tokens", "INTEGER NOT NULL DEFAULT 0"),
+    ("runs", "cache_write_tokens", "INTEGER NOT NULL DEFAULT 0"),
+    ("runs", "cost_usd", "REAL"),                                  # NULL: model missing from the price table
+    ("runs", "credits", "REAL NOT NULL DEFAULT 0"),
 ]
 
 _lock = threading.Lock()

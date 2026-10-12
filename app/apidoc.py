@@ -165,6 +165,11 @@ DOCS: dict[str, dict] = {
     "GET /api/admin/settings": {"group": "admin", "summary": "Réglages d'IA", "description": "Les clés des fournisseurs ne sont jamais renvoyées, seulement leurs dernières lettres.",
         "response": {"provider": "anthropic", "model": "claude-sonnet-5-5", "use_vision": True, "keys": {"anthropic": {"set": True, "hint": "…6789"}}}},
     "PUT /api/admin/settings": {"group": "admin", "summary": "Enregistrer les réglages d'IA", "body": {"provider": "anthropic", "model": "claude-sonnet-5-5", "use_vision": True, "api_keys": {"anthropic": "sk-ant-…"}, "clear_keys": []}},
+    "GET /api/admin/usage": {"group": "admin", "summary": "Consommation d'IA du mois", "description": "Jetons facturés par les fournisseurs, coût et crédits, par utilisateur et par modèle. Paramètre month=AAAA-MM (mois en cours par défaut).",
+        "response": {"month": "2026-10", "credit_value_usd": 0.001, "total": {"runs": 42, "steps": 980, "input_tokens": 9100000, "output_tokens": 390000, "cache_read_tokens": 0, "cache_write_tokens": 0, "cost_usd": 1.11, "credits": 1960.0},
+                     "lines": [{"owner": "jdupont", "provider": "anthropic", "model": "claude-haiku-5-5", "runs": 42, "steps": 980, "credits": 1960.0}]}},
+    "GET /api/admin/pricing": {"group": "admin", "summary": "Table des prix des modèles", "description": "Prix des fournisseurs en $ par million de jetons, valeur d'un crédit et crédits par étape typiques.",
+        "response": {"credit_value_usd": 0.001, "min_credits_per_step": 1.0, "models": [{"provider": "anthropic", "model": "claude-haiku-5-5", "input": 0.1, "output": 0.5, "credits_per_step": 1.3}]}},
     "PUT /api/admin/organisation": {"group": "admin", "summary": "Renommer l'organisation", "description": "Affiché sous le logo et sur la page de connexion. 80 caractères maximum.", "body": {"name": "Cabinet Exemple"}, "response": {"organisation": "Cabinet Exemple"}},
     "POST /api/admin/settings/test": {"group": "admin", "summary": "Tester les réglages d'IA", "body": {"provider": "anthropic", "model": "claude-sonnet-5-5"}, "response": {"ok": True, "reply": "OK"}},
 }
