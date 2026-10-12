@@ -219,14 +219,15 @@
       <p>Dès le lancement, la page de l'exécution s'ouvre et se met à jour en direct.</p>
       <figure><a href="/static/guide/execution.png" target="_blank"><img src="/static/guide/execution.png" alt="Page d'une exécution terminée avec résultat, navigateur et étapes" loading="lazy"></a><figcaption>Une exécution terminée : le résultat en haut, l'écran de l'agent au centre, les étapes à droite.</figcaption></figure>
       <ul>
-        <li><strong>Résultat</strong> : la réponse finale de l'agent (une liste, un tableau, un compte rendu).</li>
+        <li><strong>Résultat</strong> : la réponse finale de l'agent (une liste, un tableau, un compte rendu). Le bouton <strong>Copier</strong> la met dans le presse-papiers, prête à coller dans un e-mail ou un tableur ; <strong>Ouvrir la page source</strong> mène à la dernière page consultée par l'agent, pour vérifier.</li>
         <li><strong>Navigateur</strong> : l'écran de l'agent en direct, puis la dernière capture. <strong>Enregistrement</strong> rejoue toutes les captures, étape par étape.</li>
-        <li><strong>Fichiers</strong> : ce que l'agent a téléchargé ou envoyé, à récupérer d'un clic.</li>
-        <li><strong>Étapes</strong> : pour chacune, l'objectif de l'agent, son évaluation de l'étape précédente et l'action faite. Cliquez sur une étape pour voir sa capture.</li>
+        <li><strong>Fichiers</strong> : ce que l'agent a téléchargé ou envoyé, à récupérer d'un clic. La carte n'apparaît que s'il y a des fichiers.</li>
+        <li><strong>Étapes</strong> : pour chacune, l'objectif de l'agent et ce qu'il a constaté. Cliquez sur une étape pour voir sa capture. L'interrupteur <strong>Détails techniques</strong> affiche aussi l'action exacte (clic, saisie, page ouverte) ; votre choix est retenu.</li>
+        <li>L'en-tête indique la durée et, une fois terminée, le <strong>nombre d'étapes</strong> utilisées sur le maximum autorisé.</li>
         <li><strong>Voir la consigne</strong> : la consigne exacte envoyée, variables remplies, avec le contexte ajouté.</li>
         <li><strong>Arrêter</strong> pendant l'exécution (l'agent s'arrête après l'étape en cours), <strong>Relancer</strong> une fois terminée.</li>
       </ul>
-      <div class="tip-box"><strong>Lisez les étapes des premières exécutions</strong>C'est la meilleure façon d'améliorer une consigne : vous voyez où l'agent hésite, ce qu'il cherche et ce qu'il comprend de travers.</div>
+      <div class="tip-box"><strong>Lisez les étapes des premières exécutions</strong>C'est la meilleure façon d'améliorer une consigne : vous voyez où l'agent hésite, ce qu'il cherche et ce qu'il comprend de travers. Et vérifiez toujours un résultat avant de l'utiliser : l'agent peut annoncer « Terminé » en s'étant trompé.</div>
     </section>
 
     <section id="agent">
@@ -324,13 +325,13 @@
     <section id="contexte">
       <h2>Le contexte : ce que les agents savent d'avance</h2>
       <p>La page <strong>Contexte</strong> évite de répéter les mêmes informations dans chaque consigne. Son contenu est ajouté automatiquement au début du travail de l'agent.</p>
-      <figure><a href="/static/guide/contexte.png" target="_blank"><img src="/static/guide/contexte.png" alt="Page Contexte avec règles et aperçu en direct" loading="lazy"></a><figcaption>Règles, glossaire, notes par site, et l'aperçu de ce que l'agent recevra.</figcaption></figure>
+      <figure><a href="/static/guide/contexte.png" target="_blank"><img src="/static/guide/contexte.png" alt="Page Contexte avec les règles, le vocabulaire, les sites et le panneau Ce que l'agent lira" loading="lazy"></a><figcaption>Règles, vocabulaire et sites sur une seule carte ; à droite, ce que l'agent lira pour une consigne d'essai.</figcaption></figure>
       <ul>
-        <li><strong>Organisation</strong> : commun à tous, modifiable par les administrateurs. <strong>Personnel</strong> : le vôtre, ajouté après celui de l'organisation (vos codes de dossiers, vos habitudes).</li>
-        <li><strong>Règles</strong> : ce que l'agent doit toujours respecter, une règle par ligne. Des suggestions sont proposées en un clic.</li>
-        <li><strong>Glossaire</strong> : les mots de l'organisation et leur sens (sigles, noms de dossiers).</li>
-        <li><strong>Sites</strong> : où trouver les choses sur chaque site. Ces notes ne sont ajoutées que si la tâche concerne ce site.</li>
-        <li><strong>Aperçu en direct</strong> : tapez une consigne d'essai pour voir exactement ce que l'agent recevra.</li>
+        <li>Deux onglets sous le titre. Celui qui porte <strong>le nom de votre organisation</strong> est commun à tous et modifiable par les administrateurs. <strong>Personnel</strong> est le vôtre, ajouté après celui de l'organisation (vos codes de dossiers, vos habitudes).</li>
+        <li><strong>Règles</strong> : ce que l'agent doit toujours respecter. Chaque règle est une ligne numérotée : cliquez dessus pour la modifier, ou utilisez les icônes crayon et corbeille. Ajoutez-en une dans le champ du dessous, puis Entrée. Tant qu'il n'y a aucune règle, des <strong>règles conseillées</strong> sont proposées (« Tout ajouter » ou une par une) ; ensuite, elles restent derrière le bouton du même nom.</li>
+        <li><strong>Vocabulaire</strong> : les mots de l'organisation et leur sens (sigles, codes de dossiers, habitudes).</li>
+        <li><strong>Sites</strong> : où trouver les choses sur chaque site. Ces notes ne sont envoyées que si la tâche concerne le site.</li>
+        <li><strong>Ce que l'agent lira</strong> : le <strong>poids</strong> du contexte (Léger, Moyen ou Lourd) et, pour une consigne d'essai, ce qui sera envoyé à l'agent et ce qui sera laissé de côté. « Voir le texte exact envoyé » affiche le texte complet.</li>
       </ul>
       <div class="tip-box"><strong>Court, c'est mieux</strong>Le contexte est relu à chaque étape : un texte court coûte moins cher et distrait moins l'agent. Une phrase utile vaut mieux qu'un paragraphe.</div>
     </section>
@@ -400,8 +401,9 @@
       <h2>Pour les administrateurs</h2>
       <p>La page <strong>Administration</strong> (en bas du menu) a trois onglets : Utilisateurs, Intelligence artificielle et Intégrations.</p>
       <h3>Utilisateurs</h3>
-      <figure><a href="/static/guide/administration.png" target="_blank"><img src="/static/guide/administration.png" alt="Onglet Utilisateurs avec la double authentification obligatoire" loading="lazy"></a><figcaption>Les comptes de l'organisation, l'état de leur double authentification, et qui doit l'utiliser.</figcaption></figure>
+      <figure><a href="/static/guide/administration.png" target="_blank"><img src="/static/guide/administration.png" alt="Onglet Utilisateurs avec le nom de l'organisation et la double authentification obligatoire" loading="lazy"></a><figcaption>Le nom de l'organisation, les comptes, l'état de leur double authentification, et qui doit l'utiliser.</figcaption></figure>
       <ul>
+        <li><strong>Organisation</strong> : le nom de votre cabinet ou entreprise. Il s'affiche sous le logo, sur la page de connexion et sur l'onglet du contexte commun.</li>
         <li>Créer un compte avec un mot de passe provisoire (bouton Générer), renommer, réinitialiser le mot de passe, donner ou retirer le rôle administrateur, supprimer (icônes crayon et corbeille). Transmettez le mot de passe provisoire par un canal sûr.</li>
         <li><strong>Double authentification obligatoire</strong> : Personne, Administrateurs ou Tout le monde. Activez-la d'abord sur votre propre compte. La colonne « Double authentification » montre qui l'a activée ; « Modifier » › « Réinitialiser » sert quand quelqu'un a perdu son téléphone.</li>
       </ul>
