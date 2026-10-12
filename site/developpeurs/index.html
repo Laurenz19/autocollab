@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<title>Documentation développeurs · AutoCollab</title>
+<meta name="description" content="Connecter AutoCollab à un assistant IA par MCP (claude.ai, ChatGPT, Claude Code, Claude Desktop, Cursor, VS Code, n8n), clés d'API et API REST.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<link rel="stylesheet" href="../guide/app.css">
+<style>
+  .guide-top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 16px; padding: 12px 24px; background: var(--side); border-bottom: 1px solid var(--side-line); }
+  .guide-top .links { margin-left: auto; display: flex; gap: 18px; }
+  .guide-top .links a { font-size: 14px; font-weight: 550; text-decoration: none; }
+  @media (max-width: 640px) { .guide-top { padding: 12px 16px; } .guide-top .links .hide-sm { display: none; } }
+  .guide { display: flex; gap: 40px; max-width: 1180px; margin: 0 auto; padding: 32px 24px 80px; align-items: flex-start; }
+  .toc { flex: 0 0 230px; position: sticky; top: 84px; max-height: calc(100vh - 100px); overflow-y: auto; font-size: 13.5px; }
+  .toc strong { display: block; font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .04em; }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .toc ol ol { padding-left: 12px; margin: 2px 0 4px; }
+  .toc a { display: block; padding: 5px 10px; border-radius: 7px; color: var(--ink-2); text-decoration: none; }
+  .toc a:hover { background: var(--hair); color: var(--ink); }
+  .toc a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  @media (max-width: 900px) { .toc { display: none; } .guide { padding: 24px 16px 64px; } }
+  article { flex: 1; min-width: 0; max-width: 820px; }
+  article h1 { font-size: 30px; letter-spacing: -.025em; margin: 0 0 8px; line-height: 1.2; }
+  article .lead { font-size: 16px; color: var(--muted); margin: 0 0 28px; }
+  article section { padding-top: 12px; margin-bottom: 44px; scroll-margin-top: 70px; }
+  article h2 { font-size: 21px; letter-spacing: -.015em; margin: 0 0 12px; }
+  article h3 { font-size: 16px; margin: 26px 0 8px; scroll-margin-top: 70px; }
+  article p, article li { font-size: 15px; line-height: 1.65; }
+  article ul, article ol { padding-left: 22px; }
+  article li + li { margin-top: 4px; }
+  article :not(pre) > code { font-family: var(--mono); font-size: 13px; background: var(--hair); border-radius: 5px; padding: 1px 6px; overflow-wrap: anywhere; }
+  .tip-box, .warn-box { border-radius: 12px; padding: 14px 16px; margin: 16px 0; font-size: 14.5px; line-height: 1.6; }
+  .tip-box { background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); }
+  .warn-box { background: var(--warn-soft); border: 1px solid color-mix(in srgb, var(--warn) 30%, transparent); }
+  .tip-box strong:first-child, .warn-box strong:first-child { display: block; margin-bottom: 4px; }
+  .steps-list { counter-reset: s; list-style: none; padding: 0 !important; }
+  .steps-list > li { counter-increment: s; position: relative; padding-left: 40px; margin-bottom: 12px; }
+  .steps-list > li::before { content: counter(s); position: absolute; left: 0; top: 1px; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-size: 13px; font-weight: 650; }
+  .words { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14.5px; }
+  .words th, .words td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .words th { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .words td:first-child { font-weight: 600; }
+  .words td code { white-space: nowrap; }
+  .table-scroll { overflow-x: auto; }
+  details { border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin: 8px 0; background: var(--panel); }
+  details summary { cursor: pointer; font-weight: 600; font-size: 15px; }
+  details p { margin: 10px 0 0; }
+  /* Code blocks with a copy button */
+  .snip { position: relative; margin: 12px 0 18px; }
+  .snip pre { margin: 0; padding: 14px 16px; padding-right: 84px; background: var(--sunken); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.6; color: var(--ink); }
+  .snip .copy { position: absolute; top: 8px; right: 8px; font: inherit; font-size: 12.5px; font-weight: 600; padding: 4px 10px; border-radius: 7px; border: 1px solid var(--line-2); background: var(--panel); color: var(--ink-2); cursor: pointer; }
+  .snip .copy:hover { color: var(--ink); border-color: var(--muted); }
+  .snip .file { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 6px; font-family: var(--mono); }
+  /* Server address form */
+  .setup { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0 6px; }
+  @media (max-width: 640px) { .setup { grid-template-columns: 1fr; } }
+  .setup label { display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--ink-2); }
+  .setup input { font: inherit; font-size: 14px; font-family: var(--mono); padding: 9px 12px; border-radius: 9px; border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); min-width: 0; }
+  .setup input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .setup small { font-weight: 400; color: var(--muted); }
+  /* Client tabs */
+  .clients { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 4px; }
+  .clients button { font: inherit; font-size: 14px; font-weight: 550; padding: 7px 13px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--panel); color: var(--ink-2); cursor: pointer; }
+  .clients button:hover { color: var(--ink); border-color: var(--muted); }
+  .clients button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .client-panel { border: 1px solid var(--line); border-radius: 14px; padding: 6px 20px 8px; margin-top: 10px; background: var(--panel); }
+  .client-panel h3 { margin-top: 16px; }
+  .badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); vertical-align: 2px; margin-left: 6px; }
+  .badge.key { background: var(--hair); color: var(--ink-2); }
+  .tag { font-size: 12px; font-weight: 600; padding: 1px 7px; border-radius: 6px; white-space: nowrap; }
+  .tag.r { background: var(--ok-soft); color: var(--ok); }
+  .tag.w { background: var(--hair); color: var(--ink-2); }
+  .tag.x { background: var(--warn-soft); color: var(--warn); }
+</style>
+</head>
+<body>
+<header class="guide-top">
+  <a class="brand" href="../index.html" style="padding: 0">
+    <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l5 13.5 2.2-6.3L16.5 8z"/><path d="M13 13l2.6 8 1.3-3.7 3.7-1.3z"/></svg></span>
+    <span class="brand-name"><strong>AutoCollab</strong><span>Documentation développeurs</span></span>
+  </a>
+  <nav class="links" aria-label="Liens">
+    <a class="hide-sm" href="../guide/index.html">Guide d'utilisation</a>
+    <a href="../index.html">← Retour au site</a>
+  </nav>
+</header>
+
+<div class="guide">
+  <nav class="toc" aria-label="Sommaire">
+    <strong>Sommaire</strong>
+    <ol>
+      <li><a href="#principe">Le principe</a></li>
+      <li><a href="#preparer">1. Préparer la connexion</a></li>
+      <li><a href="#methode">2. OAuth ou clé d'API ?</a></li>
+      <li><a href="#cle">3. Créer une clé d'API</a></li>
+      <li><a href="#clients">4. Connecter votre outil</a></li>
+      <li><a href="#verifier">5. Vérifier la connexion</a></li>
+      <li><a href="#outils">Les outils disponibles</a></li>
+      <li><a href="#securite">Sécurité</a></li>
+      <li><a href="#depannage">Dépannage</a></li>
+      <li><a href="#technique">Référence technique MCP</a></li>
+      <li><a href="#api">API REST</a></li>
+    </ol>
+  </nav>
+
+  <article>
+    <h1>Documentation développeurs</h1>
+    <p class="lead">Pilotez AutoCollab depuis vos outils : un assistant IA compatible MCP (claude.ai, ChatGPT, Claude Code, Claude Desktop, Cursor, VS Code…), un scénario n8n ou un script. Ce tutoriel vous mène de l'adresse du serveur à un premier agent lancé depuis votre assistant.</p>
+
+    <section id="principe">
+      <h2>Le principe</h2>
+      <p><strong>MCP</strong> (Model Context Protocol) est le standard ouvert qui permet à un assistant IA d'utiliser des outils externes. AutoCollab expose un serveur MCP : une fois connecté, votre assistant peut, en votre nom et avec vos droits :</p>
+      <ul>
+        <li>lister, créer et modifier vos <strong>agents</strong> et vos <strong>chaînes</strong> ;</li>
+        <li>les <strong>lancer</strong>, ou lancer une tâche ponctuelle, puis <strong>suivre l'exécution</strong> jusqu'au résultat ;</li>
+        <li>lire et compléter votre <strong>contexte</strong> (règles, glossaire, notes par site) ;</li>
+        <li>répondre à une <strong>validation</strong> en attente, uniquement sur votre décision explicite.</li>
+      </ul>
+      <p>Il ne peut rien supprimer. Chaque agent ou chaîne créé par MCP porte un badge « MCP » dans l'application.</p>
+    </section>
+
+    <section id="preparer">
+      <h2>1. Préparer la connexion</h2>
+      <p>L'adresse du serveur MCP est celle de votre instance AutoCollab suivie de <code>/mcp</code>. Saisissez-la ci-dessous : tous les exemples de cette page se mettent à jour. Rien n'est envoyé, tout reste dans votre navigateur.</p>
+      <div class="setup">
+        <label>Adresse de votre AutoCollab
+          <input id="baseInput" type="url" placeholder="https://autocollab.votre-cabinet.fr" autocomplete="off" spellcheck="false">
+          <small>Celle que vous ouvrez pour vous connecter.</small>
+        </label>
+        <label>Votre clé d'API <small style="display: inline">(facultatif)</small>
+          <input id="keyInput" type="text" placeholder="ac_…" autocomplete="off" spellcheck="false">
+          <small>Seulement pour les outils qui en demandent une.</small>
+        </label>
+      </div>
+      <p>Adresse MCP : <code id="mcpUrlOut">https://&lt;votre-serveur&gt;/mcp</code></p>
+      <div class="tip-box"><strong>Encore plus simple</strong>Dans l'application, la page <strong>Développeurs › MCP</strong> affiche ces mêmes configurations, déjà remplies avec l'adresse de votre serveur et votre clé.</div>
+      <div class="warn-box"><strong>claude.ai et ChatGPT exigent une adresse publique en https</strong>Leurs serveurs appellent AutoCollab depuis Internet : une adresse locale (<code>localhost</code>, <code>192.168…</code>) ne fonctionne pas. L'administrateur du serveur renseigne cette adresse dans <code>PUBLIC_URL</code> (fichier <code>.env</code>) puis redémarre l'application. Claude Code, Cursor, VS Code et Claude Desktop tournent sur votre poste : une adresse du réseau local leur suffit.</div>
+    </section>
+
+    <section id="methode">
+      <h2>2. OAuth ou clé d'API ?</h2>
+      <div class="table-scroll">
+      <table class="words">
+        <thead><tr><th>Méthode</th><th>Pour</th><th>Comment</th></tr></thead>
+        <tbody>
+          <tr><td>OAuth <span class="badge">recommandé</span></td><td>claude.ai, ChatGPT, et tout client qui gère OAuth</td><td>Vous collez l'adresse, l'outil vous envoie sur la page « Autoriser » d'AutoCollab, vous cliquez. Aucune clé à manipuler, accès révocable à tout moment.</td></tr>
+          <tr><td>Clé d'API</td><td>Claude Code, Claude Desktop, Cursor, VS Code, n8n, scripts</td><td>Vous créez une clé <code>ac_…</code> dans l'application et la placez dans l'en-tête <code>Authorization: Bearer ac_…</code>.</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <section id="cle">
+      <h2>3. Créer une clé d'API</h2>
+      <p>Inutile pour claude.ai et ChatGPT : passez directement à l'étape 4.</p>
+      <ol class="steps-list">
+        <li>Connectez-vous à AutoCollab et ouvrez <strong>Développeurs</strong> (en bas du menu de gauche).</li>
+        <li>Onglet <strong>Démarrage</strong>, rubrique <strong>1. Créer une clé d'API</strong> : donnez-lui un nom parlant (« Claude Code – portable », « n8n production »…) puis cliquez sur <strong>Créer</strong>.</li>
+        <li><strong>Copiez la clé tout de suite</strong> : elle commence par <code>ac_</code> et ne sera plus jamais affichée. Seule son empreinte est conservée.</li>
+      </ol>
+      <p>Une clé par outil, dix au plus par compte : vous pourrez ainsi en révoquer une sans couper les autres. La colonne « Dernière utilisation » montre lesquelles servent encore.</p>
+      <div class="warn-box"><strong>Une clé vaut votre mot de passe</strong>Elle agit avec vos droits sur vos agents et vos connexions. Ne la mettez jamais dans un dépôt Git ni dans un message ; révoquez-la au moindre doute.</div>
+    </section>
+
+    <section id="clients">
+      <h2>4. Connecter votre outil</h2>
+      <p>Choisissez votre outil :</p>
+      <div class="clients" role="tablist" aria-label="Outil à connecter">
+        <button type="button" role="tab" data-client="claudeai" aria-selected="true">claude.ai</button>
+        <button type="button" role="tab" data-client="chatgpt" aria-selected="false">ChatGPT</button>
+        <button type="button" role="tab" data-client="code" aria-selected="false">Claude Code</button>
+        <button type="button" role="tab" data-client="desktop" aria-selected="false">Claude Desktop</button>
+        <button type="button" role="tab" data-client="cursor" aria-selected="false">Cursor</button>
+        <button type="button" role="tab" data-client="vscode" aria-selected="false">VS Code</button>
+        <button type="button" role="tab" data-client="n8n" aria-selected="false">n8n</button>
+        <button type="button" role="tab" data-client="other" aria-selected="false">Autre client</button>
+      </div>
+
+      <div class="client-panel" data-panel="claudeai" role="tabpanel">
+        <h3>claude.ai <span class="badge">OAuth</span></h3>
+        <ol class="steps-list">
+          <li>Ouvrez <strong>Paramètres › Connecteurs</strong> puis <strong>Ajouter un connecteur personnalisé</strong>.</li>
+          <li>Nom : <code>AutoCollab</code>. URL : <code data-url>https://&lt;votre-serveur&gt;/mcp</code>. Validez.</li>
+          <li>Cliquez sur <strong>Se connecter</strong>. Vous arrivez sur la page « Autoriser » d'AutoCollab (connectez-vous d'abord si besoin) : vérifiez le nom de l'application et cliquez sur <strong>Autoriser</strong>.</li>
+          <li>Dans une nouvelle conversation, activez le connecteur AutoCollab depuis le menu des outils.</li>
+        </ol>
+        <p>Avec Claude Team ou Enterprise, un propriétaire de l'organisation ajoute d'abord le connecteur pour tout le monde ; chacun clique ensuite sur « Se connecter » pour autoriser son propre compte.</p>
+      </div>
+
+      <div class="client-panel" data-panel="chatgpt" role="tabpanel" hidden>
+        <h3>ChatGPT <span class="badge">OAuth</span></h3>
+        <ol class="steps-list">
+          <li>Ouvrez <strong>Paramètres › Applications et connecteurs › Paramètres avancés</strong> et activez le <strong>Mode développeur</strong>.</li>
+          <li>Cliquez sur <strong>Créer</strong>. Nom : <code>AutoCollab</code> ; URL du serveur MCP : <code data-url>https://&lt;votre-serveur&gt;/mcp</code> ; authentification : <strong>OAuth</strong>.</li>
+          <li>ChatGPT vous envoie sur la page « Autoriser » d'AutoCollab : cliquez sur <strong>Autoriser</strong>.</li>
+          <li>Dans une conversation, choisissez AutoCollab dans la liste des connecteurs.</li>
+        </ol>
+      </div>
+
+      <div class="client-panel" data-panel="code" role="tabpanel" hidden>
+        <h3>Claude Code <span class="badge key">clé d'API</span></h3>
+        <p>Dans un terminal :</p>
+        <div class="snip"><pre data-tpl="code"></pre></div>
+        <p>Ajoutez <code>--scope user</code> pour l'avoir dans tous vos projets. Vérifiez avec <code>claude mcp list</code>, ou <code>/mcp</code> dans une session : AutoCollab doit apparaître « connected ».</p>
+      </div>
+
+      <div class="client-panel" data-panel="desktop" role="tabpanel" hidden>
+        <h3>Claude Desktop <span class="badge key">clé d'API</span></h3>
+        <ol class="steps-list">
+          <li>Installez <a href="https://nodejs.org" target="_blank" rel="noopener">Node.js</a> (version LTS) : Claude Desktop passe par le petit pont <code>mcp-remote</code>.</li>
+          <li>Ouvrez <strong>Paramètres › Développeur › Modifier la configuration</strong>. Le fichier <code>claude_desktop_config.json</code> s'ouvre.</li>
+          <li>Ajoutez le bloc suivant (fusionnez-le avec un <code>mcpServers</code> existant) puis enregistrez :</li>
+        </ol>
+        <div class="snip"><span class="file">claude_desktop_config.json</span><pre data-tpl="desktop"></pre></div>
+        <ol class="steps-list" start="4" style="counter-reset: s 3">
+          <li>Quittez complètement Claude Desktop (icône de la barre des tâches › Quitter) et rouvrez-le. L'icône des outils doit lister AutoCollab.</li>
+        </ol>
+        <p>Le fichier se trouve dans <code>%APPDATA%\Claude\</code> sous Windows et <code>~/Library/Application Support/Claude/</code> sous macOS. Si vous utilisez Claude Desktop avec un compte claude.ai, vous pouvez aussi passer par les connecteurs (onglet claude.ai), sans clé.</p>
+      </div>
+
+      <div class="client-panel" data-panel="cursor" role="tabpanel" hidden>
+        <h3>Cursor <span class="badge key">clé d'API</span></h3>
+        <p>Créez ou complétez le fichier <code>~/.cursor/mcp.json</code> (pour tous vos projets) ou <code>.cursor/mcp.json</code> (pour un seul projet) :</p>
+        <div class="snip"><span class="file">~/.cursor/mcp.json</span><pre data-tpl="cursor"></pre></div>
+        <p>Ouvrez ensuite <strong>Cursor Settings › MCP</strong> : AutoCollab doit apparaître avec un point vert et la liste de ses outils.</p>
+      </div>
+
+      <div class="client-panel" data-panel="vscode" role="tabpanel" hidden>
+        <h3>VS Code (GitHub Copilot) <span class="badge key">clé d'API</span></h3>
+        <p>Dans votre projet, créez le fichier <code>.vscode/mcp.json</code> :</p>
+        <div class="snip"><span class="file">.vscode/mcp.json</span><pre data-tpl="vscode"></pre></div>
+        <p>Cliquez sur <strong>Démarrer</strong> au-dessus du serveur dans le fichier, puis passez Copilot Chat en <strong>mode Agent</strong> : les outils AutoCollab sont dans le sélecteur d'outils. Ne versionnez pas ce fichier s'il contient votre clé (ajoutez-le à <code>.gitignore</code>).</p>
+      </div>
+
+      <div class="client-panel" data-panel="n8n" role="tabpanel" hidden>
+        <h3>n8n <span class="badge key">clé d'API</span></h3>
+        <p>Dans un workflow avec un nœud <em>AI Agent</em>, ajoutez un outil <strong>MCP Client Tool</strong> :</p>
+        <div class="snip"><pre data-tpl="n8n"></pre></div>
+        <p>Créez la crédential <em>Header Auth</em> une seule fois et réutilisez-la. Sans IA, appelez directement l'API REST avec un nœud <em>HTTP Request</em> (voir <a href="#api">API REST</a>).</p>
+      </div>
+
+      <div class="client-panel" data-panel="other" role="tabpanel" hidden>
+        <h3>Autre client MCP</h3>
+        <p>Tout client qui gère les serveurs MCP distants :</p>
+        <div class="snip"><pre data-tpl="other"></pre></div>
+        <p>S'il gère OAuth, donnez-lui seulement l'adresse : il découvrira seul le serveur d'autorisation. S'il ne gère que les serveurs locaux (stdio), passez par le pont <code>mcp-remote</code> (Node.js requis) :</p>
+        <div class="snip"><pre data-tpl="bridge"></pre></div>
+      </div>
+    </section>
+
+    <section id="verifier">
+      <h2>5. Vérifier la connexion</h2>
+      <p>Ouvrez une <strong>nouvelle conversation</strong> et essayez, dans l'ordre :</p>
+      <ol class="steps-list">
+        <li><strong>« Quels sont mes agents AutoCollab ? »</strong> : l'assistant appelle <code>list_agents</code>. S'il vous les liste, la connexion fonctionne.</li>
+        <li><strong>« Lance une tâche AutoCollab : va sur service-public.fr et trouve la date limite de la CA12. »</strong> : il appelle <code>run_task</code>, puis suit l'exécution avec <code>get_run</code> jusqu'au résultat. Vous la voyez aussi en direct dans la page Exécutions.</li>
+        <li><strong>« Rédige-moi un agent qui télécharge chaque mois le relevé Qonto du mois précédent. Montre-le-moi avant de le créer. »</strong> : il prépare la consigne, vous la relisez, puis il la crée avec <code>create_agent</code>.</li>
+      </ol>
+      <div class="tip-box"><strong>La bonne méthode pour une nouvelle tâche</strong>Faites rédiger, testez une fois comme tâche ponctuelle limitée aux sites nécessaires, vérifiez le résultat dans l'application, et seulement ensuite enregistrez un agent et planifiez-le. Gardez le mode avec validation tant que la tâche envoie, supprime ou paie quelque chose.</div>
+    </section>
+
+    <section id="outils">
+      <h2>Les outils disponibles</h2>
+      <p><span class="tag r">lecture</span> ne change rien · <span class="tag w">modifie</span> change vos données AutoCollab · <span class="tag x">agit</span> lance un agent sur de vrais sites. Les clients s'appuient sur ces catégories pour vous demander confirmation.</p>
+      <div class="table-scroll">
+      <table class="words">
+        <thead><tr><th>Outil</th><th>Rôle</th><th>Nature</th></tr></thead>
+        <tbody>
+          <tr><td><code>get_documentation</code></td><td>Documentation d'AutoCollab par sujet (agents, chaînes, exécutions, MCP, API)</td><td><span class="tag r">lecture</span></td></tr>
+          <tr><td><code>list_agents</code></td><td>Vos agents : consigne, garde-fous, planification, dernière exécution</td><td><span class="tag r">lecture</span></td></tr>
+          <tr><td><code>list_variables</code></td><td>Variables utilisables dans une consigne (<code>{mois_precedent}</code>…)</td><td><span class="tag r">lecture</span></td></tr>
+          <tr><td><code>create_agent</code> · <code>update_agent</code></td><td>Créer ou modifier un agent, sans le lancer</td><td><span class="tag w">modifie</span></td></tr>
+          <tr><td><code>run_agent</code></td><td>Lancer un agent enregistré</td><td><span class="tag x">agit</span></td></tr>
+          <tr><td><code>run_task</code></td><td>Lancer une consigne ponctuelle</td><td><span class="tag x">agit</span></td></tr>
+          <tr><td><code>list_runs</code> · <code>get_run</code></td><td>Lister les exécutions, suivre l'une d'elles jusqu'au résultat</td><td><span class="tag r">lecture</span></td></tr>
+          <tr><td><code>stop_run</code></td><td>Arrêter une exécution</td><td><span class="tag w">modifie</span></td></tr>
+          <tr><td><code>list_chains</code></td><td>Vos chaînes d'agents</td><td><span class="tag r">lecture</span></td></tr>
+          <tr><td><code>create_chain</code> · <code>update_chain</code></td><td>Créer ou modifier une chaîne</td><td><span class="tag w">modifie</span></td></tr>
+          <tr><td><code>run_chain</code></td><td>Lancer une chaîne</td><td><span class="tag x">agit</span></td></tr>
+          <tr><td><code>get_chain_run</code> · <code>stop_chain_run</code></td><td>Suivre ou arrêter l'exécution d'une chaîne</td><td><span class="tag r">lecture</span> <span class="tag w">modifie</span></td></tr>
+          <tr><td><code>answer_approval</code></td><td>Répondre à une validation en attente, sur votre décision</td><td><span class="tag x">agit</span></td></tr>
+          <tr><td><code>get_context</code> · <code>preview_context</code></td><td>Lire le contexte, ou voir ce qu'un agent recevrait pour une consigne</td><td><span class="tag r">lecture</span></td></tr>
+          <tr><td><code>update_personal_context</code></td><td>Ajouter des règles, mots du glossaire, notes par site à votre contexte</td><td><span class="tag w">modifie</span></td></tr>
+          <tr><td><code>update_firm_context</code></td><td>Idem pour le contexte de l'organisation (administrateurs)</td><td><span class="tag w">modifie</span></td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>Après une mise à jour d'AutoCollab qui ajoute des outils, reconnectez le connecteur (ou redémarrez votre client) et ouvrez une nouvelle conversation : l'assistant garde sinon l'ancienne liste.</p>
+    </section>
+
+    <section id="securite">
+      <h2>Sécurité</h2>
+      <ul>
+        <li><strong>Vos droits, pas plus.</strong> L'assistant ne voit que vos agents, vos exécutions et votre contexte, jamais ceux de vos collègues. Il n'accède à l'administration que si vous êtes administrateur.</li>
+        <li><strong>Aucune suppression.</strong> Ni agent, ni chaîne, ni exécution ne peut être supprimé par MCP ; le contexte se modifie par ajouts et remplacements ciblés.</li>
+        <li><strong>Les validations restent humaines.</strong> AutoCollab demande à l'assistant de n'appeler <code>answer_approval</code> qu'avec votre réponse explicite. Gardez le mode avec validation pour les actions difficiles à annuler.</li>
+        <li><strong>Révocation immédiate.</strong> Développeurs › MCP › <strong>Applications autorisées</strong> liste les assistants connectés par OAuth : « Révoquer » coupe l'accès. Les clés se révoquent dans Développeurs › Démarrage.</li>
+        <li><strong>Double authentification.</strong> Si votre organisation l'impose, activez-la d'abord : les clés et autorisations sont refusées tant qu'elle ne l'est pas.</li>
+      </ul>
+    </section>
+
+    <section id="depannage">
+      <h2>Dépannage</h2>
+      <details><summary>claude.ai ou ChatGPT n'arrive pas à se connecter</summary><p>L'adresse doit être publique et en https, et identique à <code>PUBLIC_URL</code> dans le <code>.env</code> du serveur. Ouvrez <code data-base-text>https://&lt;votre-serveur&gt;</code><code>/.well-known/oauth-protected-resource</code> dans votre navigateur : vous devez voir un JSON dont <code>resource</code> se termine par <code>/mcp</code>. Sinon, corrigez <code>PUBLIC_URL</code> et redémarrez.</p></details>
+      <details><summary>Erreur 401 Unauthorized</summary><p>La clé est absente, mal copiée, révoquée, ou l'en-tête est mal formé. Il doit être exactement <code>Authorization: Bearer ac_…</code> (un espace après « Bearer »). Créez une nouvelle clé au besoin.</p></details>
+      <details><summary>Erreur 403 Forbidden</summary><p>Trois causes : votre compte a un mot de passe provisoire à changer, ou doit activer la double authentification (connectez-vous à l'application pour le faire) ; ou la requête vient d'une page web d'un autre site (en-tête <code>Origin</code> différent), ce qui est refusé par sécurité.</p></details>
+      <details><summary>Claude Desktop n'affiche pas AutoCollab</summary><p>Vérifiez que Node.js est installé (<code>npx --version</code> dans un terminal), que le JSON est valide (pas de virgule en trop), puis quittez vraiment l'application avant de la rouvrir. Les journaux sont dans le dossier <code>logs</code> à côté du fichier de configuration (<code>mcp-server-autocollab.log</code>).</p></details>
+      <details><summary>L'assistant ne voit pas un outil récent</summary><p>Il garde la liste reçue à la connexion. Reconnectez le connecteur (ou redémarrez le client) et ouvrez une nouvelle conversation.</p></details>
+      <details><summary>Une tâche lancée reste « En attente »</summary><p>Vos exécutions passent une par une : une autre est en cours, attend une validation, ou la page Mes connexions est ouverte. Demandez à l'assistant <code>list_runs</code> pour voir la file.</p></details>
+      <details><summary>Erreur 429 Too Many Requests</summary><p>Plus de 300 appels par minute depuis la même adresse IP : ralentissez la boucle de suivi (un <code>get_run</code> toutes les quelques secondes suffit).</p></details>
+    </section>
+
+    <section id="technique">
+      <h2>Référence technique MCP</h2>
+      <div class="table-scroll">
+      <table class="words">
+        <tbody>
+          <tr><td>Adresse</td><td><code data-url>https://&lt;votre-serveur&gt;/mcp</code></td></tr>
+          <tr><td>Transport</td><td>Streamable HTTP, <code>POST</code> uniquement, réponses JSON. Sans état : pas d'identifiant de session ni de flux du serveur vers le client.</td></tr>
+          <tr><td>Versions du protocole</td><td><code>2025-06-18</code>, <code>2025-03-26</code>, <code>2024-11-05</code></td></tr>
+          <tr><td>Capacités</td><td><code>tools</code> et <code>resources</code> (documentation en <code>autocollab://docs/&lt;sujet&gt;</code>)</td></tr>
+          <tr><td>Authentification</td><td>OAuth 2.1 ou <code>Authorization: Bearer ac_…</code>. Sans jeton : <code>401</code> avec <code>WWW-Authenticate: Bearer resource_metadata="…"</code></td></tr>
+          <tr><td>Limite</td><td>300 requêtes par minute et par adresse IP</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>OAuth 2.1</h3>
+      <p>Tout est découvert automatiquement à partir du <code>401</code> ; ces routes ne servent qu'à écrire votre propre client.</p>
+      <div class="table-scroll">
+      <table class="words">
+        <thead><tr><th>Route</th><th>Rôle</th></tr></thead>
+        <tbody>
+          <tr><td><code>GET /.well-known/oauth-protected-resource</code></td><td>Métadonnées de la ressource (RFC 9728)</td></tr>
+          <tr><td><code>GET /.well-known/oauth-authorization-server</code></td><td>Métadonnées du serveur d'autorisation (RFC 8414)</td></tr>
+          <tr><td><code>POST /oauth/register</code></td><td>Enregistrement dynamique du client (RFC 7591)</td></tr>
+          <tr><td><code>GET /oauth/authorize</code></td><td>Page « Autoriser » ; <code>response_type=code</code>, <strong>PKCE S256 obligatoire</strong></td></tr>
+          <tr><td><code>POST /oauth/token</code></td><td><code>authorization_code</code> ou <code>refresh_token</code></td></tr>
+          <tr><td><code>POST /oauth/revoke</code></td><td>Révocation (RFC 7009)</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>Jeton d'accès <code>aco_…</code> valable 1 h, uniquement sur <code>/mcp</code> ; jeton de renouvellement <code>acr_…</code> valable 30 jours, remplacé à chaque usage.</p>
+
+      <h3>Échange type</h3>
+      <div class="snip"><pre data-tpl="exchange"></pre></div>
+      <p>Une erreur métier (exécution introuvable, aucune validation en attente…) revient comme un résultat avec <code>isError: true</code> ; un outil inconnu ou des arguments invalides, comme une erreur JSON-RPC <code>-32602</code>. Les notifications reçoivent <code>202</code> sans corps ; les lots sont acceptés.</p>
+
+      <h3>Documentation lisible par les IA</h3>
+      <p><code data-base-text>https://&lt;votre-serveur&gt;</code><code>/llms.txt</code> (résumé) et <code>/llms-full.txt</code> (tout) sont publics, au format <a href="https://llmstxt.org" target="_blank" rel="noopener">llms.txt</a>, et générés à partir du code : ils sont toujours à jour. Donnez-les à un assistant qui n'est pas connecté par MCP pour qu'il vous aide à écrire un script.</p>
+    </section>
+
+    <section id="api">
+      <h2>API REST</h2>
+      <p>Pour un script ou un nœud <em>HTTP Request</em> n8n, la même clé d'API ouvre l'API REST. Les exécutions sont asynchrones : on lance, puis on interroge jusqu'à un statut final (<code>termine</code>, <code>echec</code>, <code>arrete</code>).</p>
+      <h3>Lancer une tâche (curl)</h3>
+      <div class="snip"><pre data-tpl="curl"></pre></div>
+      <h3>Lancer et attendre le résultat (Python)</h3>
+      <div class="snip"><pre data-tpl="python"></pre></div>
+      <h3>Routes principales</h3>
+      <div class="table-scroll">
+      <table class="words">
+        <thead><tr><th>Route</th><th>Rôle</th></tr></thead>
+        <tbody>
+          <tr><td><code>POST /api/tasks</code></td><td>Lancer une tâche ponctuelle <code>{"task": "…"}</code></td></tr>
+          <tr><td><code>GET /api/tasks/{id}</code></td><td>État, résultat et étapes d'une exécution</td></tr>
+          <tr><td><code>GET /api/tasks/{id}/events</code></td><td>Suivi en direct (Server-Sent Events)</td></tr>
+          <tr><td><code>POST /api/tasks/{id}/approval</code></td><td>Répondre à une validation <code>{"approved": true}</code></td></tr>
+          <tr><td><code>GET /api/tasks/{id}/files</code></td><td>Fichiers téléchargés par l'agent</td></tr>
+          <tr><td><code>GET /api/agents</code> · <code>POST /api/agents/{id}/run</code></td><td>Lister vos agents, en lancer un</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>La référence complète, avec un exemple <code>curl</code> prêt à copier pour chaque route, est dans l'application : <strong>Développeurs › Référence API</strong>. La spécification OpenAPI est servie à <code>/api/openapi.json</code> (authentifié).</p>
+    </section>
+  </article>
+</div>
+
+<script>
+// Fills every example with the visitor's server address and key; copy buttons; client tabs.
+(() => {
+  const baseIn = document.getElementById("baseInput"), keyIn = document.getElementById("keyInput");
+  const store = { get(k) { try { return localStorage.getItem(k) || ""; } catch { return ""; } },
+                  set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+  baseIn.value = store.get("ac-dev-base");  // the key is never remembered
+
+  function base() {
+    let b = baseIn.value.trim().replace(/\/+$/, "").replace(/\/mcp$/, "");
+    if (b && !/^https?:\/\//i.test(b)) b = "https://" + b;
+    return b || "https://<votre-serveur>";
+  }
+  const key = () => keyIn.value.trim() || "<VOTRE_CLÉ>";
+
+  const T = {
+    code: (u, k) => `claude mcp add --transport http autocollab ${u} \\\n  --header "Authorization: Bearer ${k}"`,
+    desktop: (u, k) => JSON.stringify({ mcpServers: { autocollab: { command: "npx", args: ["-y", "mcp-remote", u, "--header", "Authorization:${AUTH}"], env: { AUTH: `Bearer ${k}` } } } }, null, 2),
+    cursor: (u, k) => JSON.stringify({ mcpServers: { autocollab: { url: u, headers: { Authorization: `Bearer ${k}` } } } }, null, 2),
+    vscode: (u, k) => JSON.stringify({ servers: { autocollab: { type: "http", url: u, headers: { Authorization: `Bearer ${k}` } } } }, null, 2),
+    n8n: (u, k) => `Nœud « MCP Client Tool » :\n  Endpoint            ${u}\n  Server Transport    HTTP Streamable\n  Authentication      Header Auth\n    Name              Authorization\n    Value             Bearer ${k}`,
+    other: (u, k) => `URL         ${u}\nTransport   Streamable HTTP\nEn-tête     Authorization: Bearer ${k}`,
+    bridge: (u, k) => `npx -y mcp-remote ${u} --header "Authorization: Bearer ${k}"`,
+    exchange: (u, k) => `POST ${u}\nAuthorization: Bearer ${k}\nContent-Type: application/json\nAccept: application/json, text/event-stream\n\n{"jsonrpc": "2.0", "id": 1, "method": "tools/call",\n "params": {"name": "run_task", "arguments": {"task": "Va sur service-public.fr et trouve la date limite de la CA12"}}}\n\n→ {"jsonrpc": "2.0", "id": 1, "result": {\n     "structuredContent": {"run": {"id": "20261011-…", "status": "en_attente", "link": "/#/executions/20261011-…"}},\n     "content": [{"type": "text", "text": "…"}], "isError": false}}`,
+    curl: (u, k, b) => `curl -X POST ${b}/api/tasks \\\n  -H "Authorization: Bearer ${k}" \\\n  -H "Content-Type: application/json" \\\n  -d '{"task": "Va sur service-public.fr et trouve la date limite de la CA12"}'`,
+    python: (u, k, b) => `import time, requests\n\nBASE = "${b}"\nH = {"Authorization": "Bearer ${k}"}\n\nrun = requests.post(f"{BASE}/api/tasks", headers=H, json={"task": "…"}).json()\nwhile run["status"] in ("en_attente", "en_cours", "a_valider"):\n    if run["status"] == "a_valider":\n        print("Validation demandée :", run["approval"]["description"])  # à décider par un humain\n    time.sleep(5)\n    run = requests.get(f"{BASE}/api/tasks/{run['id']}", headers=H).json()\nprint(run["status"], run["result"])`,
+  };
+
+  function render() {
+    const b = base(), u = b + "/mcp", k = key();
+    document.getElementById("mcpUrlOut").textContent = u;
+    document.querySelectorAll("[data-url]").forEach(el => el.textContent = u);
+    document.querySelectorAll("[data-base-text]").forEach(el => el.textContent = b);
+    document.querySelectorAll("pre[data-tpl]").forEach(pre => pre.textContent = T[pre.dataset.tpl](u, k, b));
+  }
+  baseIn.addEventListener("input", () => { store.set("ac-dev-base", baseIn.value.trim()); render(); });
+  keyIn.addEventListener("input", render);
+
+  document.querySelectorAll(".snip").forEach(s => {
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.className = "copy"; btn.textContent = "Copier";
+    btn.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(s.querySelector("pre").textContent); btn.textContent = "Copié ✓"; }
+      catch { btn.textContent = "Échec"; }
+      setTimeout(() => btn.textContent = "Copier", 1600);
+    });
+    s.appendChild(btn);
+  });
+
+  const tabs = [...document.querySelectorAll(".clients button")];
+  function show(id) {
+    tabs.forEach(t => t.setAttribute("aria-selected", String(t.dataset.client === id)));
+    document.querySelectorAll(".client-panel").forEach(p => p.hidden = p.dataset.panel !== id);
+  }
+  tabs.forEach(t => t.addEventListener("click", () => { show(t.dataset.client); history.replaceState(null, "", "#mcp-" + t.dataset.client); }));
+  const m = location.hash.match(/^#mcp-(\w+)$/);
+  if (m && tabs.some(t => t.dataset.client === m[1])) { show(m[1]); document.getElementById("clients").scrollIntoView(); }
+
+  render();
+})();
+</script>
+<script>
+// Highlights the section being read in the table of contents.
+(() => {
+  const links = [...document.querySelectorAll('.toc a[href^="#"]')];
+  const sections = links.map(a => document.getElementById(a.getAttribute("href").slice(1))).filter(Boolean);
+  let current = null, frame = 0;
+  function update() {
+    frame = 0;
+    const atBottom = innerHeight + scrollY >= document.documentElement.scrollHeight - 4;
+    let active = atBottom ? sections[sections.length - 1] : sections[0];
+    if (!atBottom) for (const s of sections) if (s.getBoundingClientRect().top <= 110) active = s;
+    if (active === current) return;
+    current = active;
+    links.forEach(a => a.getAttribute("href") === `#${active.id}` ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current"));
+  }
+  addEventListener("scroll", () => { if (!frame) frame = requestAnimationFrame(update); }, { passive: true });
+  addEventListener("resize", update);
+  update();
+})();
+</script>
+</body>
+</html>
