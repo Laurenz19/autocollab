@@ -38,7 +38,7 @@
   .agent-new:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
   .agent-new svg { width: 22px; height: 22px; }
   .menu-wrap { position: relative; }
-  .menu { position: absolute; right: 0; top: calc(100% + 4px); background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); padding: 4px; min-width: 160px; z-index: 5; display: flex; flex-direction: column; }
+  .menu { position: absolute; right: 0; top: calc(100% + 4px); background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); padding: 4px; min-width: 180px; z-index: 30; display: flex; flex-direction: column; }
   .menu button { background: transparent; border: 0; text-align: left; padding: 9px 12px; border-radius: 6px; font-size: 14px; color: var(--ink); }
   .menu button:hover { background: var(--ground); }
   .menu button.del { color: var(--err); }
@@ -2563,6 +2563,21 @@ function readonlyCard(x, kind) {
   </article>`;
 }
 
+// A menu opens over the page, under its button (above when there is no room below): inside a list
+// that scrolls sideways, an absolutely placed menu would be cut off by the list's edges.
+function placeMenu(menu, button) {
+  const r = button.getBoundingClientRect();
+  menu.style.position = "fixed";
+  menu.style.right = `${Math.max(8, innerWidth - r.right)}px`;
+  menu.style.left = "auto";
+  const below = innerHeight - r.bottom, height = menu.offsetHeight;
+  if (below < height + 12 && r.top > height + 12) { menu.style.top = "auto"; menu.style.bottom = `${innerHeight - r.top + 4}px`; }
+  else { menu.style.bottom = "auto"; menu.style.top = `${r.bottom + 4}px`; }
+}
+// The page or a list scrolls: an open menu would float away from its button, so it closes.
+addEventListener("scroll", () => closeMenus(), true);
+addEventListener("resize", () => closeMenus());
+
 function closeMenus(except) {
   document.querySelectorAll(".menu").forEach(m => {
     if (m === except) return;
@@ -2580,7 +2595,7 @@ $("agentGrid").addEventListener("click", async (e) => {
   const act = btn.dataset.act;
   if (act === "menu") {
     const menu = btn.nextElementSibling, open = menu.hidden;
-    closeMenus(menu); menu.hidden = !open; btn.setAttribute("aria-expanded", String(open));
+    closeMenus(menu); menu.hidden = !open; btn.setAttribute("aria-expanded", String(open)); if (open) placeMenu(menu, btn);
     return;
   }
   closeMenus();
@@ -4138,7 +4153,7 @@ $("chainGrid").addEventListener("click", async (e) => {
   const chain = chainList.find(c => c.id === chainId) || teamData.chains.find(c => c.id === chainId);
   if (b.dataset.act === "menu") {
     const menu = b.nextElementSibling, open = menu.hidden;
-    closeMenus(menu); menu.hidden = !open; b.setAttribute("aria-expanded", String(open));
+    closeMenus(menu); menu.hidden = !open; b.setAttribute("aria-expanded", String(open)); if (open) placeMenu(menu, b);
     return;
   }
   closeMenus();
