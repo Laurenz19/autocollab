@@ -62,11 +62,31 @@
   .days input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
   .note { color: var(--warn); background: var(--warn-soft); }
   .note::before { background: var(--warn); }
-  .approval { border-radius: 12px; border: 1px solid var(--warn); background: var(--warn-soft); padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
-  .approval h2 { margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px; }
-  .approval h2 svg { width: 18px; height: 18px; color: var(--warn); }
-  .approval p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; }
-  .approval .textarea { background: var(--panel); min-height: 60px; }
+  .approval { border-radius: 16px; border: 1.5px solid color-mix(in srgb, var(--warn) 35%, var(--line)); background: var(--panel); overflow: hidden; box-shadow: 0 8px 24px rgb(91 63 196 / .08); }
+  .approval-head { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 16px 20px; background: color-mix(in srgb, var(--warn-soft) 55%, var(--panel)); }
+  .approval:not(.folded) .approval-head { border-bottom: 1px solid color-mix(in srgb, var(--warn) 18%, var(--line)); }
+  .approval-icon { width: 40px; height: 40px; flex: none; border-radius: 10px; background: var(--warn-soft); color: var(--warn); display: grid; place-items: center; }
+  .approval-icon svg { width: 20px; height: 20px; }
+  .approval-title { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; }
+  .approval-title h2 { margin: 0; font-size: 17px; font-weight: 650; letter-spacing: -.01em; }
+  .approval-title span { font-size: 13px; color: var(--ink-2); }
+  .approval-when { font-size: 12px; color: var(--warn); }
+  .approval-quick { display: flex; gap: 8px; }
+  .approval-toggle { min-height: 40px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--warn-soft); color: var(--warn); font-weight: 600; font-size: 13px; }
+  .approval-toggle::after { content: " ▴"; } .approval.folded .approval-toggle::after { content: " ▾"; }
+  .approval-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; }
+  .approval.folded .approval-body { display: none; }
+  .approval p { margin: 0; padding: 14px 16px; border: 1px solid var(--hair); border-radius: 12px; background: var(--sunken); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; }
+  .approval .textarea { background: var(--panel); min-height: 56px; }
+  .approval-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; }
+  .approval-actions .hint { flex: 1; }
+  .steps-credits { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .steps-head .tech-toggle { white-space: nowrap; }
+  .guard-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--hair); font-size: 14px; }
+  .guard-row:first-of-type { border-top: 0; }
+  .guard-row > span:first-child { color: var(--ink-2); }
+  .guard-sites { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+  .guard-sites span { font-family: var(--mono); font-size: 12px; padding: 2px 8px; border-radius: 6px; background: var(--hair); }
   .steps .approval-ev .mark { background: var(--warn-soft); color: var(--warn); }
   .switch { position: relative; display: inline-block; width: 44px; height: 26px; flex: none; }
   .switch input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; z-index: 1; }
@@ -79,11 +99,25 @@
   .warn-text { color: var(--warn); font-weight: 600; }
 
   /* Mes connexions */
-  .sites { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
-  .site-card { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); min-width: 0; }
+  .sites { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  .site-card { display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: 16px; border: 1px solid var(--line); background: var(--panel); min-width: 0; }
+  .site-top { display: flex; align-items: center; gap: 12px; }
+  .site-initial { width: 44px; height: 44px; flex: none; border-radius: 12px; background: var(--hair); display: grid; place-items: center; font-weight: 700; font-size: 16px; }
+  .site-id { flex: 1; min-width: 0; }
   .site-card strong { font-size: 15px; overflow-wrap: anywhere; }
-  .site-card .host { font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
-  .site-card .seen { font-size: 12px; color: var(--muted); }
+  .site-card .host { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .site-card .seen { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--ink-2); }
+  .site-card .seen .sub { font-size: 12.5px; }
+  .sign-state.lost { background: var(--err-soft); color: var(--err); }
+  .sign-state.never { background: var(--hair); color: var(--ink-2); }
+  .site-card:has(.sign-state.lost) { border-color: color-mix(in srgb, var(--err) 30%, var(--line)); }
+  .conn-alert { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; padding: 16px 20px; border-radius: 16px; background: var(--panel); border: 1.5px solid color-mix(in srgb, var(--err) 30%, var(--line)); }
+  .conn-alert-icon { width: 40px; height: 40px; flex: none; border-radius: 10px; background: var(--err-soft); color: var(--err); display: grid; place-items: center; }
+  .conn-alert-icon svg { width: 18px; height: 18px; }
+  .conn-alert .grow { flex: 1 1 320px; }
+  .conn-safe { display: flex; gap: 12px; align-items: flex-start; margin: 0; padding: 14px 16px; border-radius: 14px; background: var(--accent-soft); color: var(--accent-hover); font-size: 14px; }
+  .conn-safe svg { width: 20px; height: 20px; flex: none; margin-top: 1px; }
+  .conn-nav { gap: 4px; border-bottom: 1px solid var(--line); }
   .sign-state { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 550; border-radius: 99px; padding: 1px 9px 1px 8px; }
   .sign-state::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
   .sign-state.ok { background: var(--ok-soft); color: var(--ok); }
@@ -217,10 +251,16 @@
   .save-state.saved { color: var(--ok); } .save-state.saved::before { background: var(--ok); }
   .save-state.saving { color: var(--run); } .save-state.saving::before { background: var(--run); }
   .save-state.error { color: var(--err); } .save-state.error::before { background: var(--err); }
-  .scope-tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
-  .scope-tabs button { display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 16px; margin-bottom: -1px; border: 0; border-bottom: 2px solid transparent; background: transparent; font-weight: 650; font-size: 14.5px; color: var(--muted); }
+  .scope-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 12px; background: var(--hair); }
+  .scope-tabs button { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border: 0; border-radius: 9px; background: transparent; font-weight: 550; font-size: 14px; color: var(--ink-2); }
   .scope-tabs button svg { width: 16px; height: 16px; }
-  .scope-tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+  .scope-tabs button[aria-selected="true"] { color: var(--ink); background: var(--panel); font-weight: 600; box-shadow: var(--shadow-xs); }
+  .ctx-tabs button { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; margin-bottom: -1px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--ink-2); font-weight: 500; }
+  .ctx-tabs button[aria-selected="true"] { border-bottom-color: var(--accent); color: var(--ink); font-weight: 600; }
+  .ctx-tabs button[aria-selected="true"] .tab-count { color: var(--accent); }
+  .ctx-tabs { margin-bottom: 16px; }
+  .ctx-card[data-sec-shown] > .ctx-sec { display: none; }
+  .ctx-card[data-sec-shown="rules"] > [data-sec="rules"], .ctx-card[data-sec-shown="terms"] > [data-sec="terms"], .ctx-card[data-sec-shown="sites"] > [data-sec="sites"] { display: flex; border-top: 0; }
   .scope-tabs .who { font-weight: 500; color: var(--muted); }
   .scope-tabs .lock { font-size: 11px; font-weight: 600; color: var(--muted); background: var(--line); border-radius: 99px; padding: 0 7px; }
   .ctx-card { padding: 0; overflow: hidden; }
@@ -343,8 +383,12 @@
 
   /* Chaînes */
   .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-  .flow .node { font-size: 12.5px; font-weight: 600; background: var(--accent-soft); color: var(--accent); border-radius: 6px; padding: 3px 8px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .flow .node.missing { background: var(--err-soft); color: var(--err); }
+  .flow .node { flex: 1 1 140px; min-width: 0; display: flex; flex-direction: column; gap: 1px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--ink); }
+  .flow .node-n { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .flow .node-name { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .flow .node-note { font-size: 11.5px; color: var(--accent); }
+  .flow .node.missing { background: var(--err-soft); border-color: transparent; }
+  .flow .node.missing .node-name { color: var(--err); }
   .flow .arrow { color: var(--muted); font-size: 13px; }
   .step-editor { display: flex; flex-direction: column; gap: 8px; }
   .step-row { display: grid; grid-template-columns: 28px 1fr 190px auto; gap: 8px; align-items: center; }
@@ -569,6 +613,15 @@
     </div>
   </nav>
 
+  <!-- Small screens: the main entries at thumb reach (the full menu stays behind « Menu »). -->
+  <nav class="tabbar" aria-label="Navigation rapide">
+    <a href="#/tableau-de-bord" data-nav="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Accueil</a>
+    <a href="#/executions" data-nav="activite"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Activité</a>
+    <button type="button" class="tabbar-go" id="tabbarGo" aria-label="Lancer une tâche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+    <a href="#/agents" data-nav="auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>Agents</a>
+    <a href="#/connexions" data-nav="connexions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>Connexions</a>
+  </nav>
+
   <!-- ===== Tableau de bord ===== -->
   <main class="content narrow" id="viewDashboard" hidden>
     <header class="page-head">
@@ -650,6 +703,7 @@
 
     <div class="toolbar list-toolbar" data-tools="agents"></div>
     <section class="agent-grid" id="agentGrid" aria-label="Agents"></section>
+    <div class="agent-hint" id="agentHint" hidden></div>
     <p class="empty" id="agentsNoMatch" hidden>Aucun agent ne correspond à ces critères.</p>
     <p class="empty empty-start" id="agentsEmpty" hidden>Aucun agent pour l'instant. Partez d'un modèle ci-dessous, cliquez sur « Nouvel agent », ou enregistrez une tâche qui a bien fonctionné avec « Enregistrer comme agent ».</p>
     <section class="atpl-inline" id="atplInline" hidden aria-label="Modèles d'agents"></section>
@@ -709,6 +763,10 @@
       </div>
       <div class="seg scope-seg" role="group" aria-label="Afficher"><button type="button" data-scope="mine" aria-pressed="true">Les miens</button><button type="button" data-scope="all" aria-pressed="false">Toute l'organisation</button></div>
     </header>
+    <section class="card week-card" aria-labelledby="weekTitle">
+      <div class="row-between" style="margin-bottom: 12px"><h2 class="label" id="weekTitle" style="margin: 0">Cette semaine</h2><span class="sub" id="weekRange"></span></div>
+      <div class="table-wrap"><div class="week" id="weekGrid"></div></div>
+    </section>
     <section class="card">
       <h2 class="label">Agents et chaînes planifiés</h2>
       <div class="toolbar list-toolbar" data-tools="sched" id="schedTools"></div>
@@ -722,13 +780,18 @@
   <main class="content narrow" id="viewConnections" hidden>
     <header class="page-head">
       <div>
-        <h1>Mes connexions</h1>
-        <p>Connectez-vous une fois à vos sites dans le navigateur de vos agents : vos sessions sont gardées pour leurs prochaines exécutions.</p>
+        <h1>Connexions</h1>
+        <p>Connectez-vous une fois dans le navigateur de vos agents : ils réutilisent la session à chaque exécution.</p>
       </div>
       <button class="btn btn-primary" id="connCloseBtn" hidden>Terminer</button>
+      <button class="btn btn-primary" id="addSiteBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        Ajouter une connexion
+      </button>
     </header>
 
     <div id="connClosed" style="display: flex; flex-direction: column; gap: 22px">
+      <div class="conn-alert" id="connAlert" role="alert" hidden></div>
       <div class="dev-nav conn-nav" role="tablist" aria-label="Type de connexion">
         <button type="button" role="tab" id="connTabSites" data-conntab="sites" aria-controls="connSitesPanel" aria-selected="true">Sites <span class="count" id="connCountSites"></span></button>
         <button type="button" role="tab" id="connTabApps" data-conntab="applications" aria-controls="connAppsPanel" aria-selected="false">Applications <span class="count" id="connCountApps"></span></button>
@@ -748,13 +811,6 @@
       </div>
       <div id="connSitesPanel" role="tabpanel" aria-labelledby="connTabSites" style="display: flex; flex-direction: column; gap: 22px">
       <section class="card" style="display: flex; flex-direction: column; gap: 14px">
-        <div class="row-between">
-          <h2 class="label" style="margin: 0">Mes sites</h2>
-          <button class="btn btn-primary btn-sm" id="addSiteBtn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-            Ajouter une connexion
-          </button>
-        </div>
         <p class="info note" id="connBusy" hidden style="margin: 0">Une de vos exécutions utilise votre navigateur en ce moment. Vous pourrez l'ouvrir dès qu'elle sera terminée.</p>
         <div class="toolbar list-toolbar" data-tools="sites" id="sitesTools"></div>
         <div class="sites" id="connSites"></div>
@@ -763,7 +819,7 @@
           <p class="empty">Aucune connexion pour l'instant. Ajoutez les sites sur lesquels vos agents doivent être connectés, par exemple :</p>
           <div class="examples" id="sitesQuick"></div>
         </div>
-        <p class="info" style="margin: 0">Vous tapez vos identifiants directement sur le site, comme dans votre navigateur habituel : l'application ne les voit pas et ne les enregistre pas. Navigateur : <span id="connBrowser"></span>.</p>
+        <p class="conn-safe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span><strong>Vos mots de passe restent à vous.</strong> Vous les tapez sur le site lui-même, comme d'habitude : l'application ne les voit pas et ne les enregistre pas. Seule la session est gardée. Navigateur : <span id="connBrowser"></span>.</span></p>
       </section>
       <section class="card danger-zone">
         <p><strong>Réinitialiser mon navigateur</strong><br>Déconnecte tous vos sites et efface les données de navigation de vos agents. Utile si vous changez d'accès ou quittez l'organisation.</p>
@@ -805,12 +861,10 @@
   <main class="content narrow" id="viewContext" hidden>
     <header class="page-head">
       <div>
-        <h1>Contexte des agents</h1>
-        <p>Ce que vos agents savent avant de commencer : les règles à respecter, le vocabulaire de l'organisation et les particularités des sites.</p>
+        <h1>Contexte</h1>
+        <p>Ce que vos agents savent avant de commencer : vos règles, votre vocabulaire et les particularités de chaque site. Ajouté automatiquement à chaque consigne.</p>
       </div>
-    </header>
-
-    <div class="scope-tabs" role="tablist" aria-label="Portée du contexte">
+      <div class="scope-tabs" role="tablist" aria-label="Portée du contexte">
       <button type="button" role="tab" data-scope="cabinet" aria-selected="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
         <span class="org-name" id="orgTabName" hidden></span><span id="orgTabDefault">Organisation</span> <span class="who">· tout le monde</span> <span class="lock" id="ctxLock" hidden>lecture seule</span>
@@ -820,6 +874,7 @@
         Personnel <span class="who">· vous seulement</span>
       </button>
     </div>
+    </header>
 
     <div class="ctx-layout">
       <div class="ctx-main">
@@ -827,9 +882,14 @@
           <span id="ctxScopeHint"></span>
           <span class="save-state" id="ctxSave" aria-live="polite"></span>
         </div>
-        <section class="card ctx-card">
+        <div class="section-tabs ctx-tabs" role="tablist" aria-label="Contenu du contexte">
+          <button type="button" role="tab" data-sec="rules" aria-selected="true">Règles <span class="tab-count" id="ctxTabRules"></span></button>
+          <button type="button" role="tab" data-sec="terms" aria-selected="false">Vocabulaire <span class="tab-count" id="ctxTabTerms"></span></button>
+          <button type="button" role="tab" data-sec="sites" aria-selected="false">Notes par site <span class="tab-count" id="ctxTabSites"></span></button>
+        </div>
+        <section class="card ctx-card" data-sec-shown="rules">
 
-          <div class="ctx-sec">
+          <div class="ctx-sec" data-sec="rules">
             <div class="ctx-sec-head">
               <h2>Règles</h2>
               <span class="desc"><span id="ctxRuleCount"></span> · ce que l'agent respecte toujours</span>
@@ -846,7 +906,7 @@
             </div>
           </div>
 
-          <div class="ctx-sec">
+          <div class="ctx-sec" data-sec="terms">
             <div class="ctx-sec-head">
               <h2>Vocabulaire</h2>
               <span class="desc"><span id="ctxTermCount"></span> · sigles, codes dossiers, habitudes</span>
@@ -862,9 +922,9 @@
             </form>
           </div>
 
-          <div class="ctx-sec">
+          <div class="ctx-sec" data-sec="sites">
             <div class="ctx-sec-head">
-              <h2>Sites</h2>
+              <h2>Notes par site</h2>
               <span class="desc grow"><span id="ctxSiteCount"></span> · envoyées seulement quand la tâche concerne le site</span>
               <button type="button" class="btn btn-outline btn-sm" id="siteNoteAdd">+ Ajouter un site</button>
             </div>
@@ -1104,14 +1164,23 @@
     <div class="run-grid">
       <div class="run-main">
         <section class="approval" id="approvalBox" hidden aria-live="polite">
-          <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4M12 16h.01"/></svg>Validation requise</h2>
-          <p id="approvalText"></p>
-          <span class="hint" id="approvalHint"></span>
-          <label class="field-label" for="approvalComment" style="font-size: 13px">Remarque pour l'agent (facultatif)</label>
-          <textarea class="textarea" id="approvalComment" rows="2" maxlength="1000"></textarea>
-          <div class="actions">
-            <button class="btn btn-primary" id="approveBtn">Valider</button>
-            <button class="btn btn-danger" id="rejectBtn">Refuser</button>
+          <div class="approval-head">
+            <span class="approval-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg></span>
+            <div class="approval-title"><h2>L'agent attend votre accord</h2><span>Rien n'est fait tant que vous n'avez pas décidé.</span></div>
+            <span class="approval-when" id="approvalWhen"></span>
+            <span class="approval-quick" id="approvalQuick" hidden><button type="button" class="btn btn-outline btn-sm" data-quick="0">Refuser</button><button type="button" class="btn btn-primary btn-sm" data-quick="1">Valider</button></span>
+            <button type="button" class="approval-toggle" id="approvalToggle" aria-expanded="true" aria-controls="approvalBody">Replier</button>
+          </div>
+          <div class="approval-body" id="approvalBody">
+            <p id="approvalText"></p>
+            <span class="hint" id="approvalHint"></span>
+            <label class="field-label" for="approvalComment" style="font-size: 13px">Remarque pour l'agent <span style="font-weight: 400; color: var(--muted)">(facultatif)</span></label>
+            <textarea class="textarea" id="approvalComment" rows="2" maxlength="1000" placeholder="Ex. « Ajoute le numéro de dossier dans l'objet »"></textarea>
+            <div class="approval-actions">
+              <span class="hint">Vous pouvez aussi répondre depuis l'Accueil.</span>
+              <button class="btn btn-outline" id="rejectBtn">Refuser</button>
+              <button class="btn btn-primary" id="approveBtn">Valider</button>
+            </div>
           </div>
         </section>
         <div id="result" hidden></div>
@@ -1179,6 +1248,7 @@
         <section class="card">
           <div class="steps-head">
             <h2 class="label">Étapes</h2>
+            <span class="steps-credits" id="runCredits"></span>
             <label class="tech-toggle">Détails techniques
               <span class="switch"><input type="checkbox" id="techToggle"><span></span></span>
             </label>
@@ -1187,6 +1257,13 @@
             <ol class="steps" id="steps"></ol>
           </div>
           <p class="empty" id="stepsEmpty">Les étapes apparaîtront ici en direct.</p>
+        </section>
+        <section class="card" aria-labelledby="guardTitle">
+          <h2 class="label" id="guardTitle">Garde-fous</h2>
+          <div class="guard-row"><span>Sites autorisés</span><span class="guard-sites" id="guardSites"></span></div>
+          <div class="guard-row"><span>Validation avant d'agir</span><strong id="guardApproval"></strong></div>
+          <div class="guard-row"><span>Étapes max</span><span class="mono" id="guardSteps"></span></div>
+          <div class="guard-row"><span>Contexte appliqué</span><a href="#/contexte">Voir le contexte</a></div>
         </section>
         <section class="card" id="sideFilesCard">
           <h2 class="label">Fichiers</h2>
@@ -1219,10 +1296,18 @@
   <div class="cmd-foot"><span><kbd>↑↓</kbd> naviguer</span><span><kbd>Entrée</kbd> lancer</span><span><kbd>Tab</kbd> envoyer à l'assistant</span></div>
 </dialog>
 
-<dialog id="agentDlg">
+<dialog id="agentDlg" class="agent-sheet">
   <form method="dialog" id="agentForm" autocomplete="off">
     <h2 id="agentDlgTitle">Nouvel agent</h2>
-    <div class="dialog-body">
+    <div class="dialog-body agent-sheet-body">
+      <div class="agent-steps-col">
+        <div class="agent-stepper" role="tablist" aria-label="Étapes">
+          <button type="button" role="tab" data-step="1" aria-selected="true"><b>1</b><span><strong>Consigne</strong><span>Ce qu'il fait</span></span></button>
+          <button type="button" role="tab" data-step="2" aria-selected="false"><b>2</b><span><strong>Garde-fous</strong><span>Sites et validation</span></span></button>
+          <button type="button" role="tab" data-step="3" aria-selected="false"><b>3</b><span><strong>Planification</strong><span>Quand il travaille</span></span></button>
+        </div>
+        <section class="agent-step" data-step="1">
+          <h3>Que doit faire l'agent ?</h3>
       <div class="field">
         <label for="agentName">Nom</label>
         <input class="input" type="text" id="agentName" maxlength="80" required placeholder="Factures fournisseurs du mois">
@@ -1235,7 +1320,7 @@
       </div>
       <div class="preview" id="agentPreview" hidden></div>
       <div class="row-between">
-        <label class="check">Étapes max <input class="num" type="number" id="agentMaxSteps" min="1" max="200" placeholder="défaut"></label>
+        <span></span>
         <button type="button" class="btn btn-text btn-sm" id="previewBtn">Aperçu avec les variables remplies</button>
       </div>
       <div class="field">
@@ -1247,17 +1332,22 @@
         </div>
         <span class="hint">Fournies à chaque exécution de cet agent, qui peut les envoyer sur un site. Pour des fichiers qui changent chaque mois, faites-les plutôt télécharger par l'agent pendant la tâche.</span>
       </div>
-      <fieldset class="fieldset">
-        <legend>Garde-fous</legend>
+        </section>
+        <section class="agent-step" data-step="2" hidden>
+          <h3>Jusqu'où peut-il aller ?</h3>
         <div class="field">
           <label for="agentDomains">Sites autorisés</label>
           <textarea class="textarea" id="agentDomains" rows="3" placeholder="mail.google.com&#10;app.pennylane.com" style="min-height: 80px"></textarea>
           <span class="hint">Un site par ligne. L'agent ne pourra ouvrir aucun autre site. Vide = aucune restriction. « *.exemple.fr » autorise tous les sous-domaines.</span>
         </div>
         <label class="check" style="align-items: flex-start"><input type="checkbox" id="agentApproval" style="margin-top: 3px"> <span><strong>Mode avec validation</strong><br><span class="hint">Avant toute action difficile à annuler (envoyer, valider, supprimer, payer…), l'agent décrit ce qu'il va faire et attend que vous cliquiez sur Valider.</span></span></label>
-      </fieldset>
-      <fieldset class="fieldset">
-        <legend>Planification</legend>
+          <div class="field">
+            <label class="check">Étapes max <input class="num" type="number" id="agentMaxSteps" min="1" max="200" placeholder="défaut"></label>
+            <span class="hint">L'agent s'arrête au-delà : c'est aussi votre plafond de dépense.</span>
+          </div>
+        </section>
+        <section class="agent-step" data-step="3" hidden>
+          <h3>Quand doit-il travailler ?</h3>
         <div class="sched-row">
           <div class="field">
             <label for="schedKind">Fréquence</label>
@@ -1285,11 +1375,24 @@
         <div id="schedOptions" hidden style="display: flex; flex-direction: column; gap: 8px">
           <label class="check"><input type="checkbox" id="schedEnabled" checked> Planification active</label>
         </div>
-      </fieldset>
+        </section>
+      </div>
+      <aside class="agent-summary" aria-live="polite">
+        <div class="agent-summary-box">
+          <span class="agent-summary-title">Ce que fera l'agent</span>
+          <p id="agentSummary"></p>
+        </div>
+        <div class="agent-check">
+          <strong>Avant d'enregistrer</strong>
+          <ul id="agentChecklist"></ul>
+        </div>
+      </aside>
     </div>
     <div class="dialog-foot">
       <p class="form-err" id="agentErr" role="alert"></p>
-      <button class="btn btn-primary" value="save" id="agentSaveBtn">Enregistrer</button>
+      <button class="btn btn-primary" value="save" id="agentSaveBtn">Enregistrer l'agent</button>
+      <button type="button" class="btn btn-outline" id="agentNextBtn">Continuer</button>
+      <button type="button" class="btn btn-text" id="agentPrevBtn" hidden>Précédent</button>
       <button class="btn btn-outline" value="cancel" formnovalidate>Annuler</button>
     </div>
   </form>
@@ -1955,7 +2058,7 @@ function saveLst(key) {
 }
 // Cards for a handful, a compact list beyond 9, unless the person chose.
 const LINKED_MODE = { agents: "chains", chains: "agents" };
-const listMode = (key, count) => lst(key).mode || (LINKED_MODE[key] && lst(LINKED_MODE[key]).mode) || (count > 9 ? "list" : "cards");
+const listMode = (key, count) => lst(key).mode || (LINKED_MODE[key] && lst(LINKED_MODE[key]).mode) || (key === "agents" || count > 9 ? "list" : "cards");
 
 function toolbarHtml(key) {
   const cfg = LIST_CFG[key], st = lst(key);
@@ -2032,21 +2135,45 @@ function lastRunCell(x) {
 }
 function ownerCell(x) { return team ? `<td>${isMine(x) ? '<span class="sub">Moi</span>' : esc(x.owner_name || "")}</td>` : ""; }
 
+// The last 8 runs of an agent over the loaded month, oldest first, padded on the left.
+function agentHealth(a) {
+  const mine = runs.filter(r => r.agent_id === a.id && !isActive(r)).sort((x, y) => parseTime(x.created_at) - parseTime(y.created_at)).slice(-8);
+  return [...Array(8 - mine.length).fill(null), ...mine];
+}
 function agentsListHtml(list) {
-  return `<div class="card list-card"><div class="table-wrap"><table class="table"><thead><tr><th>Agent</th>${team ? "<th>Propriétaire</th>" : ""}<th>Dernière exécution</th><th>Planification</th><th>Garde-fous</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody>${
+  return `<div class="card list-card agent-rows"><div class="table-wrap"><div class="agent-rows-in">
+    <div class="agent-row head"><span>Agent</span>${team ? "<span>Propriétaire</span>" : ""}<span>8 dernières</span><span>Prochaine</span><span>Sites</span><span></span></div>${
     list.map(a => {
       const running = a.last_run && isActive(a.last_run);
-      const guards = [a.allowed_domains?.length ? miniChip("shield", a.allowed_domains.length === 1 ? a.allowed_domains[0] : `${a.allowed_domains.length} sites`) : "",
-                      a.approval_mode ? miniChip("shield", "Avec validation", "warn") : "",
-                      ...(a.chains || []).map(c => miniChip("chain", `Étape ${c.step}/${c.total} · ${c.name}`))].join("");
-      const actions = !isMine(a) ? (a.last_run ? UI.actions(UI.action("last", "Voir la dernière exécution", "open")) : "")
-        : UI.actions(running ? UI.action("last", "Suivre l'exécution", "open") : UI.action("run", `Lancer ${a.name}`, "play"),
-                     UI.action("edit", `Modifier ${a.name}`, "edit"), UI.action("delete", `Supprimer ${a.name}`, "trash", { danger: true }));
-      return `<tr data-id="${a.id}"><td class="main"><div class="act-cell"><span class="act-icon agent" aria-hidden="true">${RUN_ICONS.agent}</span>
-        <span class="act-name"><span class="list-name">${esc(a.name)}</span><span class="sub one-line" title="${esc(a.instructions)}">${esc(a.instructions)}</span></span></div></td>
-        ${ownerCell(a)}<td>${lastRunCell(a)}</td><td class="sub sched">${esc(scheduleLine(a))}</td><td><div class="ctx-chips">${guards}</div></td>
-        <td class="row-act">${actions}</td></tr>`;
-    }).join("")}</tbody></table></div></div>`;
+      const health = agentHealth(a);
+      const ok = health.filter(r => r && r.status === "termine").length, done = health.filter(Boolean).length;
+      const badges = [a.approval_mode ? `<span class="row-badge warn" title="Demande votre accord avant d'agir">Validation</span>` : "",
+                      running ? `<span class="row-badge run">En cours</span>` : "",
+                      ...(a.chains || []).map(c => `<span class="row-badge">${esc(c.name)} · ${c.step}/${c.total}</span>`)].join("");
+      const next = a.schedule && a.schedule_enabled && a.next_run_at ? whenLabel(a.next_run_at) : a.schedule ? "En pause" : (a.chains?.length ? "Dans une chaîne" : "Manuel");
+      const sites = (a.allowed_domains || []);
+      const actions = !isMine(a) ? (a.last_run ? `<button type="button" class="btn btn-outline btn-sm" data-act="last">Dernière exécution</button>` : "")
+        : `${running ? `<button type="button" class="btn btn-outline btn-sm" data-act="last">Suivre</button>`
+                     : `<button type="button" class="btn btn-outline btn-sm" data-act="run">${UI.ICONS.play}Lancer</button>`}
+           <button type="button" class="icon-btn boxed" data-act="edit" aria-label="Modifier ${esc(a.name)}" title="Modifier">${UI.ICONS.edit}</button>
+           <div class="menu-wrap">
+             <button type="button" class="icon-btn boxed" data-act="menu" aria-label="Plus d'actions" aria-haspopup="true" aria-expanded="false">${ICON.more}</button>
+             <div class="menu" hidden>
+               ${a.last_run ? '<button type="button" data-act="last">Dernière exécution</button>' : ""}
+               <button type="button" data-act="pin">${pins.get().includes(a.id) ? "Retirer du menu" : "Épingler dans le menu"}</button>
+               <button type="button" data-act="duplicate">Dupliquer</button>
+               <button type="button" class="del" data-act="delete">Supprimer</button>
+             </div>
+           </div>`;
+      return `<div class="agent-row" data-id="${a.id}">
+        <span class="agent-row-main"><span class="agent-row-title"><strong>${esc(a.name)}</strong>${badges}</span><span class="agent-row-desc" title="${esc(a.instructions)}">${esc(a.instructions)}</span></span>
+        ${team ? `<span>${ownerTag(a)}</span>` : ""}
+        <span class="health" role="img" aria-label="${done ? `${ok} réussite${ok > 1 ? "s" : ""} sur les ${done} dernières exécutions` : "Pas encore d'exécution ce mois-ci"}">${health.map(r => `<i class="${r ? r.status : "none"}" title="${r ? esc(`${STATUS[r.status] || r.status} · ${whenLabel(r.created_at)}`) : ""}"></i>`).join("")}</span>
+        <span class="agent-row-next"><span>${esc(next)}</span><span class="sub">${esc(a.schedule ? a.schedule_label : "")}</span></span>
+        <span class="agent-row-sites" title="${esc(sites.join(", "))}">${sites.length ? esc(sites.slice(0, 2).join(", ")) + (sites.length > 2 ? ` +${sites.length - 2}` : "") : '<span class="sub">Tous les sites</span>'}</span>
+        <span class="agent-row-act">${actions}</span>
+      </div>`;
+    }).join("")}</div></div></div>`;
 }
 
 function chainsListHtml(list) {
@@ -2322,6 +2449,7 @@ async function launchCmd(task) {
   } catch (e) { toast(e.message); }
 }
 $("cmdOpen").onclick = () => openCmd();
+$("tabbarGo").onclick = () => openCmd();
 $("cmdInput").addEventListener("input", () => { cmdIndex = 0; renderCmd(); });
 $("cmdInput").addEventListener("keydown", (e) => {
   if (e.key === "ArrowDown" || e.key === "ArrowUp") {
@@ -2399,6 +2527,17 @@ function renderAgents() {
     : page.map(agentCard).join(""), renderAgents, mode === "list" ? 25 : 12, mode === "list" ? [25, 50, 100] : [12, 24, 48]);
   $("agentsEmpty").hidden = all.length > 0 || agentsSub === "templates";
   $("tabAgentsCount").textContent = agentsList.length || "";
+  for (const b of document.querySelectorAll('[data-list="agents"][data-lf]')) {
+    const f = LIST_CFG.agents.filters.find(x => x[0] === b.dataset.lf);
+    b.textContent = `${f[1]} · ${f[2] ? all.filter(f[2]).length : all.length}`;
+  }
+  const failing = team ? [] : agentsList.filter(a => a.last_run?.status === "echec");
+  $("agentHint").hidden = !failing.length || onTpl;
+  if (failing.length) {
+    const a = failing[0], lost = SESSION_LOST.test(a.last_run.result || "");
+    $("agentHint").innerHTML = `${ICON.failed}<span><strong>« ${esc(a.name)} » a échoué à sa dernière exécution.</strong> ${esc(lost ? "La session du site semble expirée : une reconnexion suffit." : (a.last_run.result || "").slice(0, 140))}</span>`
+      + (lost ? `<a class="btn btn-primary btn-sm" href="#/connexions">Reconnecter</a>` : `<a class="btn btn-primary btn-sm" href="#/executions/${a.last_run.id}">Voir l'exécution</a>`);
+  }
   const onTpl = agentsSub === "templates";
   for (const id of ["agentGrid", "agentsNoMatch"]) if (onTpl) $(id).hidden = true;
   $("agentGrid").hidden = onTpl;
@@ -2406,7 +2545,7 @@ function renderAgents() {
   // No agent yet, or the Modèles tab: the templates show right on the page.
   const showTpl = onTpl || (!team && !all.length);
   $("atplInline").hidden = !showTpl;
-  if (showTpl) loadTemplates().then(c => { $("atplInline").innerHTML = tplCards(c); }).catch(() => { $("atplInline").hidden = true; });
+  if (showTpl) loadTemplates().then(c => { $("atplInline").innerHTML = (onTpl ? `<p class="hint" style="margin: 0 0 14px">Un modèle ouvre le formulaire déjà rempli : complétez ce qui est marqué [À COMPLÉTER], vérifiez les sites, enregistrez.</p>` : "") + tplCards(c, onTpl); }).catch(() => { $("atplInline").hidden = true; });
 }
 
 // A colleague's agent or chain: what it does and how it went, without any action but looking.
@@ -2485,7 +2624,9 @@ function openAgentDialog(agent, prefill = "") {
   if (agent) api(`/api/agents/${agent.id}/files`).then(list => { agentFileList = list; renderAgentFiles(); }).catch(() => {});
   $("agentErr").textContent = "";
   $("agentPreview").hidden = true;
+  showAgentStep(1);
   $("agentDlg").showModal();
+  updateAgentSummary();
 }
 // A draft from the assistant panel (static/assistant.js): the form opens pre-filled, the person saves it.
 window.openAgentDraft = (d) => {
@@ -2494,12 +2635,19 @@ window.openAgentDraft = (d) => {
   $("agentDomains").value = (d.allowed_domains || []).join("\n");
   $("agentApproval").checked = !!d.approval_mode;
   $("agentMaxSteps").value = d.max_steps || "";
+  updateAgentSummary();
 };
 // Agent templates (app/templates.py): a template opens the same pre-filled form as a draft,
 // with the first [À COMPLÉTER : …] selected so the person types over it.
 let tplCatalog = null;
 const loadTemplates = async () => tplCatalog || (tplCatalog = await api("/api/templates"));
-function tplCards({ categories, templates }) {
+function tplCards({ categories, templates }, flat = false) {
+  if (flat) return `<div class="atpl-grid atpl-flat">${templates.map(t => `
+      <button type="button" class="atpl-card" data-atpl="${esc(t.id)}">
+        <span class="atpl-cat">${esc(categories.find(c => c.id === t.category)?.label || "")}</span>
+        <strong>${esc(t.name)}</strong><span>${esc(t.summary)}</span>
+        <span class="atpl-foot"><span class="atpl-meta">${esc(t.allowed_domains.join(", "))}</span><span class="atpl-cost" title="Estimation pour le modèle d'IA choisi dans l'administration : le coût réel dépend du nombre d'étapes.">≈ ${t.estimate.credits} cr.</span></span>
+      </button>`).join("")}</div>`;
   return categories.map(c => {
     const items = templates.filter(t => t.category === c.id);
     return !items.length ? "" : `<div class="atpl-group"><h3>${esc(c.label)}</h3><div class="atpl-grid">${items.map(t => `
@@ -2524,6 +2672,41 @@ $("atplBtn").onclick = async () => {
   $("atplDlg").showModal();
 };
 document.addEventListener("click", (e) => { const b = e.target.closest("[data-atpl]"); if (b) useTemplate(b.dataset.atpl); });
+// Agent form in three steps, with a plain-language summary that follows what is typed.
+let agentStep = 1;
+function showAgentStep(n) {
+  agentStep = n;
+  document.querySelectorAll("#agentDlg .agent-step").forEach(x => x.hidden = +x.dataset.step !== n);
+  document.querySelectorAll("#agentDlg .agent-stepper [data-step]").forEach(b => b.setAttribute("aria-selected", String(+b.dataset.step === n)));
+  $("agentPrevBtn").hidden = n === 1;
+  $("agentNextBtn").hidden = n === 3;
+}
+const DAY_SHORT = ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."];
+function updateAgentSummary() {
+  let sc = null; try { sc = scheduleFromForm(); } catch {}
+  const at = sc?.time ? ` à ${sc.time.replace(":", " h ")}` : "";
+  const when = !sc ? "Quand vous le lancerez" : sc.kind === "daily" ? `Chaque jour${at}` : sc.kind === "weekdays" ? `Du lundi au vendredi${at}`
+    : sc.kind === "weekly" ? `Chaque semaine (${(sc.days || []).map(d => DAY_SHORT[d]).join(", ") || "jours à choisir"})${at}`
+    : sc.kind === "monthly" ? `${sc.monthday === -1 ? "Le dernier jour" : `Le ${sc.monthday === 1 ? "1er" : sc.monthday}`} de chaque mois${at}` : "Quand vous le lancerez";
+  const sites = $("agentDomains").value.split(/[\n,;]+/).map(x => x.trim()).filter(Boolean);
+  const name = $("agentName").value.trim(), text = $("agentInstructions").value.trim();
+  $("agentSummary").innerHTML = `${esc(when)}, ${name ? `« <strong>${esc(name)}</strong> »` : "l'agent"} suivra sa consigne`
+    + (sites.length ? ` sur <strong>${sites.slice(0, 3).map(esc).join(", ")}</strong>${sites.length > 3 ? ` et ${sites.length - 3} autre${sites.length > 4 ? "s" : ""}` : ""}, sans pouvoir ouvrir d'autre site.` : ", sur n'importe quel site.")
+    + ($("agentApproval").checked ? " Il s'arrêtera pour vous montrer toute action difficile à annuler avant de la faire." : " Il agira sans vous demander votre accord.");
+  const todo = (text.match(/\[À COMPLÉTER/g) || []).length;
+  const items = [[!!name && !!text, "Nom et consigne"], [!todo, todo ? `Compléter ${todo} élément${todo > 1 ? "s" : ""} [À COMPLÉTER]` : "Rien à compléter dans la consigne"],
+    [sites.length > 0, sites.length ? `Sites limités à ${sites.length}` : "Sites : aucune restriction"], [$("agentApproval").checked, $("agentApproval").checked ? "Validation avant d'agir" : "Sans validation"]];
+  $("agentChecklist").innerHTML = items.map(([ok, label]) => `<li class="${ok ? "ok" : ""}"><span aria-hidden="true">${ok ? ICON.check : ""}</span>${esc(label)}</li>`).join("");
+}
+$("agentForm").addEventListener("input", updateAgentSummary);
+$("agentForm").addEventListener("change", updateAgentSummary);
+$("agentForm").addEventListener("click", (e) => { if (e.target.closest("#schedDays, #vars")) setTimeout(updateAgentSummary, 0); });
+document.querySelector("#agentDlg .agent-stepper").addEventListener("click", (e) => { const b = e.target.closest("[data-step]"); if (b) showAgentStep(+b.dataset.step); });
+$("agentNextBtn").onclick = () => showAgentStep(Math.min(3, agentStep + 1));
+$("agentPrevBtn").onclick = () => showAgentStep(Math.max(1, agentStep - 1));
+// Name and instructions are on step 1: show it before the browser points at a missing field.
+$("agentSaveBtn").addEventListener("click", () => { if (!$("agentName").value.trim() || !$("agentInstructions").value.trim()) showAgentStep(1); });
+
 $("newAgentBtn").onclick = () => openAgentDialog(null);
 $("saveAsAgentBtn").onclick = () => { const text = $("task").value.trim(); $("newTaskDlg").close(); openAgentDialog(null, text); };
 $("saveRunAsAgentBtn").onclick = () => { if (currentRun) openAgentDialog(null, currentRun.task); };
@@ -2615,8 +2798,15 @@ function renderRunHeader() {
   const r = currentRun; if (!r) return;
   $("runTitle").textContent = runName(r);
   const isTask = !r.agent_id;
-  $("runCrumbLink").textContent = r.chain_run_id ? `Chaîne : ${r.chain_name}` : isTask ? "Tâches" : "Mes agents";
-  $("runCrumbLink").href = r.chain_run_id ? `#/chaines/${r.chain_run_id}` : isTask ? "#/taches" : "#/agents";
+  $("runCrumbLink").textContent = r.chain_run_id ? `Chaîne : ${r.chain_name}` : "Activité";
+  $("runCrumbLink").href = r.chain_run_id ? `#/chaines/${r.chain_run_id}` : "#/executions";
+  const credits = r.usage?.credits;
+  $("runCredits").textContent = credits ? `${String(credits).replace(".", ",")} crédits` : "";
+  const sites = r.allowed_domains || [];
+  $("guardSites").innerHTML = sites.length ? sites.map(d => `<span>${esc(d)}</span>`).join("") : `<em style="color: var(--muted)">Aucune restriction</em>`;
+  $("guardApproval").textContent = r.approval_mode ? "Activée" : "Désactivée";
+  $("guardApproval").style.color = r.approval_mode ? "var(--accent)" : "var(--muted)";
+  $("guardSteps").textContent = r.max_steps || "par défaut";
   $("runCrumb").textContent = (r.agent_name || "Tâche ponctuelle") + (r.trigger === "planifie" ? " · planifiée" : "");
   highlightNav("activite");
   renderApproval();
@@ -2934,8 +3124,29 @@ function plannedItems() {
   return items.sort((a, b) => next(a).localeCompare(next(b)) || a.name.localeCompare(b.name));
 }
 
+// The current week, Monday to Sunday: when each active schedule falls (daily, weekdays, weekly, monthly).
+function renderWeek(items) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const monday = new Date(today); monday.setDate(today.getDate() - (today.getDay() + 6) % 7);
+  const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(monday); d.setDate(monday.getDate() + i); return d; });
+  const falls = (sc, d) => {
+    const wd = (d.getDay() + 6) % 7, last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    return sc.kind === "daily" || (sc.kind === "weekdays" && wd < 5) || (sc.kind === "weekly" && (sc.days || []).includes(wd))
+      || (sc.kind === "monthly" && (sc.monthday === -1 ? d.getDate() === last : d.getDate() === Math.min(sc.monthday, last)));
+  };
+  const active = items.filter(a => a.schedule_enabled && a.schedule);
+  $("weekRange").textContent = `du ${days[0].toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} au ${days[6].toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}`;
+  $("weekGrid").innerHTML = days.map(d => {
+    const isToday = d.getTime() === today.getTime();
+    const here = active.filter(a => falls(a.schedule, d)).sort((a, b) => (a.schedule.time || "").localeCompare(b.schedule.time || ""));
+    return `<div class="week-day${isToday ? " today" : ""}"><span class="week-head">${esc(d.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric" }))}${isToday ? " · auj." : ""}</span>
+      ${here.map(a => `<span class="week-item"><span class="mono">${esc(a.schedule.time || "")}</span>${esc(a.name)}</span>`).join("")}</div>`;
+  }).join("");
+}
+
 function renderSchedules() {
   const allPlanned = plannedItems();
+  renderWeek(allPlanned.filter(isMine));
   const mineOnly = allPlanned.filter(isMine);  // the menu counts only one's own
   $("schedCount").hidden = !mineOnly.some(a => a.schedule_enabled);
   $("schedCount").textContent = mineOnly.filter(a => a.schedule_enabled).length;
@@ -2985,12 +3196,29 @@ function renderApproval() {
   $("approvalText").textContent = r.approval.description;
   const canAnswer = isMine(r) && (!r.owner || !meUser || r.owner === meUser);
   for (const id of ["approvalComment", "approveBtn", "rejectBtn"]) $(id).hidden = !canAnswer;
+  $("approvalWhen").textContent = `Demandée ${whenLabel(r.approval.asked_at).toLowerCase()}`;
+  setApprovalFolded(approvalFolded(), canAnswer);
   document.querySelector('label[for="approvalComment"]').hidden = !canAnswer;
   $("approvalHint").textContent = `Demandée ${whenLabel(r.approval.asked_at).toLowerCase()}. Sans réponse sous ${config.approval_timeout || 60} min, l'action sera refusée.`
     + (canAnswer ? "" : ` Seul ${r.owner_name || r.owner} peut répondre.`);
   box.hidden = false;
   if (wasHidden) { $("approvalComment").value = ""; }
 }
+
+// The validation card folds to its header (decision buttons included); the choice stays in this browser.
+const approvalFolded = () => { try { return localStorage.getItem("ac_approval_folded") === "1"; } catch { return false; } };
+function setApprovalFolded(on, canAnswer = true) {
+  $("approvalBox").classList.toggle("folded", on);
+  $("approvalToggle").textContent = on ? "Relire la demande" : "Replier";
+  $("approvalToggle").setAttribute("aria-expanded", String(!on));
+  $("approvalQuick").hidden = !on || !canAnswer;
+}
+$("approvalToggle").onclick = () => {
+  const on = !$("approvalBox").classList.contains("folded");
+  try { localStorage.setItem("ac_approval_folded", on ? "1" : "0"); } catch {}
+  setApprovalFolded(on, !$("approveBtn").hidden);
+};
+$("approvalQuick").addEventListener("click", (e) => { const b = e.target.closest("[data-quick]"); if (b) answerApproval(b.dataset.quick === "1"); });
 
 async function answerApproval(approved) {
   if (!currentRun) return;
@@ -3191,6 +3419,11 @@ async function refreshScreen() {
   $("connTitle").textContent = dec("X-Page-Title") || hostOf(dec("X-Page-Url")) || "Nouvel onglet";
 }
 
+$("connAlert").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-reconnect]");
+  if (b) document.querySelector(`#connSites [data-id="${b.dataset.reconnect}"] [data-act="open"]`)?.click();
+});
+
 async function loadSites() {
   const data = await api("/api/connections/sites");
   siteList = data.sites; siteSuggestions = data.suggestions;
@@ -3205,11 +3438,21 @@ function renderSites() {
   const items = applyList("sites", siteList), mode = listMode("sites", siteList.length);
   $("connSites").classList.toggle("as-list", mode === "list");
   $("sitesNoMatch").hidden = !(siteList.length && !items.length);
+  const usedBy = (site) => {
+    const host = hostOf(site.url).replace(/^www\./, "");
+    const users = agentsList.filter(a => (a.allowed_domains || []).some(d => { const b = d.replace(/^\*\./, ""); return host === b || host.endsWith("." + b) || b.endsWith("." + host); }));
+    return users.length ? `Utilisé par ${plural(users.length, "agent")}${users.length === 1 ? ` · ${users[0].name}` : ""}` : "Pas encore utilisé par un agent";
+  };
+  const lost = siteList.filter(x => x.signed_in === 0);
+  $("connAlert").hidden = !lost.length;
+  $("connAlert").innerHTML = lost.length ? `<span class="conn-alert-icon">${ICON.failed}</span><span class="grow"><strong>${lost.length === 1 ? `${esc(lost[0].name)} : connexion à refaire` : `${lost.length} connexions à refaire`}</strong><br>
+      <span class="sub">Vos agents ne peuvent plus y entrer. Reconnectez-vous une fois, ils reprendront à leur prochaine exécution.</span></span>
+      <button type="button" class="btn btn-primary" data-reconnect="${lost[0].id}" ${connBusy ? "disabled" : ""}>Se reconnecter${lost.length === 1 ? "" : ` à ${esc(lost[0].name)}`}</button>` : "";
   UI.paginate($("connSites"), items, (page) => mode === "list" ? sitesListHtml(page) : page.map(site => `<article class="site-card" data-id="${site.id}">
-    <div><strong>${esc(site.name)}</strong><div class="host">${esc(hostOf(site.url))}</div></div>
-    ${site.signed_in === 1 ? `<span class="sign-state ok" title="Vérifié ${whenLabel(site.checked_at).toLowerCase()}">Connecté</span>`
-      : site.signed_in === 0 ? `<span class="sign-state off" title="Vérifié ${whenLabel(site.checked_at).toLowerCase()}">Non connecté</span>` : ""}
-    <span class="seen">${site.checked_at ? `Vérifié ${whenLabel(site.checked_at).toLowerCase()}` : site.last_opened_at ? `Ouverte ${whenLabel(site.last_opened_at).toLowerCase()}` : "Jamais ouverte"}</span>
+    <div class="site-top"><span class="site-initial" aria-hidden="true">${esc((site.name || "?").trim().charAt(0).toUpperCase())}</span>
+      <div class="site-id"><strong>${esc(site.name)}</strong><div class="host">${esc(hostOf(site.url))}</div></div>
+      ${site.signed_in === 1 ? `<span class="sign-state ok">Connecté</span>` : site.signed_in === 0 ? `<span class="sign-state lost">Non connecté</span>` : `<span class="sign-state never">Jamais vérifié</span>`}</div>
+    <span class="seen"><span>${esc(usedBy(site))}</span><span class="sub">${site.checked_at ? `Vérifié ${whenLabel(site.checked_at).toLowerCase()}` : site.last_opened_at ? `Ouverte ${whenLabel(site.last_opened_at).toLowerCase()}` : "Jamais ouverte"}</span></span>
     <div class="row">
       <button class="btn ${site.signed_in === 1 ? "btn-outline" : "btn-primary"} btn-sm grow" data-act="open" ${connBusy ? "disabled" : ""}>${site.signed_in === 1 ? "Ouvrir" : "Se connecter"}</button>
       <button class="btn btn-outline btn-sm" data-act="edit">Modifier</button>
@@ -3418,6 +3661,13 @@ const CTX_TEMPLATES = [
 ];
 let ctxData = null, ctxScope = "cabinet", ctxState = null, ctxSaveTimer = null, ctxPreviewTimer = null, ctxSaving = null;
 
+document.querySelector(".ctx-tabs").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-sec]");
+  if (!b) return;
+  document.querySelectorAll(".ctx-tabs [data-sec]").forEach(x => x.setAttribute("aria-selected", String(x === b)));
+  document.querySelector(".ctx-card").dataset.secShown = b.dataset.sec;
+});
+
 async function loadContext() {
   ctxData = await api("/api/context");
   switchScope(ctxScope, true);
@@ -3449,6 +3699,9 @@ function updateCounts() {
   $("ctxRuleCount").textContent = countLabel(ctxRules().length, "règle", "aucune règle");
   $("ctxTermCount").textContent = countLabel(ctxState.glossary.length, "mot", "aucun mot");
   $("ctxSiteCount").textContent = countLabel(ctxState.sites.length, "note", "aucune note");
+  $("ctxTabRules").textContent = ctxRules().length || "";
+  $("ctxTabTerms").textContent = ctxState.glossary.length || "";
+  $("ctxTabSites").textContent = ctxState.sites.length || "";
 }
 
 // Rules are stored as one text, one rule per line: the list edits those lines.
@@ -3830,7 +4083,7 @@ async function loadChains() {
   if (view === "dashboard") renderDashboard();
 }
 
-const flowHtml = (steps) => `<div class="flow">${steps.map((st, i) => `${i ? '<span class="arrow" aria-hidden="true">→</span>' : ""}<span class="node ${st.agent_name === "Agent supprimé" ? "missing" : ""}" title="${esc(st.agent_name)}${st.on_failure === "continue" ? " (continue si échec)" : ""}">${i + 1}. ${esc(st.agent_name)}</span>`).join("")}</div>`;
+const flowHtml = (steps) => `<div class="flow">${steps.map((st, i) => `${i ? '<span class="arrow" aria-hidden="true">→</span>' : ""}<span class="node ${st.agent_name === "Agent supprimé" ? "missing" : ""}" title="${esc(st.agent_name)}${st.on_failure === "continue" ? " (continue si échec)" : ""}"><span class="node-n">Étape ${i + 1}</span><span class="node-name">${esc(st.agent_name)}</span>${st.on_failure === "continue" ? '<span class="node-note">Continue même si elle échoue</span>' : ""}</span>`).join("")}</div>`;
 
 function chainCard(c) {
   if (!isMine(c)) return readonlyCard(c, "chain");

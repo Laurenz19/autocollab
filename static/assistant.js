@@ -108,7 +108,7 @@ from the other pages; the person saves it themselves. Conversations are stored o
   panel.innerHTML = `
     <header class="asst-head">
       <button type="button" class="icon-btn" data-act="back" aria-label="Retour à la conversation" title="Retour" hidden>${ICONS.back}</button>
-      <span class="asst-title">${ICONS.spark}<strong>Assistant</strong></span>
+      <span class="asst-title">${ICONS.spark}<span class="asst-title-text"><strong>Assistant</strong><span class="asst-sub">Lit vos agents, exécutions et contexte · ne modifie rien seul</span></span></span>
       <button type="button" class="icon-btn" data-act="history" aria-label="Conversations précédentes" title="Conversations précédentes">${ICONS.history}</button>
       <button type="button" class="icon-btn" data-act="new" aria-label="Nouvelle conversation" title="Nouvelle conversation">${ICONS.plus}</button>
       <button type="button" class="icon-btn" data-act="close" aria-label="Fermer l'assistant" title="Fermer">${ICONS.close}</button>
