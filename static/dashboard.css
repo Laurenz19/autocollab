@@ -91,3 +91,49 @@ a.dash-item-title:hover { color: var(--accent); }
   .side:not(.nav-open) > .nav, .side:not(.nav-open) > .side-foot { display: none; }
   .side .nav a { min-height: 42px; }
 }
+
+/* Command bar on the Accueil: the place to describe a task, with the first templates under it. */
+.dash-composer { padding: 20px; display: flex; flex-direction: column; gap: 14px; border-radius: 16px; }
+.dash-ask { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 10px 0 16px; border: 1px solid var(--line-2); border-radius: 12px; background: var(--sunken); color: var(--muted); font-size: 16px; text-align: left; cursor: text; }
+.dash-ask:hover { border-color: var(--accent); }
+.dash-ask svg { width: 20px; height: 20px; flex: none; }
+.dash-ask-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dash-ask-go { display: inline-flex; align-items: center; min-height: 38px; padding: 0 16px; border-radius: 9px; background: var(--accent); color: var(--on-accent); font-size: 14px; font-weight: 600; }
+.dash-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.dash-chips-label { font-size: 13px; color: var(--muted); margin-right: 4px; }
+.dash-chip { min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); color: var(--ink-2); font-size: 13px; }
+.dash-chip span { color: var(--muted); }
+.dash-chip:hover { border-color: var(--accent); color: var(--accent-hover); background: var(--accent-soft); }
+.dash-chips a { margin-left: 4px; font-size: 13px; font-weight: 550; }
+
+/* To handle: fixed button widths, so the buttons line up from one row to the next. */
+.dash-row-actions .btn { min-width: 0; }
+.dash-row-actions .btn-outline { width: 104px; }
+.dash-row-actions .btn-primary { width: 150px; }
+
+/* Running: what the agent sees, its progress */
+.dash-live { margin-left: 12px; font-size: 12px; font-weight: 500; color: var(--run); display: inline-flex; align-items: center; gap: 6px; }
+.dash-live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--run); }
+.dash-run { display: flex; flex-wrap: wrap; gap: 18px; padding: 16px 0; color: inherit; text-decoration: none; }
+.dash-run:hover .dash-item-title { color: var(--accent); }
+.dash-shot { flex: none; width: 168px; height: 104px; border-radius: 10px; border: 1px solid var(--line); background: var(--sunken); overflow: hidden; }
+.dash-shot img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
+.dash-shot.empty img { display: none; }
+.dash-shot.empty { background: repeating-linear-gradient(-45deg, var(--sunken) 0 8px, var(--hair) 8px 16px); }
+.dash-progress { display: block; height: 6px; margin: 4px 0; border-radius: 3px; background: var(--hair); overflow: hidden; }
+.dash-progress i { display: block; height: 100%; border-radius: 3px; background: var(--run); }
+.dash-run .dash-item-meta .mono { font-family: var(--mono); }
+.dash-queued { color: var(--ink-2); font-size: 13.5px; }
+.dash-queued strong { color: var(--ink); font-weight: 600; }
+
+/* Upcoming: day and time in front */
+.dash-next { display: flex; gap: 14px; padding: 12px 0; color: inherit; text-decoration: none; }
+.dash-next:hover .dash-item-title { color: var(--accent); }
+.dash-next .dash-when { width: 60px; display: flex; flex-direction: column; line-height: 1.25; font-family: var(--sans); }
+.dash-next .dash-when > span:first-child { font-size: 12px; font-weight: 600; color: var(--muted); }
+.dash-next .dash-when > span.today { color: var(--accent); }
+.dash-next .dash-when .mono { font-family: var(--mono); font-size: 13px; color: var(--ink); }
+
+.dash-row-actions a.btn-primary, .dash-row-actions a.btn-primary:hover { color: var(--on-accent); }
+.dash-row-actions a.btn-outline { color: var(--ink); }
+.dash-item-meta.dotted > span + span::before { content: "·"; margin-right: 7px; color: var(--muted); }

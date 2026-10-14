@@ -334,6 +334,8 @@ from the other pages; the person saves it themselves. Conversations are stored o
   });
   input.addEventListener("input", autosize);
   fab.addEventListener("click", () => setOpen(true));
+  // Opened from elsewhere in the page (Accueil, command bar), optionally with a first message to edit.
+  window.Assistant = { open(text) { setOpen(true); if (text) { input.value = text; autosize(); } } };
 
   function mount() {
     document.body.append(fab, panel);

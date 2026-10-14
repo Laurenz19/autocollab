@@ -100,6 +100,43 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .side-btn:hover { background: var(--side-hover); color: var(--side-strong); }
 .side-btn svg { width: 16px; height: 16px; }
 .side-meta { font-size: 12px; color: var(--side-muted); padding: 2px 10px 0; }
+/* Search / launch (Ctrl K), credits of the period */
+.side-search { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 8px 0 10px; font-size: 13.5px !important; border: 1px solid var(--line); border-radius: 10px; background: var(--ground); color: var(--muted); font-size: 14px; text-align: left; }
+.side-search:hover { border-color: var(--line-2); color: var(--ink-2); }
+.side-search svg { width: 16px; height: 16px; flex: none; }
+.side-search span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.side-search kbd, .cmd-dlg kbd { font-family: var(--mono); font-size: 11px; color: var(--muted); border: 1px solid var(--line-2); background: var(--panel); border-radius: 6px; padding: 1px 6px; }
+.side-credits { display: flex; flex-direction: column; gap: 7px; margin-bottom: 6px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--sunken); color: var(--ink); text-decoration: none; }
+.side-credits:hover { border-color: var(--line-2); color: var(--ink); }
+.side-credits-top { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+.side-credits-top .mono { color: var(--ink); }
+.side-credits-bar { height: 6px; border-radius: 3px; background: var(--hair); overflow: hidden; }
+.side-credits-bar i { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+.side-credits-sub { font-size: 12px; color: var(--muted); }
+
+/* --- section tabs (Automatisations, Activité) ------------------------------- */
+
+.section-tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); }
+.section-tabs a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; margin-bottom: -1px; border-bottom: 2px solid transparent; color: var(--ink-2); text-decoration: none; font-weight: 500; }
+.section-tabs a:hover { color: var(--ink); }
+.section-tabs a[aria-current="page"] { border-bottom-color: var(--accent); color: var(--ink); font-weight: 600; }
+.tab-count { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.section-tabs a[aria-current="page"] .tab-count { color: var(--accent); }
+
+/* --- command bar (Ctrl K) --------------------------------------------------- */
+
+dialog.cmd-dlg { width: min(640px, calc(100vw - 32px)); margin-top: 12vh; border-radius: 16px; }
+.cmd-input { display: flex; align-items: center; gap: 12px; padding: 0 60px 0 16px; border-bottom: 1px solid var(--hair); }
+.cmd-input svg { width: 20px; height: 20px; flex: none; }
+.cmd-input input { flex: 1; min-width: 0; min-height: 60px; border: 0; outline: none; background: transparent; color: var(--ink); font: inherit; font-size: 16px; }
+.cmd-list { max-height: min(420px, 60vh); overflow-y: auto; padding: 8px; }
+.cmd-group { padding: 12px 12px 6px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.cmd-item { width: 100%; display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 6px 12px; border: 0; border-radius: 10px; background: transparent; color: var(--ink); text-align: left; }
+.cmd-item[aria-selected="true"], .cmd-item:hover { background: var(--accent-soft); }
+.cmd-label { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.cmd-label span { font-size: 12px; color: var(--ink-2); }
+.cmd-item.main .cmd-label { font-weight: 600; }
+.cmd-foot { display: flex; flex-wrap: wrap; gap: 16px; padding: 10px 20px; border-top: 1px solid var(--hair); background: var(--sunken); font-size: 12px; color: var(--muted); }
 
 .content { flex: 999 1 560px; min-width: 0; padding: 32px 36px 48px; display: flex; flex-direction: column; gap: 22px; }
 @media (max-width: 600px) { .content { padding: 20px 16px 32px; } }

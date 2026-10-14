@@ -504,46 +504,37 @@
       <span class="brand-name"><strong>AutoCollab</strong><span class="org-name" id="orgName" hidden></span></span>
     </a>
     <button type="button" class="btn btn-outline mobile-nav-toggle" id="mobileNavToggle" aria-expanded="false" aria-controls="primaryNavLinks mobileNavAccount">Menu</button>
+    <button type="button" class="side-search" id="cmdOpen" aria-keyshortcuts="Control+K">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span>Rechercher ou lancer…</span><kbd>Ctrl K</kbd>
+    </button>
     <div class="nav" id="primaryNavLinks">
       <a href="#/tableau-de-bord" data-nav="dashboard">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
         Accueil
-      </a>
-      <a href="#/agents" data-nav="agents">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 7V4M9 12h.01M15 12h.01M9 16h6"/></svg>
-        Mes agents
-      </a>
-      <a href="#/chaines" data-nav="chaines">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
-        Chaînes
-      </a>
-      <a href="#/taches" data-nav="taches">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>
-        Tâches
-      </a>
-      <a href="#/executions" data-nav="executions">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg>
-        Exécutions
-        <span class="count" id="activeCount" hidden>0</span>
         <span class="count warn" id="approvalCount" hidden title="Exécutions qui attendent votre validation">0</span>
       </a>
-      <a href="#/planification" data-nav="planification">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
-        Planification
-        <span class="count" id="schedCount" hidden style="background: var(--hair); color: var(--muted)">0</span>
+      <a href="#/agents" data-nav="auto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>
+        Automatisations
+      </a>
+      <a href="#/executions" data-nav="activite">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Activité
+        <span class="count" id="activeCount" hidden>0</span>
       </a>
       <a href="#/contexte" data-nav="contexte">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/><path d="M9 8h7M9 12h5"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M9 9h6M9 13h4"/></svg>
         Contexte
       </a>
       <a href="#/connexions" data-nav="connexions">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8"/></svg>
-        Mes connexions
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
+        Connexions
         <span class="dot termine" id="connCount" hidden style="margin-left: auto" title="Navigateur ouvert" aria-label="Navigateur ouvert"></span>
       </a>
     </div>
     <div class="nav recent" id="recentNav" hidden>
-      <span class="nav-title">Récents</span>
+      <span class="nav-title" id="recentTitle">Récents</span>
       <div id="recent" style="display: contents"></div>
     </div>
     <div class="side-foot" id="mobileNavAccount">
@@ -561,6 +552,11 @@
           Administration
         </a>
       </div>
+      <a class="side-credits" id="sideCredits" href="/admin" hidden>
+        <span class="side-credits-top"><span>Crédits</span><span class="mono" id="sideCreditsValue"></span></span>
+        <span class="side-credits-bar"><i id="sideCreditsBar"></i></span>
+        <span class="side-credits-sub" id="sideCreditsSub"></span>
+      </a>
       <div class="me">
         <span class="avatar" id="avatar" aria-hidden="true"></span>
         <span class="me-text"><strong id="meName"></strong><span id="meEmail"></span></span>
@@ -579,54 +575,69 @@
       <div>
         <span class="dash-date" id="dashDate"></span>
         <h1 id="dashHello">Accueil</h1>
-        <p id="dashSummary">Vos priorités, vos agents et la suite de votre journée.</p>
+        <p id="dashSummary"></p>
       </div>
       <div class="dash-head-actions">
-        <button type="button" class="btn btn-outline" id="dashTemplatesBtn">Partir d'un modèle</button>
-        <button type="button" class="btn btn-primary" id="dashNewTaskBtn">+ Nouvelle tâche</button>
+        <button type="button" class="btn btn-outline" id="dashAsstBtn"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg>Assistant</button>
+        <button type="button" class="btn btn-outline" id="dashNewAgentBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Nouvel agent</button>
       </div>
     </header>
+
+    <section class="card dash-composer" aria-label="Lancer une tâche">
+      <button type="button" class="dash-ask" id="dashAsk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg>
+        <span class="dash-ask-text">Que doivent faire vos agents ? « Récupère les factures EDF de septembre »</span>
+        <span class="dash-ask-go">Lancer</span>
+      </button>
+      <div class="dash-chips" id="dashChips"><span class="dash-chips-label">Partir d'un modèle</span></div>
+    </section>
+
     <div class="dash-board">
       <section class="card dash-a" aria-labelledby="dashTodoTitle">
         <div class="dash-section-head"><h2 class="label" id="dashTodoTitle">À traiter<span class="dash-count" id="dashTodoCount">0</span></h2><span class="dash-period">Les agents attendent votre décision</span></div>
         <ul class="dash-list dash-todo" id="dashTodo"></ul>
-        <div class="dash-empty" id="dashTodoEmpty"><strong>Tout est traité</strong><p>Aucune validation en attente ni échec cette semaine. Vous serez prévenu ici dès qu'un agent aura besoin de vous.</p></div>
+        <div class="dash-empty" id="dashTodoEmpty"><strong>Tout est traité</strong><p>Vos agents continuent seuls. Vous serez prévenu ici dès qu'ils auront besoin de vous.</p></div>
       </section>
       <section class="card dash-c" aria-labelledby="dashStatsTitle">
-        <div class="dash-section-head"><h2 class="label" id="dashStatsTitle">Ce mois-ci</h2><span class="dash-period">30 derniers jours</span></div>
+        <div class="dash-section-head"><h2 class="label" id="dashStatsTitle">Ce mois-ci</h2><span class="dash-period" id="dashMonthSince"></span></div>
         <div class="dash-kpis">
-          <div class="dash-kpi"><span class="kpi-label">Exécutions</span><span class="kpi-value" id="kpiRuns">0</span><span class="sub" id="kpiRunsSub"></span></div>
-          <div class="dash-kpi"><div class="kpi-label-row"><span class="kpi-label">Réussite</span><details class="kpi-help"><summary aria-label="Comment est calculé le taux de réussite ?">?</summary><p>Sur les exécutions achevées, arrêts et interruptions inclus.</p></details></div><span class="kpi-value" id="kpiRate">—</span><span class="sub" id="kpiRateSub"></span></div>
-          <div class="dash-kpi"><div class="kpi-label-row"><span class="kpi-label">Durée cumulée</span><details class="kpi-help"><summary aria-label="Que comprend la durée cumulée ?">?</summary><p>De la mise en file à la fin, attentes incluses.</p></details></div><span class="kpi-value" id="kpiTime">0 min</span><span class="sub">Attentes incluses</span></div>
-          <div class="dash-kpi"><span class="kpi-label">En cours</span><a class="kpi-value" id="kpiActive" href="#/executions">0</a><span class="sub" id="kpiActiveSub"></span></div>
+          <div class="dash-kpi"><div class="kpi-label-row"><span class="kpi-label">Durée cumulée</span><details class="kpi-help"><summary aria-label="Que comprend la durée cumulée ?">?</summary><p>De la mise en file à la fin des exécutions, attentes et validations incluses.</p></details></div><span class="kpi-value" id="kpiTime">0 min</span></div>
+          <div class="dash-kpi"><span class="kpi-label">Exécutions</span><span class="kpi-value" id="kpiRuns">0</span></div>
+          <div class="dash-kpi"><div class="kpi-label-row"><span class="kpi-label">Réussite</span><details class="kpi-help"><summary aria-label="Comment est calculée la réussite ?">?</summary><p>Sur les exécutions achevées, arrêts et interruptions inclus.</p></details></div><span class="kpi-value" id="kpiRate">—</span></div>
+          <div class="dash-kpi"><span class="kpi-label">Documents récupérés</span><span class="kpi-value" id="kpiFiles">—</span></div>
         </div>
         <div class="chart dash-chart" id="dashChart" role="group" aria-label="Exécutions des 14 derniers jours"></div>
-        <div class="chart-days" id="dashDays" aria-hidden="true"></div>
       </section>
       <section class="card dash-b" aria-labelledby="dashRunTitle">
-        <div class="dash-section-head"><h2 class="label" id="dashRunTitle">En cours</h2><a href="#/executions">Toute l'activité →</a></div>
+        <div class="dash-section-head"><h2 class="label" id="dashRunTitle">En cours<span class="dash-live" id="dashLive" hidden></span></h2><a href="#/executions">Toute l'activité</a></div>
         <ul class="dash-list" id="dashRunning"></ul>
         <div class="dash-empty" id="dashRunningEmpty"><strong>Aucun agent au travail</strong><p>Lancez une tâche, ou attendez la prochaine exécution planifiée.</p></div>
       </section>
       <section class="card dash-d" aria-labelledby="dashNextTitle">
-        <div class="dash-section-head"><h2 class="label" id="dashNextTitle">À venir</h2><a href="#/planification">Planification →</a></div>
+        <div class="dash-section-head"><h2 class="label" id="dashNextTitle">À venir</h2><a href="#/planification">Planification</a></div>
         <ul class="dash-list" id="dashNext"></ul>
-        <div class="dash-empty" id="dashNextEmpty"><strong>Rien de planifié</strong><p>Planifiez un agent pour retrouver ici son prochain passage.</p><a class="btn btn-outline btn-sm" href="#/agents">Choisir un agent</a></div>
+        <div class="dash-empty" id="dashNextEmpty"><strong>Rien de planifié</strong><p>Planifiez un agent pour retrouver ici son prochain passage.</p></div>
       </section>
     </div>
-    <section class="card dash-top" aria-labelledby="dashTopTitle">
-      <div class="dash-section-head"><h2 class="label" id="dashTopTitle">Vos agents réguliers</h2><a href="#/agents">Tous les agents →</a></div>
-      <ul class="dash-list dash-top-list" id="dashTop"></ul>
-      <div class="dash-empty" id="dashTopEmpty"><strong>Prêt pour un premier essai ?</strong><p>Les agents que vous utilisez le plus apparaîtront ici.</p><button type="button" class="btn btn-outline btn-sm" id="dashEmptyTemplateBtn">Découvrir les modèles</button></div>
-    </section>
   </main>
+
+  <nav class="section-tabs" id="autoTabs" aria-label="Automatisations">
+    <a href="#/agents" data-tab="agents">Agents <span class="tab-count" id="tabAgentsCount"></span></a>
+    <a href="#/chaines" data-tab="chains">Chaînes <span class="tab-count" id="tabChainsCount"></span></a>
+    <a href="#/planification" data-tab="schedules">Planification <span class="tab-count" id="schedCount" hidden>0</span></a>
+    <a href="#/agents/modeles" data-tab="templates">Modèles</a>
+  </nav>
+  <nav class="section-tabs" id="activityTabs" aria-label="Activité">
+    <a href="#/executions" data-tab="runs">Exécutions</a>
+    <a href="#/taches" data-tab="tasks">Tâches ponctuelles</a>
+  </nav>
 
   <!-- ===== Mes agents ===== -->
   <main class="content narrow" id="viewAgents" hidden>
     <header class="page-head">
       <div>
-        <h1 id="agentsTitle">Mes agents</h1>
-        <p>Des consignes enregistrées, prêtes à relancer chaque mois. Leur historique est dans <a href="#/executions" data-runs-kind="agent">Exécutions</a>.</p>
+        <h1 id="agentsTitle">Automatisations</h1>
+        <p>Vos agents, leurs enchaînements et leur calendrier, au même endroit.</p>
       </div>
       <div class="head-actions"><div class="seg scope-seg" role="group" aria-label="Afficher"><button type="button" data-scope="mine" aria-pressed="true">Les miens</button><button type="button" data-scope="all" aria-pressed="false">Toute l'organisation</button></div>
       <button class="btn btn-outline" id="atplBtn">Partir d'un modèle</button>
@@ -649,7 +660,7 @@
   <main class="content narrow" id="viewTasks" hidden>
     <header class="page-head">
       <div>
-        <h1>Tâches</h1>
+        <h1>Activité</h1>
         <p>Une consigne, une exécution. Pour la relancer régulièrement, enregistrez-la comme agent.</p>
       </div>
       <button class="btn btn-primary" id="newTaskBtn">
@@ -669,8 +680,8 @@
   <main class="content narrow" id="viewRuns" hidden>
     <header class="page-head">
       <div>
-        <h1>Exécutions</h1>
-        <p>Toutes vos tâches, avec leurs étapes, captures et fichiers.</p>
+        <h1>Activité</h1>
+        <p>Tout ce que vos agents ont fait : étapes, captures et fichiers.</p>
       </div>
       <div class="seg scope-seg" role="group" aria-label="Afficher"><button type="button" data-scope="mine" aria-pressed="true">Les miens</button><button type="button" data-scope="all" aria-pressed="false">Toute l'organisation</button></div>
     </header>
@@ -693,7 +704,7 @@
   <main class="content narrow" id="viewSchedules" hidden>
     <header class="page-head">
       <div>
-        <h1>Planification</h1>
+        <h1>Automatisations</h1>
         <p>Les agents et les chaînes qui se lancent tout seuls, à l'heure prévue.</p>
       </div>
       <div class="seg scope-seg" role="group" aria-label="Afficher"><button type="button" data-scope="mine" aria-pressed="true">Les miens</button><button type="button" data-scope="all" aria-pressed="false">Toute l'organisation</button></div>
@@ -1037,8 +1048,8 @@
   <main class="content narrow" id="viewChains" hidden>
     <header class="page-head">
       <div>
-        <h1>Chaînes</h1>
-        <p>Des agents qui s'enchaînent : chacun passe son résultat et ses fichiers au suivant. Leur historique est dans <a href="#/executions" data-runs-kind="chain">Exécutions</a>.</p>
+        <h1>Automatisations</h1>
+        <p>Des agents qui s'enchaînent : chacun passe son résultat et ses fichiers au suivant.</p>
       </div>
       <div class="head-actions"><div class="seg scope-seg" role="group" aria-label="Afficher"><button type="button" data-scope="mine" aria-pressed="true">Les miens</button><button type="button" data-scope="all" aria-pressed="false">Toute l'organisation</button></div>
       <button class="btn btn-primary" id="newChainBtn">
@@ -1197,6 +1208,15 @@
     <p class="hint" style="margin: 0">Le modèle ouvre le formulaire « Nouvel agent » déjà rempli. Complétez ce qui est marqué <span class="atpl-todo">[À COMPLÉTER]</span>, vérifiez les sites autorisés, puis enregistrez.</p>
     <div id="atplList"></div>
   </div>
+</dialog>
+
+<dialog id="cmdDlg" class="cmd-dlg" aria-label="Rechercher ou lancer">
+  <div class="cmd-input">
+    <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg>
+    <input id="cmdInput" type="text" autocomplete="off" placeholder="Décrivez une tâche, ou cherchez un agent…" aria-label="Consigne ou recherche" role="combobox" aria-expanded="true" aria-controls="cmdList">
+  </div>
+  <div class="cmd-list" id="cmdList" role="listbox"></div>
+  <div class="cmd-foot"><span><kbd>↑↓</kbd> naviguer</span><span><kbd>Entrée</kbd> lancer</span><span><kbd>Tab</kbd> envoyer à l'assistant</span></div>
 </dialog>
 
 <dialog id="agentDlg">
@@ -1605,6 +1625,7 @@ function route() {
     : page === "chaines" && parts[1] ? "chainrun" : page === "chaines" ? "chains"
     : page === "agents" ? "agents" : "dashboard";
   view = next;
+  agentsSub = next === "agents" && parts[1] === "modeles" ? "templates" : "";
   $("viewDashboard").hidden = next !== "dashboard";
   $("viewAgents").hidden = next !== "agents";
   $("viewTasks").hidden = next !== "tasks";
@@ -1629,7 +1650,10 @@ function route() {
   $("viewRun").hidden = next !== "run";
   $("viewSchedules").hidden = next !== "schedules";
   if (next === "schedules") { renderSchedules(); loadChains().catch(e => toast(e.message)); }
-  highlightNav(next === "run" ? null : { dashboard: "dashboard", agents: "agents", tasks: "taches", schedules: "planification", runs: "executions", connections: "connexions", context: "contexte", dev: "developpeurs", chains: "chaines", chainrun: "chaines" }[next]);
+  highlightNav({ dashboard: "dashboard", agents: "auto", chains: "auto", chainrun: "auto", schedules: "auto", runs: "activite", tasks: "activite", run: "activite",
+    connections: "connexions", context: "contexte", dev: "developpeurs" }[next]);
+  placeTabs(next);
+  if (next === "agents") renderAgents();
   if (next === "run") { if (parts[1] !== current) openRun(parts[1]); }
   else closeRun();
   renderRuns();
@@ -1642,6 +1666,18 @@ function highlightNav(key) {
   });
 }
 const goRun = (id) => { location.hash = `#/executions/${id}`; };
+let agentsSub = "";
+// One tab strip per section, moved under the header of the page shown.
+function placeTabs(next) {
+  const hosts = { agents: "viewAgents", chains: "viewChains", schedules: "viewSchedules", runs: "viewRuns", tasks: "viewTasks" };
+  const strip = ["runs", "tasks"].includes(next) ? $("activityTabs") : $("autoTabs");
+  for (const id of ["autoTabs", "activityTabs"]) $(id).hidden = true;
+  if (!hosts[next]) return;
+  $(hosts[next]).querySelector(".page-head").after(strip);
+  strip.hidden = false;
+  const active = next === "agents" && agentsSub ? agentsSub : next;
+  strip.querySelectorAll("[data-tab]").forEach(a => a.dataset.tab === active ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
+}
 
 // --- runs list, sidebar ----------------------------------------------------
 
@@ -1748,6 +1784,18 @@ function runsTable(list) {
   }</tbody></table>`;
 }
 
+// Pinned agents (kept in this browser): one click from the menu to their last run.
+const pins = { get: () => { try { return JSON.parse(localStorage.getItem("ac_pins") || "[]"); } catch { return []; } },
+  set: (ids) => { try { localStorage.setItem("ac_pins", JSON.stringify(ids)); } catch {} } };
+function renderPinned() {
+  const pinned = pins.get().map(id => agentsList.find(a => a.id === id)).filter(Boolean);
+  $("recentTitle").textContent = pinned.length ? "Épinglés" : "Récents";
+  $("recentNav").hidden = !pinned.length && !runs.length;
+  $("recent").innerHTML = pinned.length
+    ? pinned.map(a => `<a href="${a.last_run ? `#/executions/${a.last_run.id}` : "#/agents"}"><span class="dot ${a.last_run?.status || ""}" aria-hidden="true"></span><span class="txt">${esc(a.name)}</span></a>`).join("")
+    : runs.slice(0, 5).map(r => `<a href="#/executions/${r.id}" ${r.id === current ? 'aria-current="page"' : ""}><span class="dot ${r.status}" aria-hidden="true"></span><span class="txt">${esc(runName(r))}</span></a>`).join("");
+}
+
 function renderRuns() {
   const active = runs.filter(isActive);
   const toValidate = runs.filter(r => r.status === "a_valider").length;
@@ -1756,9 +1804,7 @@ function renderRuns() {
   $("approvalCount").hidden = !toValidate;
   $("approvalCount").textContent = toValidate;
   $("approvalCount").title = $("approvalCount").ariaLabel = `${toValidate} exécution${toValidate > 1 ? "s" : ""} à valider`;
-  $("recentNav").hidden = !runs.length;
-  $("recent").innerHTML = runs.slice(0, 5).map(r =>
-    `<a href="#/executions/${r.id}" ${r.id === current ? 'aria-current="page"' : ""}><span class="dot ${r.status}" aria-hidden="true"></span><span class="txt">${esc(runName(r))}</span></a>`).join("");
+  renderPinned();
   if (view === "dashboard") renderDashboard();
   if (["tasks", "runs"].includes(view)) reloadRunTables();
   if (currentRun) {
@@ -1788,7 +1834,7 @@ function setTeam(on) {
   team = on;
   try { localStorage.setItem("ac_scope", on ? "all" : "mine"); } catch {}
   document.querySelectorAll(".scope-seg [data-scope]").forEach(b => b.setAttribute("aria-pressed", String((b.dataset.scope === "all") === team)));
-  $("agentsTitle").textContent = team ? "Agents de l'organisation" : "Mes agents";
+  $("agentsTitle").textContent = "Automatisations";
   ["runsTableWrap", "schedTableWrap"].forEach(UI.resetPage);
   if (team) loadTeam().catch(err => toast(err.message));
   else { renderAgents(); renderChains(); renderSchedules(); reloadRunTables(); }
@@ -2046,8 +2092,9 @@ function workTime(seconds) {
 }
 const plural = (n, word) => `${n} ${word}${n > 1 ? "s" : ""}`;
 
-$("dashNewTaskBtn").onclick = () => $("newTaskBtn").click();
-for (const id of ["dashTemplatesBtn", "dashEmptyTemplateBtn"]) $(id).onclick = () => $("atplBtn").click();
+$("dashNewAgentBtn").onclick = () => openAgentDialog(null);
+$("dashAsstBtn").onclick = () => window.Assistant?.open();
+$("dashAsk").onclick = () => openCmd();
 const mobileSide = $("mobileNavToggle").closest(".side");
 let mobileNavFocusPending = false;
 function focusPageHeading() {
@@ -2078,26 +2125,66 @@ window.addEventListener("hashchange", () => {
   if (mobileNavFocusPending) { mobileNavFocusPending = false; focusPageHeading(); }
 });
 
+// Failures the person chose to ignore (this browser): they leave « À traiter », not the history.
+const dismissed = { get: () => { try { return JSON.parse(localStorage.getItem("ac_dismissed") || "[]"); } catch { return []; } },
+  add: (id) => { try { localStorage.setItem("ac_dismissed", JSON.stringify([...dismissed.get(), id].slice(-200))); } catch {} } };
+// Files per run are not in the light list refreshed every few seconds: counted apart, once a minute.
+let monthFiles = { at: 0, count: null };
+async function refreshMonthFiles(since) {
+  if (Date.now() - monthFiles.at < 60e3) return;
+  monthFiles.at = Date.now();
+  try {
+    const list = await api(`/api/tasks?since=${since.toISOString().slice(0, 19)}`);
+    monthFiles.count = list.reduce((n, r) => n + (r.files || 0), 0);
+    if (view === "dashboard") $("kpiFiles").textContent = monthFiles.count;
+  } catch {}
+}
+const SESSION_LOST = /session|reconnect|connexion|identifiant|mot de passe|login|se connecter/i;
+const dayLabel = (d, now) => {
+  const a = new Date(d); a.setHours(0, 0, 0, 0); const b = new Date(now); b.setHours(0, 0, 0, 0);
+  const diff = Math.round((a - b) / 864e5);
+  return diff === 0 ? "Auj." : diff === 1 ? "Demain" : d.toLocaleDateString("fr-FR", diff < 7 ? { weekday: "short", day: "numeric" } : { day: "numeric", month: "short" });
+};
+const clock = (d) => d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+
+// Under the command bar: the first templates, with what a run costs.
+function renderDashChips() {
+  if (!tplCatalog) { loadTemplates().then(renderDashChips).catch(() => {}); return; }
+  $("dashChips").innerHTML = `<span class="dash-chips-label">Partir d'un modèle</span>` + tplCatalog.templates.slice(0, 4).map(t =>
+    `<button type="button" class="dash-chip" data-tpl-id="${esc(t.id)}">${esc(t.name)} <span>· ≈ ${t.estimate.credits} cr.</span></button>`).join("")
+    + `<a href="#/agents/modeles">Tous les modèles</a>`;
+}
+document.addEventListener("click", (e) => { const b = e.target.closest("[data-tpl-id]"); if (b) useTemplate(b.dataset.tplId); });
+
 function renderDashboard() {
-  const now = new Date(), since = new Date(now - 30 * 864e5);
-  const recent = runs.filter(r => parseTime(r.created_at) >= since);
-  const ok = recent.filter(r => r.status === "termine").length;
-  const failed = recent.filter(r => r.status === "echec").length;
-  const totals = RunFeedback.stats(recent);
-  const active = runs.filter(isActive), toValidate = runs.filter(r => r.status === "a_valider");
+  const now = new Date();
+  if (!$("dashChips").querySelector(".dash-chip")) renderDashChips();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const month = runs.filter(r => parseTime(r.created_at) >= monthStart);
 
-  $("kpiRuns").textContent = recent.length;
-  $("kpiRunsSub").textContent = recent.length ? `dont ${plural(recent.filter(r => r.trigger === "planifie").length, "planifiée")}` : "Aucune exécution";
+  // Greeting, and one line on what waits for the person and what is running.
+  const lang = document.documentElement.lang === "en" ? "en-GB" : "fr-FR";
+  const date = now.toLocaleDateString(lang, { weekday: "long", day: "numeric", month: "long" });
+  $("dashDate").textContent = date.charAt(0).toUpperCase() + date.slice(1);
+  const first = ($("meName").textContent || "").trim().split(/\s+/)[0];
+  $("dashHello").textContent = first ? `${now.getHours() >= 18 ? "Bonsoir" : "Bonjour"} ${first}` : "Accueil";
+  const gone = dismissed.get();
+  const priorities = Dashboard.priorities(runs, now.getTime()).filter(r => r.status === "a_valider" || !gone.includes(r.id));
+  const working = runs.filter(r => r.status === "en_cours"), queued = runs.filter(r => r.status === "en_attente");
+  $("dashSummary").textContent = (priorities.length ? `${plural(priorities.length, "élément")} à traiter` : "Rien ne vous attend")
+    + (working.length ? ` · ${plural(working.length, "agent")} au travail` : "") + ".";
+
+  // This month
+  const totals = RunFeedback.stats(month);
+  $("dashMonthSince").textContent = `depuis le ${monthStart.getDate() === 1 ? "1er" : monthStart.getDate()} ${monthStart.toLocaleDateString("fr-FR", { month: "long" })}`;
+  $("kpiRuns").textContent = month.length;
   $("kpiRate").textContent = totals.rate === null ? "—" : `${totals.rate} %`;
-  $("kpiRateSub").textContent = totals.rate === null ? "Aucune exécution terminée"
-    : `${plural(ok, "réussie")} · ${plural(failed, "échec")}` + (totals.other ? ` · ${plural(totals.other, "autre")}` : "");
-  const seconds = recent.filter(r => r.finished_at).reduce((s, r) => s + Math.max(0, (parseTime(r.finished_at) - parseTime(r.created_at)) / 1000), 0);
+  const seconds = month.filter(r => r.finished_at).reduce((s, r) => s + Math.max(0, (parseTime(r.finished_at) - parseTime(r.created_at)) / 1000), 0);
   $("kpiTime").textContent = workTime(seconds);
-  $("kpiActive").textContent = active.length;
-  $("kpiActive").href = toValidate.length === 1 ? `#/executions/${toValidate[0].id}` : "#/executions";
-  $("kpiActiveSub").textContent = toValidate.length ? `dont ${toValidate.length} à valider` : active.length ? "Aucune validation en attente" : "Aucun agent au travail";
+  $("kpiFiles").textContent = monthFiles.count ?? "—";
+  refreshMonthFiles(monthStart);
 
-  // Activity chart: one stacked bar per day (succeeded / failed / other ended or running).
+  // Activity: one stacked bar per day over 14 days (succeeded / failed / other).
   const days = [];
   for (let i = 13; i >= 0; i--) { const d = new Date(now); d.setDate(now.getDate() - i); days.push({ d, ok: 0, err: 0, other: 0 }); }
   const byKey = Object.fromEntries(days.map(x => [dayKey(x.d), x]));
@@ -2107,24 +2194,12 @@ function renderDashboard() {
   }
   const max = Math.max(1, ...days.map(x => x.ok + x.err + x.other));
   const seg = (n, color) => n ? `<b style="height: calc(${n / max * 100}% - 2px); background: ${color}"></b>` : "";
-  $("dashChart").innerHTML = `<span class="chart-max">${max}</span>` + days.map(x => {
+  $("dashChart").innerHTML = days.map(x => {
     const label = `${x.d.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit" })} · ${plural(x.ok, "réussie")} · ${plural(x.err, "échec")}${x.other ? ` · ${x.other} autre${x.other > 1 ? "s" : ""}` : ""}`;
     return `<div class="chart-day" tabindex="0" data-tip="${esc(label)}" aria-label="${esc(label)}">${seg(x.ok, "var(--ok)")}${seg(x.err, "var(--err)")}${seg(x.other, "var(--dot)")}</div>`;
   }).join("") + `<div class="chart-tip" id="dashTip" hidden></div>`;
-  $("dashDays").innerHTML = days.map(x => `<span>${x.d.getDate()}</span>`).join("");
 
-  // Greeting and one-line summary: what waits for the person, what is running.
-  const lang = document.documentElement.lang === "en" ? "en-GB" : "fr-FR";
-  const date = now.toLocaleDateString(lang, { weekday: "long", day: "numeric", month: "long" });
-  $("dashDate").textContent = date.charAt(0).toUpperCase() + date.slice(1);
-  const first = ($("meName").textContent || "").trim().split(/\s+/)[0];
-  $("dashHello").textContent = first ? `${now.getHours() >= 18 ? "Bonsoir" : "Bonjour"} ${first}` : "Accueil";
-
-  // Prioritize approvals, then the most recent attempt for each agent.
-  const priorities = Dashboard.priorities(runs, now.getTime());
-  const working = runs.filter(r => r.status === "en_cours" || r.status === "en_attente");
-  $("dashSummary").textContent = (priorities.length ? `${plural(priorities.length, "élément")} à traiter` : "Rien ne vous attend")
-    + (working.length ? ` · ${plural(working.length, "agent")} au travail` : "") + ".";
+  // To handle: approvals first, then the latest failure of each agent.
   const todo = priorities.slice(0, 5);
   $("dashTodoCount").textContent = priorities.length;
   $("dashTodoCount").toggleAttribute("data-zero", !priorities.length);
@@ -2132,57 +2207,134 @@ function renderDashboard() {
   $("dashTodo").innerHTML = todo.map(r => {
     const asking = r.status === "a_valider";
     const detail = asking ? r.approval?.description : r.result;
+    const sites = (r.allowed_domains || []).slice(0, 2).map(d => d.replace(/^\*\./, "")).join(", ");
+    const meta = [whenLabel(r.created_at), sites, r.approval_mode ? "avec validation" : ""].filter(Boolean).join(" · ");
+    const reconnect = !asking && SESSION_LOST.test(r.result || "");
+    const actions = asking
+      ? `<button type="button" class="btn btn-outline" data-answer="${r.id}" data-approved="0">Refuser</button><button type="button" class="btn btn-primary" data-answer="${r.id}" data-approved="1">Valider</button>`
+      : `<button type="button" class="btn btn-outline" data-dismiss="${r.id}">Ignorer</button>`
+        + (reconnect ? `<a class="btn btn-primary" href="#/connexions">Reconnecter</a>`
+          : canRerun(r) ? `<button type="button" class="btn btn-primary" data-rerun="${r.id}">Relancer</button>`
+          : `<a class="btn btn-primary" href="#/executions/${r.id}">Voir l'exécution</a>`);
     return `<li class="dash-row">
       <span class="dash-item-icon ${asking ? "attention" : "failed"}" aria-hidden="true">${asking ? ICON.shield : ICON.failed}</span>
       <span class="dash-item-main">
         <span class="dash-item-head"><a class="dash-item-title" href="#/executions/${r.id}">${esc(runName(r))}</a>${runPill(r)}</span>
         ${detail ? `<span class="dash-item-desc">${esc(detail)}</span>` : ""}
-        <span class="dash-item-meta">${whenLabel(r.created_at)}</span>
+        <span class="dash-item-meta">${esc(meta)}</span>
       </span>
-      <span class="dash-row-actions">${asking
-        ? `<a class="btn btn-outline btn-sm" href="#/executions/${r.id}">Examiner</a><button type="button" class="btn btn-outline btn-sm" data-answer="${r.id}" data-approved="0">Refuser</button><button type="button" class="btn btn-primary btn-sm" data-answer="${r.id}" data-approved="1">Valider</button>`
-        : `<a class="btn btn-outline btn-sm" href="#/executions/${r.id}">Comprendre</a>`}</span>
+      <span class="dash-row-actions">${actions}</span>
     </li>`;
   }).join("");
 
-  $("dashRunningEmpty").hidden = working.length > 0;
-  $("dashRunning").innerHTML = working.slice(0, 4).map(r => `<li><a class="dash-item" href="#/executions/${r.id}">
-    <span class="dash-item-icon running" aria-hidden="true">${ICON.clock}</span>
-    <span class="dash-item-main"><span class="dash-item-head"><span class="dash-item-title">${esc(runName(r))}</span>${runPill(r)}</span>
-      <span class="dash-item-meta">${r.status === "en_cours" && r.steps ? `<span>${plural(r.steps, "étape")}</span><span>·</span>` : ""}<span>${whenLabel(r.created_at)}</span></span></span>
-    <span class="dash-item-action">Suivre →</span></a></li>`).join("");
+  // Running: what the agent sees, how far it is, what it costs; then the queue.
+  $("dashLive").hidden = !working.length && !queued.length;
+  $("dashLive").textContent = [working.length && plural(working.length, "agent") + " au travail", queued.length && `${queued.length} en file`].filter(Boolean).join(" · ");
+  $("dashRunningEmpty").hidden = working.length + queued.length > 0;
+  const fresh = Date.now() - (renderDashboard.shotAt || 0) > 4000;
+  if (fresh) renderDashboard.shotAt = Date.now();
+  $("dashRunning").innerHTML = working.slice(0, 3).map(r => {
+    const pct = r.max_steps ? Math.min(100, Math.round((r.steps || 0) / r.max_steps * 100)) : null;
+    const started = parseTime(r.created_at), secs = Math.max(0, (now - started) / 1000);
+    const credits = r.usage?.credits;
+    return `<li><a class="dash-run" href="#/executions/${r.id}">
+      <span class="dash-shot"><img alt="" data-shot="${r.id}" src="/api/tasks/${r.id}/live?t=${fresh ? Date.now() : renderDashboard.shotAt}"></span>
+      <span class="dash-item-main">
+        <span class="dash-item-head"><span class="dash-item-title">${esc(runName(r))}</span>${runPill(r)}</span>
+        <span class="dash-item-desc">Étape ${r.steps || 0}${r.max_steps ? ` sur ${r.max_steps} au plus` : ""}</span>
+        ${pct === null ? "" : `<span class="dash-progress" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Avancement"><i style="width: ${pct}%"></i></span>`}
+        <span class="dash-item-meta dotted"><span>Démarré à ${clock(started)}</span><span class="mono">${workTime(secs)}</span>${credits ? `<span class="mono">${String(credits).replace(".", ",")} crédits</span>` : ""}</span>
+      </span></a></li>`;
+  }).join("") + queued.slice(0, 3).map(r => `<li><a class="dash-item dash-queued" href="#/executions/${r.id}">
+      <span class="dash-item-icon" aria-hidden="true">${ICON.clock}</span>
+      <span class="dash-item-main"><span><strong>${esc(runName(r))}</strong> · ${r.chain_name ? "attend l'étape précédente de sa chaîne" : r.queue_position ? `en file, position ${r.queue_position}` : "démarre dans un instant"}</span></span>
+      ${r.chain_name ? `<span class="dash-item-meta">Chaîne « ${esc(r.chain_name)} »</span>` : ""}</a></li>`).join("");
+  $("dashRunning").querySelectorAll("img[data-shot]").forEach(img => img.addEventListener("error", () => img.closest(".dash-shot").classList.add("empty")));
 
+  // Upcoming: agents and chains, day and time in front.
   const next = [...agentsList.map(a => ({...a, type: "Agent"})), ...chainList.map(c => ({...c, type: "Chaîne"}))].filter(a => a.schedule_enabled && a.next_run_at)
     .sort((a, b) => parseTime(a.next_run_at) - parseTime(b.next_run_at)).slice(0, 5);
   $("dashNextEmpty").hidden = next.length > 0;
-  $("dashNext").innerHTML = next.map(a => `<li><a class="dash-item" href="#/planification"><span class="dash-item-icon scheduled" aria-hidden="true">${ICON.clock}</span><span class="dash-item-main"><span class="dash-item-title">${esc(a.name)}</span><span class="dash-item-meta">${esc(a.type)} · ${esc(a.schedule_label || "")}</span></span><span class="dash-when">${whenLabel(a.next_run_at)}</span></a></li>`).join("");
-
-  const counts = {};
-  for (const r of recent) if (r.agent_id) {
-    const c = counts[r.agent_id] ||= { name: r.agent_name, n: 0, ok: 0, last: r };
-    if (parseTime(r.created_at) > parseTime(c.last.created_at)) c.last = r;
-    c.n++; if (r.status === "termine") c.ok++;
-  }
-  const top = Object.values(counts).sort((a, b) => b.n - a.n).slice(0, 5);
-  $("dashTopEmpty").hidden = top.length > 0;
-  $("dashTop").innerHTML = top.map((c, i) => `<li><a class="dash-top-link" href="#/executions/${c.last.id}" aria-label="${esc(c.name)} : dernière exécution"><span class="dash-rank" aria-hidden="true">0${i + 1}</span><span class="dash-item-main"><span class="dash-item-title">${esc(c.name)}</span><span class="dash-item-meta">${plural(c.n, "exécution")} · ${Math.round(c.ok / c.n * 100)} % réussies</span></span><span aria-hidden="true">↗</span></a></li>`).join("");
+  $("dashNext").innerHTML = next.map(a => { const d = parseTime(a.next_run_at); return `<li><a class="dash-next" href="#/planification">
+      <span class="dash-when"><span class="${dayLabel(d, now) === "Auj." ? "today" : ""}">${esc(dayLabel(d, now))}</span><span class="mono">${clock(d)}</span></span>
+      <span class="dash-item-main"><span class="dash-item-title">${esc(a.name)}</span><span class="dash-item-meta">${esc([a.type === "Chaîne" ? "Chaîne" : "", a.schedule_label].filter(Boolean).join(" · "))}</span></span></a></li>`; }).join("");
 }
 
 $("dashTodo").addEventListener("click", async (e) => {
-  const b = e.target.closest("[data-answer]");
+  const b = e.target.closest("[data-answer], [data-dismiss], [data-rerun]");
   if (!b) return;
-  const approved = b.dataset.approved === "1";
+  if (b.dataset.dismiss) { dismissed.add(b.dataset.dismiss); renderDashboard(); return toast("Retiré de « À traiter ». L'exécution reste dans l'Activité.", true); }
   const buttons = b.closest(".dash-row-actions").querySelectorAll("button");
   buttons.forEach(x => x.disabled = true);
   try {
+    if (b.dataset.rerun) { await rerun(runs.find(r => r.id === b.dataset.rerun)); return; }
+    const approved = b.dataset.approved === "1";
     await api(`/api/tasks/${b.dataset.answer}/approval`, { method: "POST", body: JSON.stringify({ approved, comment: "" }) });
     toast(approved ? "Validé : l'agent poursuit." : "Refusé : l'agent n'exécutera pas cette action.", true);
     await loadRuns();
-    if (view === "dashboard") renderDashboard();
   } catch (err) {
     toast(err.message);
     buttons.forEach(x => x.disabled = false);
   }
+});
+
+// --- command bar: describe a task and launch it, or find an agent, a template, a page -----
+let cmdItems = [], cmdIndex = 0;
+const CMD_PAGES = [["Accueil", "#/tableau-de-bord"], ["Automatisations", "#/agents"], ["Modèles d'agents", "#/agents/modeles"], ["Chaînes", "#/chaines"],
+  ["Planification", "#/planification"], ["Activité", "#/executions"], ["Contexte", "#/contexte"], ["Connexions", "#/connexions"]];
+async function openCmd(text = "") {
+  $("cmdInput").value = text;
+  $("cmdDlg").showModal();
+  renderCmd();
+  $("cmdInput").focus();
+  if (!tplCatalog) { try { await loadTemplates(); renderCmd(); } catch {} }
+}
+function renderCmd() {
+  const q = $("cmdInput").value.trim(), low = q.toLowerCase();
+  const hit = (...xs) => !low || xs.some(x => (x || "").toLowerCase().includes(low));
+  const words = low.split(/\s+/).filter(w => w.length > 3);
+  const near = (t) => words.some(w => `${t.name} ${t.summary}`.toLowerCase().includes(w));
+  const groups = [];
+  if (q.length >= 3) groups.push(["Lancer", [
+    { label: "Lancer comme tâche ponctuelle", sub: "Avec les sites et le contexte habituels", key: "Entrée", run: () => launchCmd(q), main: true },
+    { label: "Demander à l'assistant d'en faire un agent", key: "Tab", run: () => { $("cmdDlg").close(); window.Assistant?.open(q); } }]]);
+  const tpls = (tplCatalog?.templates || []).filter(t => !q || hit(t.name, t.summary) || near(t)).slice(0, q ? 3 : 4);
+  if (tpls.length) groups.push([q ? "Modèle proche" : "Partir d'un modèle", tpls.map(t => ({ label: t.name, sub: `≈ ${t.estimate.credits} crédits`, run: () => { $("cmdDlg").close(); useTemplate(t.id); } }))]);
+  const ags = agentsList.filter(a => q && hit(a.name, a.instructions)).slice(0, 4);
+  if (ags.length) groups.push(["Agents", ags.map(a => ({ label: a.name, sub: a.last_run ? `dernière exécution ${whenLabel(a.last_run.created_at).toLowerCase()}` : "jamais lancé", run: () => { $("cmdDlg").close(); openAgentDialog(a); } }))]);
+  const pages = CMD_PAGES.filter(([l]) => hit(l)).slice(0, q ? 3 : 8);
+  if (pages.length) groups.push(["Aller à", pages.map(([l, h]) => ({ label: l, run: () => { $("cmdDlg").close(); location.hash = h; } }))]);
+  cmdItems = groups.flatMap(g => g[1]);
+  cmdIndex = Math.min(cmdIndex, Math.max(0, cmdItems.length - 1));
+  let i = 0;
+  $("cmdList").innerHTML = groups.map(([title, items]) => `<div class="cmd-group">${esc(title)}</div>` + items.map(it => {
+    const n = i++;
+    return `<button type="button" role="option" class="cmd-item${it.main ? " main" : ""}" data-i="${n}" aria-selected="${n === cmdIndex}">
+      <span class="cmd-label">${esc(it.label)}${it.sub ? `<span>${esc(it.sub)}</span>` : ""}</span>${it.key ? `<kbd>${it.key}</kbd>` : ""}</button>`;
+  }).join("")).join("") || `<p class="empty">Rien ne correspond.</p>`;
+}
+async function launchCmd(task) {
+  $("cmdDlg").close();
+  try {
+    const run = await api("/api/tasks", { method: "POST", body: JSON.stringify({ task, headless: true, max_steps: null, attachments: [] }) });
+    queuedToast(run);
+    await loadRuns(); goRun(run.id);
+  } catch (e) { toast(e.message); }
+}
+$("cmdOpen").onclick = () => openCmd();
+$("cmdInput").addEventListener("input", () => { cmdIndex = 0; renderCmd(); });
+$("cmdInput").addEventListener("keydown", (e) => {
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    cmdIndex = (cmdIndex + (e.key === "ArrowDown" ? 1 : -1) + cmdItems.length) % Math.max(1, cmdItems.length);
+    renderCmd();
+    $("cmdList").querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest" });
+  } else if (e.key === "Enter") { e.preventDefault(); cmdItems[cmdIndex]?.run(); }
+  else if (e.key === "Tab" && $("cmdInput").value.trim()) { e.preventDefault(); const q = $("cmdInput").value.trim(); $("cmdDlg").close(); window.Assistant?.open(q); }
+});
+$("cmdList").addEventListener("click", (e) => { const b = e.target.closest("[data-i]"); if (b) cmdItems[+b.dataset.i]?.run(); });
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k" && !document.querySelector("dialog[open]:not(#cmdDlg)")) { e.preventDefault(); openCmd(); }
 });
 
 function dashTip(e) {
@@ -2228,6 +2380,7 @@ function agentCard(a) {
           <button class="icon-btn boxed" style="width: 40px; height: 40px" data-act="menu" aria-label="Plus d'actions" aria-haspopup="true" aria-expanded="false">${ICON.more}</button>
           <div class="menu" hidden>
             ${last ? '<button type="button" data-act="last">Dernière exécution</button>' : ""}
+            <button type="button" data-act="pin">${pins.get().includes(a.id) ? "Retirer du menu" : "Épingler dans le menu"}</button>
             <button type="button" data-act="duplicate">Dupliquer</button>
             <button type="button" class="del" data-act="delete">Supprimer</button>
           </div>
@@ -2244,9 +2397,14 @@ function renderAgents() {
   document.querySelector('[data-tools="agents"]').hidden = !all.length;
   UI.paginate(grid, items, (page) => mode === "list" ? agentsListHtml(page)
     : page.map(agentCard).join(""), renderAgents, mode === "list" ? 25 : 12, mode === "list" ? [25, 50, 100] : [12, 24, 48]);
-  $("agentsEmpty").hidden = all.length > 0;
-  // No agent yet: the templates are the quickest start, so they show right on the page.
-  const showTpl = !team && !all.length;
+  $("agentsEmpty").hidden = all.length > 0 || agentsSub === "templates";
+  $("tabAgentsCount").textContent = agentsList.length || "";
+  const onTpl = agentsSub === "templates";
+  for (const id of ["agentGrid", "agentsNoMatch"]) if (onTpl) $(id).hidden = true;
+  $("agentGrid").hidden = onTpl;
+  document.querySelector('[data-tools="agents"]').hidden = onTpl || !all.length;
+  // No agent yet, or the Modèles tab: the templates show right on the page.
+  const showTpl = onTpl || (!team && !all.length);
   $("atplInline").hidden = !showTpl;
   if (showTpl) loadTemplates().then(c => { $("atplInline").innerHTML = tplCards(c); }).catch(() => { $("atplInline").hidden = true; });
 }
@@ -2288,6 +2446,12 @@ $("agentGrid").addEventListener("click", async (e) => {
   closeMenus();
   if (act === "edit") return openAgentDialog(agent);
   if (act === "last") return goRun(agent.last_run.id);
+  if (act === "pin") {
+    const ids = pins.get(), on = ids.includes(agent.id);
+    pins.set(on ? ids.filter(x => x !== agent.id) : [...ids, agent.id].slice(-6));
+    renderPinned(); renderAgents();
+    return toast(on ? "Retiré du menu." : "Épinglé dans le menu.", true);
+  }
   if (act === "duplicate") {
     try { await api("/api/agents", { method: "POST", body: JSON.stringify({ name: `${agent.name} (copie)`.slice(0, 80), instructions: agent.instructions, max_steps: agent.max_steps }) }); await loadAgents(); toast("Agent dupliqué.", true); }
     catch (err) { toast(err.message); }
@@ -2454,7 +2618,7 @@ function renderRunHeader() {
   $("runCrumbLink").textContent = r.chain_run_id ? `Chaîne : ${r.chain_name}` : isTask ? "Tâches" : "Mes agents";
   $("runCrumbLink").href = r.chain_run_id ? `#/chaines/${r.chain_run_id}` : isTask ? "#/taches" : "#/agents";
   $("runCrumb").textContent = (r.agent_name || "Tâche ponctuelle") + (r.trigger === "planifie" ? " · planifiée" : "");
-  highlightNav(r.chain_run_id ? "chaines" : isTask ? "taches" : "agents");
+  highlightNav("activite");
   renderApproval();
   renderSent();
   const step = r.status === "en_cours" ? ` · étape ${r.steps}${r.max_steps ? ` / ${r.max_steps}` : ""}` : "";
@@ -3660,6 +3824,7 @@ let chainList = [], chainRuns = [], editingChain = null, chainSteps = [], curren
 
 async function loadChains() {
   [chainList, chainRuns] = await Promise.all([api("/api/chains"), api("/api/chain-runs")]);
+  $("tabChainsCount").textContent = chainList.length || "";
   renderChains();
   renderSchedules();  // scheduled chains are listed there too, and counted in the menu
   if (view === "dashboard") renderDashboard();
@@ -4026,6 +4191,16 @@ async function boot() {
   $("meEmail").textContent = me.email || me.username;
   $("avatar").textContent = me.name.split(/[\s.]+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join("");
   $("adminLink").hidden = !me.admin;
+  // Credits of the period, under the menu (admins: the figures come from Administration › Abonnement).
+  if (me.admin) api("/api/admin/billing").then(b => {
+    const c = b.credits, total = c.included + c.extra;
+    if (!total) return;
+    const fmt = (n) => Math.round(n).toLocaleString("fr-FR");
+    $("sideCreditsValue").textContent = `${fmt(c.used)} / ${fmt(total)}`;
+    $("sideCreditsBar").style.width = `${Math.min(100, c.used / total * 100)}%`;
+    $("sideCreditsSub").textContent = b.label + (b.renews_at ? ` · renouvelé le ${new Date(b.renews_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}` : "");
+    $("sideCredits").hidden = false;
+  }).catch(() => {});
   showOrganisation(me.organisation);
   meUser = me.username;
   isAdmin = !!me.admin;
