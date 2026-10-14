@@ -31,6 +31,14 @@ login page and the first paint use it too. Switching language reloads the page.
     "Votre prochaine routine commence ici": "Your next routine starts here",
     "Planifiez un agent pour retrouver son prochain passage ici.": "Schedule an agent to see its next run here.",
     "Choisir un agent": "Choose an agent",
+    // Accueil (static/dashboard.css)
+    "Accueil": "Home", "Les agents attendent votre décision": "Your agents are waiting for your decision", "Tout est traité": "All handled",
+    "Aucune validation en attente ni échec cette semaine. Vous serez prévenu ici dès qu'un agent aura besoin de vous.": "No pending approval and no failure this week. You'll be told here as soon as an agent needs you.",
+    "Ce mois-ci": "This month", "Réussite": "Success", "Aucun agent au travail": "No agent at work",
+    "Lancez une tâche, ou attendez la prochaine exécution planifiée.": "Start a task, or wait for the next scheduled run.",
+    "Toute l'activité →": "All activity →", "Rien de planifié": "Nothing scheduled",
+    "Planifiez un agent pour retrouver ici son prochain passage.": "Schedule an agent to see its next run here.",
+    "Examiner": "Review", "Comprendre": "Understand", "Suivre →": "Follow →", "Exécutions des 14 derniers jours": "Runs over the last 14 days",
     "Les horaires suivent le fuseau du serveur.": "Times follow the server's time zone.",
     "Vue d'ensemble": "Overview",
     "30 derniers jours": "Last 30 days",
@@ -652,6 +660,9 @@ login page and the first paint use it too. Switching language reloads the page.
     return !m ? w : m[1] ? `on ${m[1]} at ${m[2]}` : `today at ${m[2]}`;
   }
   const PATTERNS = [
+    [/^(Bonjour|Bonsoir) (.+)$/, (m, w, name) => `${w === "Bonjour" ? "Hello" : "Good evening"} ${name}`],
+    [/^(\d+) éléments? à traiter(?: · (\d+) agents? au travail)?\.$/, (m, n, a) => `${n} item${n === "1" ? "" : "s"} to handle` + (a ? ` · ${a} agent${a === "1" ? "" : "s"} at work` : "") + "."],
+    [/^Rien ne vous attend(?: · (\d+) agents? au travail)?\.$/, (m, a) => "Nothing waiting for you" + (a ? ` · ${a} agent${a === "1" ? "" : "s"} at work` : "") + "."],
     [/^(\d+) actions? à valider$/, (m, n) => `${n} action${n === "1" ? "" : "s"} to approve`],
     [/^(\d+) exécutions? à vérifier$/, (m, n) => `${n} run${n === "1" ? "" : "s"} to review`],
     [/^(.+) : dernière exécution$/, (m, name) => `${name}: latest run`],

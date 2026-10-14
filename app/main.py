@@ -1289,7 +1289,7 @@ def _consent_page(title: str, body: str, status: int = 200) -> Response:
     return Response(f"""<!doctype html><html lang="fr" translate="no"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><meta name="google" content="notranslate">
 <title>{escape(title)} · AutoCollab</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&display=swap">
 <link rel="stylesheet" href="/static/app.css"><script src="/static/i18n.js"></script>
 <style>
   body {{ min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }}
