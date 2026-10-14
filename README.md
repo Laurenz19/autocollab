@@ -421,3 +421,28 @@ Tests sur les deux bases (PostgreSQL seulement si `TEST_DATABASE_URL` est rensei
 $env:TEST_DATABASE_URL = "postgresql://autocollab:<mot de passe>@localhost:5432/autocollab_tests"
 .venv\Scripts\python.exe -m unittest tests.test_storage -v
 ```
+
+## Plusieurs organisations sur un serveur (clients)
+
+Avec PostgreSQL, un même serveur accueille plusieurs organisations (clients). Chaque table porte
+`organisation_id`, et chaque requête s'exécute dans l'organisation de la personne connectée : la
+**sécurité au niveau des lignes** de PostgreSQL ne laisse passer que les données de cette organisation,
+quelle que soit la requête (agents, exécutions, comptes, contexte, connexions, consommation). Les
+exécutions et chaînes travaillent dans l'organisation de leur propriétaire, même lancées par la file
+d'attente ou la planification.
+
+- **L'organisation de l'installation** (la première, enregistrée dans `app_settings`) est celle de la
+  plateforme : seuls ses administrateurs règlent ce que toutes partagent (fournisseur et clés d'IA,
+  applications proposées, abonnement). Les administrateurs d'un client gèrent leurs comptes, leur
+  nom, leur double authentification et leur contexte.
+- Les **identifiants et adresses e-mail sont uniques sur tout le serveur** ; on se connecte avec l'un
+  ou l'autre.
+- Nouveau client, en attendant le back-office :
+
+```powershell
+.venv\Scripts\python.exe manage_users.py organisation "Cabinet Martin"        # affiche son identifiant
+.venv\Scripts\python.exe manage_users.py ajouter jmartin --email j.martin@cabinet-martin.fr --admin --organisation <identifiant>
+.venv\Scripts\python.exe manage_users.py organisations
+```
+
+Avec SQLite, l'installation n'a qu'une organisation (pas d'isolation entre clients).

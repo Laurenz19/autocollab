@@ -34,10 +34,44 @@ users_lock = threading.Lock()
 # --- accounts -----------------------------------------------------------
 
 
-def load_users() -> dict[str, dict]:
-    with db.connect() as conn:
+def load_users(everywhere: bool = False) -> dict[str, dict]:
+    """The accounts of the current organisation (all of them outside a request, or with everywhere=True)."""
+    with db.connect(system=everywhere) as conn:
         rows = conn.execute("SELECT username, data FROM users ORDER BY username").fetchall()
     return {row["username"]: json.loads(row["data"]) for row in rows}
+
+
+# --- organisations ---------------------------------------------------------------------
+
+_orgs: dict[str, str] = {}
+
+
+def org_of(username: str | None) -> str | None:
+    """The organisation an account belongs to (None for an unknown account)."""
+    if not username:
+        return None
+    if username not in _orgs:
+        with db.connect(system=True) as conn:
+            rows = conn.execute("SELECT username, organisation_id FROM users").fetchall()
+        default = db.default_org()
+        _orgs.clear()
+        _orgs.update({row["username"]: row["organisation_id"] or default for row in rows})
+    return _orgs.get(username)
+
+
+def same_org(a: str | None, b: str | None) -> bool:
+    return bool(a and b) and org_of(a) == org_of(b)
+
+
+def is_platform_admin(username: str) -> bool:
+    """Administrator of the installation's own organisation: the only one who may change what all
+    organisations share (AI provider and keys, integrations, subscription)."""
+    return is_admin(username) and org_of(username) == db.default_org()
+
+
+def taken_elsewhere(username: str) -> bool:
+    """True when the identifier is already used, in this organisation or another (identifiers are unique on the server)."""
+    return username in load_users(everywhere=True)
 
 
 def save_users(users: dict[str, dict]) -> None:
@@ -49,6 +83,7 @@ def save_users(users: dict[str, dict]) -> None:
         for username, user in users.items():
             conn.execute("INSERT INTO users (username, data) VALUES (?, ?) ON CONFLICT (username) DO UPDATE SET data = excluded.data",
                          (username, json.dumps(user, ensure_ascii=False)))
+    _orgs.clear()
 
 
 def normalize_username(username: str) -> str:
@@ -71,7 +106,8 @@ def email_error(email: str, users: dict[str, dict], exclude: str | None = None) 
         return None
     if len(email) > 254 or not EMAIL_RE.match(email):
         return "Adresse e-mail invalide."
-    if any(u != exclude and data.get("email") == email for u, data in users.items()):
+    # Addresses are unique on the whole server: people sign in with them, whatever their organisation.
+    if any(u != exclude and data.get("email") == email for u, data in {**load_users(everywhere=True), **users}.items()):
         return "Cette adresse e-mail est déjà utilisée par un autre compte."
     return None
 
@@ -107,7 +143,7 @@ def verify_password(password: str, stored: str) -> bool:
 
 def authenticate(login: str, password: str) -> str | None:
     """Check an identifier or e-mail address and its password; returns the username."""
-    users = load_users()
+    users = load_users(everywhere=True)  # people sign in before anyone knows their organisation
     username = find_username(login, users)
     user = users.get(username) if username else None
     if user and verify_password(password, user["password"]):

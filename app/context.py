@@ -10,6 +10,7 @@ import json
 import unicodedata
 from datetime import datetime
 
+from . import db
 from .db import connect
 
 LIMITS = {"instructions": 4000, "terms": 100, "term": 60, "definition": 300, "sites": 30, "site": 100, "notes": 1500}
@@ -26,7 +27,17 @@ def scope_of(owner: str | None) -> str:
     return f"user:{owner}" if owner else "cabinet"
 
 
-def load(scope: str) -> dict:
+def _stored(scope: str, owner: str | None = None) -> str:
+    """"cabinet" means the shared context of the organisation: the current request's, else the owner's."""
+    if scope != "cabinet":
+        return scope
+    from . import auth
+
+    return f"cabinet:{db.current_org.get() or auth.org_of(owner) or db.default_org()}"
+
+
+def load(scope: str, owner: str | None = None) -> dict:
+    scope = _stored(scope, owner)
     with connect() as conn:
         row = conn.execute("SELECT data, updated_at, updated_by FROM contexts WHERE scope = ?", (scope,)).fetchone()
     if not row:
@@ -63,6 +74,7 @@ def clean(data: dict) -> tuple[dict, str | None]:
 
 
 def save(scope: str, data: dict, by: str) -> None:
+    scope = _stored(scope, by)
     with connect() as conn:
         conn.execute(
             "INSERT INTO contexts (scope, data, updated_at, updated_by) VALUES (?, ?, ?, ?)"
@@ -120,7 +132,7 @@ def build(owner: str, task: str, domains: list[str] | None = None) -> str | None
     """The context block for one run, or None when nothing applies."""
     folded = _fold(task)
     parts = [
-        _section("CONTEXTE DE L'ORGANISATION (à respecter) :", load("cabinet"), folded, domains or []),
+        _section("CONTEXTE DE L'ORGANISATION (à respecter) :", load("cabinet", owner), folded, domains or []),
         _section("CONTEXTE DE L'UTILISATEUR :", load(scope_of(owner)), folded, domains or []),
     ]
     text = "\n\n".join(p for p in parts if p)
@@ -142,4 +154,4 @@ def summary(owner: str, task: str, domains: list[str] | None = None) -> dict:
             "sites_skipped": [s["site"] for s in sites if s["site"] not in kept],
         }
 
-    return {"cabinet": one(load("cabinet")), "personal": one(load(scope_of(owner)))}
+    return {"cabinet": one(load("cabinet", owner)), "personal": one(load(scope_of(owner)))}

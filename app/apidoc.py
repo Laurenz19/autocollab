@@ -199,7 +199,7 @@ def reference(app) -> dict:
         for method in sorted(route.methods - {"HEAD"}):
             key = f"{method} {route.path}"
             doc = DOCS.get(key, {})
-            access = "public" if doc.get("public") else "admin" if "current_admin" in deps else "utilisateur" if "current_user" in deps else "public"
+            access = "public" if doc.get("public") else "admin" if deps & {"current_admin", "current_platform_admin"} else "utilisateur" if "current_user" in deps else "public"
             endpoints.append({
                 "method": method, "path": route.path, "access": access,
                 "group": doc.get("group", "autres"), "summary": doc.get("summary", "Route non documentée"),

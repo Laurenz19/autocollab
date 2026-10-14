@@ -151,7 +151,7 @@
     <header class="page-head">
       <div>
         <h1>Administration</h1>
-        <p>Comptes de l'organisation, intelligence artificielle et applications connectées.</p>
+        <p id="adminIntro">Comptes de l'organisation, intelligence artificielle et applications connectées.</p>
       </div>
     </header>
 
@@ -411,7 +411,12 @@ async function api(path, opts = {}) { return UI.track(apiRequest(path, opts)); }
 async function apiRequest(path, opts = {}) {
   const r = await fetch(path, { headers: { "Content-Type": "application/json" }, ...opts });
   if (r.status === 401) { location.replace("/login"); throw new Error("Session expirée"); }
-  if (r.status === 403) { location.replace("/"); throw new Error("Réservé aux administrateurs"); }
+  if (r.status === 403) {
+    let d = ""; try { d = (await r.clone().json()).detail || ""; } catch {}
+    // Reserved to the platform (AI, integrations, subscription): say so, the page itself stays usable.
+    if (/plateforme/.test(d)) throw new Error(d);
+    location.replace("/"); throw new Error("Réservé aux administrateurs");
+  }
   if (!r.ok) {
     let d = r.statusText;
     try { d = (await r.json()).detail || d; } catch {}
@@ -526,6 +531,12 @@ $("logoutBtn").onclick = async () => { await fetch("/api/logout", { method: "POS
 api("/api/me").then(u => {
   if (window.I18N) I18N.sync(u.lang);
   if (u.must_change_password) return location.replace("/");
+  // AI, integrations and subscription are shared by every organisation: only the platform's administrators see them.
+  if (!u.platform_admin) {
+    for (const id of ["tabAIBtn", "tabIntBtn", "tabBillBtn"]) $(id).hidden = true;
+    $("adminIntro").textContent = "Comptes de l'organisation et sécurité de connexion.";
+    if ($("tabUsers").hidden) showTab("users");
+  } else loadSideCredits();
   $("meName").textContent = u.name;
   showOrganisation(u.organisation);
   $("meEmail").textContent = u.email || u.username;
@@ -543,15 +554,17 @@ Promise.all([api("/api/tasks?light=true&since=" + new Date(Date.now() - 31 * 864
     : runs.slice(0, 5).map(r => `<a href="/#/executions/${r.id}"><span class="dot ${r.status}" aria-hidden="true"></span><span class="txt">${esc(name(r))}</span></a>`).join("");
   $("recentNav").hidden = !pinned.length && !runs.length;
 }).catch(() => {});
-api("/api/admin/billing").then(b => {
-  const c = b.credits, total = c.included + c.extra;
-  if (!total) return;
-  const fmt = (n) => Math.round(n).toLocaleString("fr-FR");
-  $("sideCreditsValue").textContent = `${fmt(c.used)} / ${fmt(total)}`;
-  $("sideCreditsBar").style.width = `${Math.min(100, c.used / total * 100)}%`;
-  $("sideCreditsSub").textContent = b.label + (b.renews_at ? ` · renouvelé le ${new Date(b.renews_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}` : "");
-  $("sideCredits").hidden = false;
-}).catch(() => {});
+function loadSideCredits() {
+  api("/api/admin/billing").then(b => {
+    const c = b.credits, total = c.included + c.extra;
+    if (!total) return;
+    const fmt = (n) => Math.round(n).toLocaleString("fr-FR");
+    $("sideCreditsValue").textContent = `${fmt(c.used)} / ${fmt(total)}`;
+    $("sideCreditsBar").style.width = `${Math.min(100, c.used / total * 100)}%`;
+    $("sideCreditsSub").textContent = b.label + (b.renews_at ? ` · renouvelé le ${new Date(b.renews_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}` : "");
+    $("sideCredits").hidden = false;
+  }).catch(() => {});
+}
 $("sideCredits").onclick = (e) => { e.preventDefault(); showTab("bill"); };
 
 function showOrganisation(name) {

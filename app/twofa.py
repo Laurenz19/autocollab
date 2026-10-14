@@ -81,18 +81,19 @@ def _new_recovery() -> tuple[list[str], list[str]]:
 # --- policy ------------------------------------------------------------------------
 
 
-def policy() -> str:
-    value = (settings.load().get("security") or {}).get("require_2fa", "none")
+def policy(username: str | None = None) -> str:
+    """The organisation's policy (the current request's, else the account's); before organisations, it was server-wide."""
+    org = auth.org_of(username) if username else None
+    value = settings.org_settings(org).get("require_2fa") or (settings.load().get("security") or {}).get("require_2fa", "none")
     return value if value in POLICIES else "none"
 
 
 def set_policy(value: str) -> None:
-    current = settings.load().get("security") or {}
-    settings.update_section("security", {**current, "require_2fa": value})
+    settings.update_org_settings({"require_2fa": value})
 
 
 def required(username: str) -> bool:
-    p = policy()
+    p = policy(username)
     return p == "all" or (p == "admins" and auth.is_admin(username))
 
 

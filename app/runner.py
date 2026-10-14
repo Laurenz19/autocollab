@@ -31,7 +31,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from . import billing, browsers, config, files, integrations, netguard, pricing, usage
+from . import auth, billing, browsers, config, db, files, integrations, netguard, pricing, usage
 from .mcp_client import MCPClient, result_text
 from . import context as agent_context  # run() has a local `context` (the browser context)
 from .db import connect
@@ -748,7 +748,7 @@ class TaskRun:
         except Exception as e:
             logger.exception("Task %s failed", self.id)
             self.status = "echec"
-            last_error = _explain_error(str(e))
+            last_error = _explain_error(self._provider_error(str(e)))
             self.result = last_error
             self.publish("error", message=last_error)
         finally:
@@ -768,6 +768,14 @@ class TaskRun:
                 json.dumps(self.summary(), ensure_ascii=False, indent=2), encoding="utf-8"
             )
 
+    def _provider_error(self, message: str) -> str:
+        """browser-use turns any failed model call into "Error 401: LLM API call failed", which reads as a
+        refused key even for a rejected parameter or an unknown model: use the provider's own message."""
+        meter = getattr(self, "_meter", None)
+        if "LLM API call failed" in message and meter and meter.last_error:
+            return meter.last_error
+        return message
+
     def _apply_outcome(self, history) -> str | None:
         """Keep a useful terminal result for the API, chains and the event history."""
         self.result = history.final_result()
@@ -785,7 +793,7 @@ class TaskRun:
             # Earlier, recovered errors must not replace an explicit final failure from the agent.
             if not history.is_done():
                 errors = history.errors()
-                error = _explain_error(errors[-1]) if errors and errors[-1] else (
+                error = _explain_error(self._provider_error(errors[-1])) if errors and errors[-1] else (
                     "Le nombre maximal d'étapes a été atteint sans terminer la tâche. "
                     "Précisez la consigne ou découpez-la en plusieurs agents avant de relancer.")
             elif not self.result:
@@ -1040,7 +1048,8 @@ class TaskManager:
             run.publish("info", message="En attente : votre navigateur est occupé (tâche précédente ou « Mes connexions » ouvert). Elle démarrera ensuite.")
         elif server_full:
             run.publish("info", message="En attente : tous les navigateurs du serveur sont occupés. Elle démarrera dès qu'une place se libère.")
-        asyncio.create_task(self._run_locked(run))
+        # The run acts for its owner's organisation, even when another one's request frees its place in the queue.
+        asyncio.create_task(self._run_locked(run), context=db.run_in_org(auth.org_of(run.owner)))
         return run
 
     async def _run_locked(self, run: TaskRun) -> None:

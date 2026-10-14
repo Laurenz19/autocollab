@@ -32,6 +32,7 @@ login page and the first paint use it too. Switching language reloads the page.
     "Planifiez un agent pour retrouver son prochain passage ici.": "Schedule an agent to see its next run here.",
     "Choisir un agent": "Choose an agent",
     // Accueil (static/dashboard.css)
+    "Comptes de l'organisation et sécurité de connexion.": "Organisation accounts and sign-in security.",
     "Automatisations": "Automations",
     "Épinglés": "Pinned",
     "Modèles": "Templates",

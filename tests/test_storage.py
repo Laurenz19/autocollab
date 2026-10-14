@@ -35,6 +35,7 @@ class StorageCases:
         db.DB_FILE = self.data_dir / "app.db"
         db.DATABASE_URL, db.POSTGRES = url, url.startswith(("postgres://", "postgresql://"))
         db.reset_for_tests()
+        auth._orgs.clear()
 
     def tearDown(self):
         db.reset_for_tests()
@@ -111,6 +112,18 @@ class StorageCases:
         self.assertEqual((row["fixed"], row[1], dict(row)), ("5%", "50%", {"fixed": "5%", "given": "50%"}))
 
 
+    def test_first_organisation_holds_everything(self):
+        auth.save_users({"camille": {"name": "Camille", "admin": True}})
+        org = db.default_org()
+        self.assertTrue(org.startswith("org-"))
+        self.assertEqual(auth.org_of("camille"), org)
+        self.assertTrue(auth.is_platform_admin("camille"))
+        context.save("cabinet", {"instructions": "Règle", "glossary": [], "sites": []}, "camille")
+        with db.connect() as conn:
+            scopes = [r["scope"] for r in conn.execute("SELECT scope FROM contexts").fetchall()]
+        self.assertEqual(scopes, [f"cabinet:{org}"])
+
+
 class SqliteStorage(StorageCases, unittest.TestCase):
     def setUp(self):
         self.use_database("")
@@ -131,6 +144,78 @@ class PostgresStorage(StorageCases, unittest.TestCase):
         import psycopg
         with psycopg.connect(TEST_DATABASE_URL, autocommit=True) as conn:
             conn.execute(f"DROP SCHEMA {self.schema} CASCADE")
+
+
+@unittest.skipUnless(TEST_DATABASE_URL, "TEST_DATABASE_URL not set: PostgreSQL tests skipped")
+class Isolation(unittest.TestCase):
+    """Two organisations on one PostgreSQL: each one only ever sees its own rows."""
+
+    def setUp(self):
+        PostgresStorage.setUp(self)
+        self.a = db.default_org()
+        self.b = "org-client-b"
+        with db.connect(system=True) as conn:
+            conn.execute("INSERT INTO organisations (id, name, settings, created_at) VALUES (?, 'Client B', '{}', '2026-10-14T10:00:00')", (self.b,))
+        self.inside(self.a, lambda: auth.save_users({**auth.load_users(), "alice": {"name": "Alice", "admin": True}}))
+        self.inside(self.b, lambda: auth.save_users({**auth.load_users(), "bob": {"name": "Bob", "admin": True}}))
+
+    def tearDown(self):
+        db.reset_for_tests()
+        import psycopg
+        with psycopg.connect(TEST_DATABASE_URL, autocommit=True) as conn:
+            conn.execute(f"DROP SCHEMA {self.schema} CASCADE")
+    use_database = StorageCases.use_database
+
+    def inside(self, org, action):
+        token = db.current_org.set(org)
+        try:
+            return action()
+        finally:
+            db.current_org.reset(token)
+
+    def test_accounts_and_organisations(self):
+        self.assertEqual((auth.org_of("alice"), auth.org_of("bob")), (self.a, self.b))
+        self.assertEqual(set(self.inside(self.a, auth.load_users)), {"alice"})
+        self.assertEqual(set(self.inside(self.b, auth.load_users)), {"bob"})
+        self.assertEqual(set(auth.load_users(everywhere=True)), {"alice", "bob"})
+        self.assertTrue(auth.is_platform_admin("alice"))
+        self.assertFalse(auth.is_platform_admin("bob"))
+        self.assertTrue(auth.taken_elsewhere("bob"))
+
+    def test_agents_are_invisible_across_organisations(self):
+        self.inside(self.a, lambda: agents.create("alice", "Agent A", "Consigne A", None))
+        self.inside(self.b, lambda: agents.create("bob", "Agent B", "Consigne B", None))
+        self.assertEqual([x["name"] for x in self.inside(self.a, agents.list_all)], ["Agent A"])
+        self.assertEqual([x["name"] for x in self.inside(self.b, agents.list_all)], ["Agent B"])
+        self.assertEqual(len(agents.list_all()), 2)  # outside a request (scheduler): every organisation
+
+    def test_no_write_across_organisations(self):
+        agent = self.inside(self.b, lambda: agents.create("bob", "Agent B", "Consigne B", None))
+        def tamper():
+            with db.connect() as conn:
+                return conn.execute("UPDATE agents SET name = 'piraté' WHERE id = ?", (agent["id"],)).rowcount
+        self.assertEqual(self.inside(self.a, tamper), 0)
+        self.assertFalse(self.inside(self.a, lambda: agents.delete(agent["id"], "bob")))
+        self.assertEqual(self.inside(self.b, agents.list_all)[0]["name"], "Agent B")
+
+    def test_rows_without_a_request_take_their_owner_organisation(self):
+        agents.create("bob", "Planifié", "Consigne", None)  # e.g. created by a tool, outside any request
+        with db.connect(system=True) as conn:
+            org = conn.execute("SELECT organisation_id FROM agents WHERE name = 'Planifié'").fetchone()[0]
+        self.assertEqual(org, self.b)
+
+    def test_shared_context_per_organisation(self):
+        self.inside(self.a, lambda: context.save("cabinet", {"instructions": "Règle A", "glossary": [], "sites": []}, "alice"))
+        self.inside(self.b, lambda: context.save("cabinet", {"instructions": "Règle B", "glossary": [], "sites": []}, "bob"))
+        self.assertEqual(self.inside(self.a, lambda: context.load("cabinet"))["instructions"], "Règle A")
+        self.assertEqual(self.inside(self.b, lambda: context.load("cabinet"))["instructions"], "Règle B")
+        self.assertIn("Règle B", context.build("bob", "une tâche") or "")  # a scheduled run of Bob's
+        self.assertNotIn("Règle A", context.build("bob", "une tâche") or "")
+
+    def test_organisation_name_and_policy(self):
+        self.inside(self.b, lambda: settings.set_organisation_name("Cabinet Bob"))
+        self.assertEqual(self.inside(self.b, settings.organisation_name), "Cabinet Bob")
+        self.assertNotEqual(self.inside(self.a, settings.organisation_name), "Cabinet Bob")
 
 
 if __name__ == "__main__":

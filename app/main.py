@@ -15,7 +15,7 @@ from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Resp
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import (agents, apidoc, assistant, auth, billing, browsers, chains, config, connections, context, files, guide, integrations, mcp,
+from . import (agents, apidoc, assistant, auth, billing, browsers, chains, config, connections, context, db, files, guide, integrations, mcp,
                netguard, oauth, pricing, schedule, settings, sites, templates, tokens, twofa, usage)
 from html import escape
 from .llm import create_llm
@@ -70,6 +70,36 @@ SECURITY_HEADERS = {
 @app.exception_handler(billing.LimitReached)
 async def limit_reached(request: Request, exc: billing.LimitReached):
     return JSONResponse({"detail": str(exc)}, status_code=402)
+
+
+class OrganisationScope:
+    """Each request runs inside the organisation of the person making it (cookie or API key): on PostgreSQL,
+    row-level security then only lets that organisation's data through (app/db.py). No one signed in: none."""
+
+    def __init__(self, inner):
+        self.inner = inner
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self.inner(scope, receive, send)
+        request = Request(scope)
+        org = await asyncio.to_thread(lambda: auth.org_of(auth.session_user(request)))
+        token = db.current_org.set(org)
+        try:
+            await self.inner(scope, receive, send)
+        finally:
+            db.current_org.reset(token)
+
+
+app.add_middleware(OrganisationScope)
+
+
+def current_platform_admin(admin: str = Depends(current_admin)) -> str:
+    """What every organisation shares (AI provider and keys, integrations, subscription) is changed only by
+    the administrators of the installation's own organisation; a client's administrator manages their own."""
+    if not auth.is_platform_admin(admin):
+        raise HTTPException(403, "Réservé à l'administration de la plateforme.")
+    return admin
 
 
 @app.middleware("http")
@@ -264,7 +294,7 @@ def _get_run(task_id: str, user: str, write: bool = True):
     An unknown task answers 404, and so does someone else's for an action, so ids can't be probed for it.
     """
     run = manager.runs.get(task_id)
-    if not run or (write and run.owner != user):
+    if not run or (write and run.owner != user) or not auth.same_org(run.owner, user):
         raise HTTPException(404, "Tâche introuvable")
     return run
 
@@ -408,6 +438,7 @@ def me(user: str = Depends(current_user)):
         "name": auth.display_name(user),
         "email": auth.load_users().get(user, {}).get("email", ""),
         "admin": auth.is_admin(user),
+        "platform_admin": auth.is_platform_admin(user),
         "must_change_password": auth.must_change_password(user),
         "lang": auth.load_users().get(user, {}).get("lang"),
         "two_factor": twofa.status(user),  # None until the user picks one
@@ -417,8 +448,11 @@ def me(user: str = Depends(current_user)):
 
 @app.get("/api/branding")
 def branding():
-    """Public on purpose: the login page shows the organisation's name before anyone signs in."""
-    return {"organisation": settings.organisation_name()}
+    """Public on purpose: the login page shows the organisation's name before anyone signs in.
+    A server shared by several organisations shows none (it can't know whose people are coming)."""
+    with db.connect(system=True) as conn:
+        several = conn.execute("SELECT COUNT(*) FROM organisations").fetchone()[0] > 1
+    return {"organisation": "" if several else settings.organisation_name(db.default_org())}
 
 
 @app.patch("/api/me")
@@ -484,8 +518,8 @@ def admin_create_user(body: NewUser, admin: str = Depends(current_admin)):
     email = auth.normalize_email(body.email)
     with auth.users_lock:
         users = auth.load_users()
-        if username in users:
-            raise HTTPException(409, f"Le compte « {username} » existe déjà.")
+        if username in users or auth.taken_elsewhere(username):
+            raise HTTPException(409, f"L'identifiant « {username} » est déjà pris : choisissez-en un autre.")
         if error := auth.email_error(email, users):
             raise HTTPException(400, error)
         billing.check_new_user(len(users))
@@ -571,7 +605,7 @@ def admin_save_security(body: SecurityIn, admin: str = Depends(current_admin)):
 
 
 @app.get("/api/admin/settings")
-def admin_get_settings(admin: str = Depends(current_admin)):
+def admin_get_settings(admin: str = Depends(current_platform_admin)):
     return settings.public_view()
 
 
@@ -585,7 +619,7 @@ def admin_usage(month: str | None = None, admin: str = Depends(current_admin)):
 
 
 @app.get("/api/admin/pricing")
-def admin_pricing(admin: str = Depends(current_admin)):
+def admin_pricing(admin: str = Depends(current_platform_admin)):
     """The price table behind credits, with the typical credits per agent step of each model."""
     return {
         "credit_value_usd": pricing.CREDIT_VALUE_USD,
@@ -602,12 +636,12 @@ class Checkout(BaseModel):
 
 
 @app.get("/api/admin/billing")
-def admin_billing(admin: str = Depends(current_admin)):
+def admin_billing(admin: str = Depends(current_platform_admin)):
     return billing.status()
 
 
 @app.post("/api/admin/billing/checkout")
-async def admin_billing_checkout(body: Checkout, request: Request, admin: str = Depends(current_admin)):
+async def admin_billing_checkout(body: Checkout, request: Request, admin: str = Depends(current_platform_admin)):
     """Address of the Stripe page where the administrator pays a plan or a credit pack."""
     if not billing.enabled():
         raise HTTPException(400, "La facturation n'est pas activée sur cette installation.")
@@ -619,7 +653,7 @@ async def admin_billing_checkout(body: Checkout, request: Request, admin: str = 
 
 
 @app.post("/api/admin/billing/portal")
-async def admin_billing_portal(request: Request, admin: str = Depends(current_admin)):
+async def admin_billing_portal(request: Request, admin: str = Depends(current_platform_admin)):
     """Address of Stripe's customer portal (card, invoices, plan change, cancellation)."""
     if not billing.enabled():
         raise HTTPException(400, "La facturation n'est pas activée sur cette installation.")
@@ -653,7 +687,7 @@ def admin_save_organisation(body: Organisation, admin: str = Depends(current_adm
 
 
 @app.put("/api/admin/settings")
-def admin_save_settings(body: AISettings, admin: str = Depends(current_admin)):
+def admin_save_settings(body: AISettings, admin: str = Depends(current_platform_admin)):
     changes = _settings_changes(body)
     current = settings.load()["api_keys"]
     chosen = body.provider
@@ -665,7 +699,7 @@ def admin_save_settings(body: AISettings, admin: str = Depends(current_admin)):
 
 
 @app.post("/api/admin/settings/test")
-async def admin_test_settings(body: AISettings, admin: str = Depends(current_admin)):
+async def admin_test_settings(body: AISettings, admin: str = Depends(current_platform_admin)):
     """Send one tiny message with the settings as typed (saved or not), to check key and model."""
     changes = _settings_changes(body)
     overrides = {**changes, "api_keys": {k: v for k, v in changes["api_keys"].items() if v}}
@@ -1082,12 +1116,12 @@ async def remove_integration(integration_id: str, user: str = Depends(current_us
 
 
 @app.get("/api/admin/integrations")
-def admin_get_integrations(request: Request, admin: str = Depends(current_admin)):
+def admin_get_integrations(request: Request, admin: str = Depends(current_platform_admin)):
     return integrations.admin_view(_base_url(request))
 
 
 @app.put("/api/admin/integrations")
-def admin_save_integrations(body: IntegrationSettings, request: Request, admin: str = Depends(current_admin)):
+def admin_save_integrations(body: IntegrationSettings, request: Request, admin: str = Depends(current_platform_admin)):
     unknown = [k for k in body.enabled if k not in integrations.CATALOG]
     if unknown:
         raise HTTPException(400, f"Application inconnue : {', '.join(unknown)}")
@@ -1539,7 +1573,7 @@ async def run_chain(chain_id: str, user: str = Depends(current_user)):
 def _get_chain_run(chain_run_id: str, user: str, write: bool = True):
     """write=False: anyone may look; True: only the owner may act."""
     chain_run = chain_manager.runs.get(chain_run_id)
-    if not chain_run or (write and chain_run.owner != user):
+    if not chain_run or (write and chain_run.owner != user) or not auth.same_org(chain_run.owner, user):
         raise HTTPException(404, "Exécution de chaîne introuvable")
     return chain_run
 
@@ -1547,7 +1581,7 @@ def _get_chain_run(chain_run_id: str, user: str, write: bool = True):
 @app.get("/api/chain-runs")
 def list_chain_runs(scope: Scope = "mine", user: str = Depends(current_user)):
     names = _names()
-    pool = chain_manager.runs.values() if scope == "all" else chain_manager.runs_of(user)
+    pool = [r for r in chain_manager.runs.values() if auth.same_org(r.owner, user)] if scope == "all" else chain_manager.runs_of(user)
     return [_owned(r.summary(), user, names) for r in sorted(pool, key=lambda r: r.created_at, reverse=True)]
 
 
@@ -1594,7 +1628,7 @@ def list_tasks(scope: Scope = "mine", kind: Literal["", "agent", "task", "chain"
     however long the history. light=true skips counting each run's files on disk.
     """
     names = _names()
-    pool = list(manager.runs.values()) if scope == "all" else manager.runs_of(user)
+    pool = [r for r in manager.runs.values() if auth.same_org(r.owner, user)] if scope == "all" else manager.runs_of(user)
     found = [r for r in reversed(pool) if _run_matches(r, kind, status, q.strip(), since)]
     if offset is None and limit is None:
         return [_owned(r.summary(with_files=not light), user, names) for r in found]

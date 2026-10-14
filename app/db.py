@@ -1,5 +1,11 @@
 """Storage for agents, runs, chains, accounts and settings: PostgreSQL, or SQLite (data/app.db).
 
+Several organisations share one server: every table carries organisation_id. On PostgreSQL each
+request runs inside the organisation of the person making it (current_org, set by the middleware in
+app/main.py): row-level security then only lets that organisation's rows through, whatever the query,
+and new rows get its id. Without an organisation (sign-in, scheduler, tools) the code sees everything,
+as it needs to; new rows then take their owner's organisation. SQLite serves a single organisation.
+
 DATABASE_URL picks the database: postgresql://... for a server shared by several clients, nothing
 for a single installation (SQLite, as before). The rest of the app does not see the difference:
 connect() yields a connection whose execute() takes the same SQL, with ? or :name placeholders,
@@ -10,10 +16,12 @@ need, so nothing is lost when the server restarts. The encryption key stays a fi
 never in the database.
 """
 
+import contextvars
 import json
 import re
 import sqlite3
 import threading
+import uuid
 from collections.abc import Mapping
 from contextlib import contextmanager
 from datetime import datetime
@@ -23,6 +31,15 @@ from . import config
 DB_FILE = config.DATA_DIR / "app.db"
 DATABASE_URL = config.DATABASE_URL
 POSTGRES = DATABASE_URL.startswith(("postgres://", "postgresql://"))
+
+# The organisation the current request (or background run) acts for; None = no organisation.
+current_org: contextvars.ContextVar[str | None] = contextvars.ContextVar("autocollab_org", default=None)
+
+# Tables whose rows belong to an organisation; those with an owner column take its organisation by default.
+OWNER_TABLES = ["agents", "runs", "sites", "integrations", "oauth_codes", "oauth_grants", "oauth_tokens", "api_tokens",
+                "chains", "chain_runs", "assistant_conversations"]
+ORG_TABLES = ["users", "contexts", "assistant_messages", *OWNER_TABLES]
+TENANT_ROLE = "autocollab_tenant"
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS agents (
@@ -181,6 +198,14 @@ CREATE TABLE IF NOT EXISTS assistant_messages (
 );
 CREATE INDEX IF NOT EXISTS assistant_messages_conversation ON assistant_messages(conversation_id, id);
 
+-- Organisations sharing the server (clients). settings: per-organisation choices (two-factor policy...)
+CREATE TABLE IF NOT EXISTS organisations (
+    id         TEXT PRIMARY KEY,
+    name       TEXT NOT NULL,
+    settings   TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL
+);
+
 -- Accounts (formerly data/users.json): one row per user, the account itself as JSON (see app/auth.py)
 CREATE TABLE IF NOT EXISTS users (
     username TEXT PRIMARY KEY,
@@ -221,11 +246,15 @@ _MIGRATIONS = [
     ("runs", "cache_write_tokens", "INTEGER NOT NULL DEFAULT 0"),
     ("runs", "cost_usd", "REAL"),                                  # NULL: model missing from the price table
     ("runs", "credits", "REAL NOT NULL DEFAULT 0"),
+    # Several organisations on one server: every row belongs to one (filled in on startup for older rows)
+    *[(table, "organisation_id", "TEXT") for table in ORG_TABLES],
 ]
 
 _lock = threading.Lock()
 _initialized = False
 _pool = None
+_tenant_role = False   # PostgreSQL: the restricted role that requests switch to (see _pg_tenancy)
+_default_org = None
 
 
 class Row:
@@ -334,6 +363,104 @@ def _import_files(conn) -> None:
         settings_file.replace(settings_file.with_name("settings.json.importe"))
 
 
+def _setup_organisations(conn) -> None:
+    """The installation's own organisation (recorded once, never guessed), and older rows attached to theirs."""
+    global _default_org
+    recorded = conn.execute("SELECT data FROM app_settings WHERE key = 'platform_organisation'").fetchone()
+    row = recorded and conn.execute("SELECT id FROM organisations WHERE id = ?", (recorded["data"],)).fetchone()
+    row = row or conn.execute("SELECT id FROM organisations ORDER BY created_at, id LIMIT 1").fetchone()
+    if row:
+        default = row["id"]
+    else:
+        stored = conn.execute("SELECT data FROM app_settings WHERE key = 'settings'").fetchone()
+        name = (json.loads(stored["data"]).get("organisation") or {}).get("name", "") if stored else ""
+        default = "org-" + uuid.uuid4().hex[:12]
+        conn.execute("INSERT INTO organisations (id, name, settings, created_at) VALUES (?, ?, '{}', ?)",
+                     (default, (name or config.ORG_NAME or "Mon organisation").strip(), datetime.now().isoformat(timespec="seconds")))
+    _default_org = default
+    if not recorded:
+        conn.execute("INSERT INTO app_settings (key, data, updated_at) VALUES ('platform_organisation', ?, ?)",
+                     (default, datetime.now().isoformat(timespec="seconds")))
+    missing = "organisation_id IS NULL OR organisation_id = ''"
+    conn.execute(f"UPDATE users SET organisation_id = ? WHERE {missing}", (default,))
+    for table in OWNER_TABLES:
+        conn.execute(f"UPDATE {table} SET organisation_id = COALESCE((SELECT u.organisation_id FROM users u WHERE u.username = {table}.owner), ?)"
+                     f" WHERE {missing}", (default,))
+    # The organisation's shared context was the single "cabinet" scope: it becomes "cabinet:<organisation>".
+    conn.execute("UPDATE contexts SET scope = ? WHERE scope = 'cabinet'", (f"cabinet:{default}",))
+    conn.execute("UPDATE contexts SET organisation_id = CASE WHEN scope LIKE 'cabinet:%' THEN substr(scope, 9)"
+                 " ELSE COALESCE((SELECT u.organisation_id FROM users u WHERE 'user:' || u.username = contexts.scope), ?) END"
+                 f" WHERE {missing}", (default,))
+    conn.execute("UPDATE assistant_messages SET organisation_id = COALESCE((SELECT c.organisation_id FROM assistant_conversations c"
+                 f" WHERE c.id = assistant_messages.conversation_id), ?) WHERE {missing}", (default,))
+
+
+_FILL_ORG = """
+CREATE OR REPLACE FUNCTION autocollab_fill_org() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.organisation_id IS NULL OR NEW.organisation_id = '' THEN
+    NEW.organisation_id := NULLIF(current_setting('app.org_id', true), '');
+  END IF;
+  IF (NEW.organisation_id IS NULL OR NEW.organisation_id = '') AND TG_ARGV[0] = 'owner' THEN
+    NEW.organisation_id := (SELECT organisation_id FROM users WHERE username = NEW.owner);
+  END IF;
+  IF NEW.organisation_id IS NULL OR NEW.organisation_id = '' THEN
+    NEW.organisation_id := (SELECT data FROM app_settings WHERE key = 'platform_organisation');
+  END IF;
+  RETURN NEW;
+END $$;
+"""
+_IN_ORG = "COALESCE(current_setting('app.org_id', true), '') = '' OR {column} = current_setting('app.org_id', true)"
+
+
+def _pg_tenancy(conn) -> None:
+    """New rows take the organisation of the request (else of their owner), and each organisation only sees its rows.
+
+    Requests switch to a restricted role, so the isolation holds even when the app connects as a superuser
+    (superusers skip row-level security). Without the right to create that role, FORCE ROW LEVEL SECURITY
+    still applies to the table owner the app connects as.
+    """
+    global _tenant_role
+    conn.execute(_FILL_ORG)
+    for table in ORG_TABLES:
+        conn.execute(f"DROP TRIGGER IF EXISTS autocollab_org ON {table}")
+        conn.execute(f"CREATE TRIGGER autocollab_org BEFORE INSERT ON {table} FOR EACH ROW"
+                     f" EXECUTE FUNCTION autocollab_fill_org('{'owner' if table in OWNER_TABLES else 'none'}')")
+    for table, column in [*((t, "organisation_id") for t in ORG_TABLES), ("organisations", "id")]:
+        conn.execute(f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY")
+        conn.execute(f"ALTER TABLE {table} FORCE ROW LEVEL SECURITY")
+        conn.execute(f"DROP POLICY IF EXISTS autocollab_org ON {table}")
+        rule = _IN_ORG.format(column=column)
+        conn.execute(f"CREATE POLICY autocollab_org ON {table} USING ({rule}) WITH CHECK ({rule})")
+    try:
+        with conn.raw.transaction():  # savepoint: without the right to create roles, carry on without it
+            conn.execute(f"""DO $$ BEGIN
+              IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '{TENANT_ROLE}') THEN CREATE ROLE {TENANT_ROLE} NOLOGIN; END IF;
+              EXECUTE format('GRANT {TENANT_ROLE} TO %I', current_user);
+              EXECUTE format('GRANT USAGE ON SCHEMA %I TO {TENANT_ROLE}', current_schema());
+              EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA %I TO {TENANT_ROLE}', current_schema());
+              EXECUTE format('GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA %I TO {TENANT_ROLE}', current_schema());
+            END $$""")
+        _tenant_role = True
+    except Exception:
+        _tenant_role = False
+
+
+def default_org() -> str:
+    """The installation's own organisation (app_settings 'platform_organisation'): its administrators run the platform."""
+    if _default_org is None:
+        with connect(system=True):
+            pass
+    return _default_org
+
+
+def run_in_org(org: str | None) -> contextvars.Context:
+    """A context for a background task acting for an organisation (asyncio.create_task(..., context=...))."""
+    ctx = contextvars.copy_context()
+    ctx.run(current_org.set, org)
+    return ctx
+
+
 def _init(conn) -> None:
     if POSTGRES:
         conn.execute("SELECT pg_advisory_xact_lock(?)", (870142,))  # several server processes: one creates the tables
@@ -342,13 +469,17 @@ def _init(conn) -> None:
         conn.executescript(_SCHEMA)
     _migrate(conn)
     _import_files(conn)
+    _setup_organisations(conn)
+    if POSTGRES:
+        _pg_tenancy(conn)
 
 
 @contextmanager
-def connect():
+def connect(system: bool = False, org: str | None = None):
     """One connection per operation, committed at the end (rolled back on error).
 
-    PostgreSQL: taken from a pool, operations run side by side. SQLite: serialized, as before.
+    PostgreSQL: taken from a pool, operations run side by side, inside the organisation of `org`, else
+    of the current request; system=True looks across organisations. SQLite: serialized, as before.
     """
     global _initialized
     if POSTGRES:
@@ -358,6 +489,11 @@ def connect():
                 _init(conn)
                 raw.commit()
                 _initialized = True
+            scope = None if system else (org or current_org.get())
+            if scope:
+                conn.execute("SELECT set_config('app.org_id', ?, true)", (scope,))
+                if _tenant_role:
+                    raw.execute(f"SET LOCAL ROLE {TENANT_ROLE}")
             yield conn
         return
     with _lock:
@@ -377,7 +513,7 @@ def connect():
 
 def reset_for_tests() -> None:
     """Forget the pool and the first-start state (tests switch databases)."""
-    global _pool, _initialized
+    global _pool, _initialized, _default_org, _tenant_role
     if _pool is not None:
         _pool.close()
-    _pool, _initialized = None, False
+    _pool, _initialized, _default_org, _tenant_role = None, False, None, False

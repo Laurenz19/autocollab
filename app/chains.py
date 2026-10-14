@@ -11,7 +11,7 @@ import logging
 import uuid
 from datetime import datetime
 
-from . import agents, billing, config, files
+from . import agents, auth, billing, config, db, files
 from .db import connect
 
 logger = logging.getLogger(__name__)
@@ -186,7 +186,7 @@ class ChainManager:
         chain_run = ChainRun(chain, trigger)
         chain_run.save()
         self.runs[chain_run.id] = chain_run
-        asyncio.create_task(self._execute(chain_run))
+        asyncio.create_task(self._execute(chain_run), context=db.run_in_org(auth.org_of(chain_run.owner)))
         return chain_run
 
     def stop(self, chain_run: ChainRun) -> None:

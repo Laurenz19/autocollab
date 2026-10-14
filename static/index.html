@@ -4446,7 +4446,7 @@ async function boot() {
   $("avatar").textContent = me.name.split(/[\s.]+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join("");
   $("adminLink").hidden = !me.admin;
   // Credits of the period, under the menu (admins: the figures come from Administration › Abonnement).
-  if (me.admin) api("/api/admin/billing").then(b => {
+  if (me.platform_admin) api("/api/admin/billing").then(b => {
     const c = b.credits, total = c.included + c.extra;
     if (!total) return;
     const fmt = (n) => Math.round(n).toLocaleString("fr-FR");

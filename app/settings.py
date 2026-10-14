@@ -124,13 +124,35 @@ def update_section(name: str, value: dict) -> None:
 ORG_NAME_MAX = 80
 
 
-def organisation_name() -> str:
-    """The organisation's display name: set in Administration, else ORG_NAME from .env, else empty."""
-    return ((load().get("organisation") or {}).get("name") or config.ORG_NAME or "").strip()
+def _org() -> str:
+    return db.current_org.get() or db.default_org()
+
+
+def organisation_name(org: str | None = None) -> str:
+    """The display name of an organisation (the current request's by default), else ORG_NAME from .env."""
+    with db.connect(org=org) as conn:
+        row = conn.execute("SELECT name FROM organisations WHERE id = ?", (org or _org(),)).fetchone()
+    return ((row["name"] if row else "") or config.ORG_NAME or "").strip()
 
 
 def set_organisation_name(name: str) -> None:
-    update_section("organisation", {"name": " ".join(name.split())[:ORG_NAME_MAX]})
+    with db.connect() as conn:
+        conn.execute("UPDATE organisations SET name = ? WHERE id = ?", (" ".join(name.split())[:ORG_NAME_MAX], _org()))
+
+
+def org_settings(org: str | None = None) -> dict:
+    """Choices that belong to one organisation (two-factor policy...), not to the whole server."""
+    with db.connect(org=org) as conn:
+        row = conn.execute("SELECT settings FROM organisations WHERE id = ?", (org or _org(),)).fetchone()
+    return json.loads(row["settings"]) if row else {}
+
+
+def update_org_settings(changes: dict) -> None:
+    with db.connect() as conn:
+        org = _org()
+        row = conn.execute("SELECT settings FROM organisations WHERE id = ?", (org,)).fetchone()
+        current = json.loads(row["settings"]) if row else {}
+        conn.execute("UPDATE organisations SET settings = ? WHERE id = ?", (json.dumps({**current, **changes}, ensure_ascii=False), org))
 
 
 def api_key(name: str) -> str:
