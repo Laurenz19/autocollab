@@ -1,18 +1,17 @@
-"""AI settings chosen by an administrator in the app (data/settings.json).
+"""AI settings chosen by an administrator in the app (database, table app_settings).
 
-The first time, the file is filled from the .env values, so an existing setup keeps working;
+The first time, they are filled from the .env values, so an existing setup keeps working;
 after that the Administration page is the place to change them. API keys never leave the
-server: the page only sees whether a key is set and its last characters. On disk they are
+server: the page only sees whether a key is set and its last characters. Stored, they are
 encrypted with the master key (app/vault.py), which is kept outside data/.
 """
 
 import json
 import os
 import threading
+from datetime import datetime
 
-from . import config, vault
-
-SETTINGS_FILE = config.DATA_DIR / "settings.json"
+from . import config, db, vault
 
 # "models": suggestions shown in the page (any other model name can be typed); "vision": reads screenshots.
 PROVIDERS = {
@@ -67,14 +66,22 @@ def _save(data: dict) -> None:
     stored = json.loads(json.dumps(data))
     for container, key in _secrets(stored):
         container[key] = vault.seal(container[key] or "")
-    config.DATA_DIR.mkdir(parents=True, exist_ok=True)
-    tmp = SETTINGS_FILE.with_suffix(".tmp")
-    tmp.write_text(json.dumps(stored, ensure_ascii=False, indent=2), encoding="utf-8")
-    os.replace(tmp, SETTINGS_FILE)
+    now = datetime.now().isoformat(timespec="seconds")
+    with db.connect() as conn:
+        conn.execute("INSERT INTO app_settings (key, data, updated_at) VALUES ('settings', ?, ?)"
+                     " ON CONFLICT (key) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at",
+                     (json.dumps(stored, ensure_ascii=False), now))
+
+
+def _exists() -> bool:
+    with db.connect() as conn:
+        return conn.execute("SELECT 1 FROM app_settings WHERE key = 'settings'").fetchone() is not None
 
 
 def _read() -> dict:
-    data = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
+    with db.connect() as conn:
+        row = conn.execute("SELECT data FROM app_settings WHERE key = 'settings'").fetchone()
+    data = json.loads(row["data"])
     plain = any(value and not vault.is_sealed(value) for container, key in _secrets(data) for value in [container[key]])
     for container, key in _secrets(data):
         container[key] = vault.unseal(container[key])
@@ -85,7 +92,7 @@ def _read() -> dict:
 
 def load() -> dict:
     with _lock:
-        if not SETTINGS_FILE.exists():
+        if not _exists():
             _save(_from_env())
         return _read()
 
@@ -93,7 +100,7 @@ def load() -> dict:
 def update(changes: dict) -> dict:
     """Merge validated changes. In api_keys, a non-empty value replaces a key and None removes it."""
     with _lock:
-        data = _read() if SETTINGS_FILE.exists() else _from_env()
+        data = _read() if _exists() else _from_env()
         for field in ("provider", "model", "use_vision", "deepseek_endpoint"):
             if field in changes:
                 data[field] = changes[field]
@@ -109,7 +116,7 @@ def update(changes: dict) -> dict:
 def update_section(name: str, value: dict) -> None:
     """Replace one section of the file (e.g. "integrations"), leaving the AI settings as they are."""
     with _lock:
-        data = _read() if SETTINGS_FILE.exists() else _from_env()
+        data = _read() if _exists() else _from_env()
         data[name] = value
         _save(data)
 

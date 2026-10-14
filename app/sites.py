@@ -28,7 +28,7 @@ def _now() -> str:
 
 def list_for(owner: str) -> list[dict]:
     with connect() as conn:
-        rows = conn.execute("SELECT * FROM sites WHERE owner = ? ORDER BY name COLLATE NOCASE", (owner,)).fetchall()
+        rows = conn.execute("SELECT * FROM sites WHERE owner = ? ORDER BY lower(name)", (owner,)).fetchall()
     return [dict(r) for r in rows]
 
 

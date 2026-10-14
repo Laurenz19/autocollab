@@ -11,6 +11,9 @@ load_dotenv(ROOT / ".env")
 # Overridable so a separate instance (e.g. the guide's demo, tools/guide_screenshots.py) never touches real data.
 DATA_DIR = Path(os.getenv("AUTOCOLLAB_DATA_DIR", "").strip() or ROOT / "data")
 RUNS_DIR = Path(os.getenv("AUTOCOLLAB_RUNS_DIR", "").strip() or ROOT / "runs")
+# postgresql://user:password@host:5432/autocollab for a shared server; empty = SQLite in DATA_DIR/app.db.
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+DATABASE_POOL_SIZE = max(2, int(os.getenv("DATABASE_POOL_SIZE", "10")))
 
 
 def _bool(name: str, default: bool) -> bool:

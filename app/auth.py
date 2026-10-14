@@ -1,6 +1,6 @@
 """User accounts and login sessions, standard library only.
 
-Accounts live in data/users.json (managed with manage_users.py). Passwords are
+Accounts live in the database, table users (managed with manage_users.py). Passwords are
 hashed with scrypt. The session is a signed cookie: "<payload>.<hmac>", where the
 payload holds the username, an expiry and a fingerprint of the password hash, so
 changing a password logs that user out everywhere.
@@ -11,16 +11,14 @@ import hashlib
 import hmac
 import json
 import re
-import os
 import secrets
 import threading
 import time
 
 from fastapi import HTTPException, Request
 
-from . import config
+from . import config, db
 
-USERS_FILE = config.DATA_DIR / "users.json"
 SECRET_FILE = config.DATA_DIR / "secret.key"
 COOKIE_NAME = "session"
 USERNAME_RE = re.compile(r"^[a-z0-9._-]{2,40}$")
@@ -29,7 +27,7 @@ MIN_PASSWORD_LENGTH = 10
 
 _SCRYPT = {"n": 2**14, "r": 8, "p": 1}
 
-# Hold while reading, changing and saving users.json so two admins can't overwrite each other.
+# Hold while reading, changing and saving the accounts so two admins can't overwrite each other.
 users_lock = threading.Lock()
 
 
@@ -37,17 +35,20 @@ users_lock = threading.Lock()
 
 
 def load_users() -> dict[str, dict]:
-    if not USERS_FILE.exists():
-        return {}
-    return json.loads(USERS_FILE.read_text(encoding="utf-8"))
+    with db.connect() as conn:
+        rows = conn.execute("SELECT username, data FROM users ORDER BY username").fetchall()
+    return {row["username"]: json.loads(row["data"]) for row in rows}
 
 
 def save_users(users: dict[str, dict]) -> None:
-    config.DATA_DIR.mkdir(parents=True, exist_ok=True)
-    # Write then swap, so a crash mid-write never leaves a truncated file.
-    tmp = USERS_FILE.with_suffix(".tmp")
-    tmp.write_text(json.dumps(users, ensure_ascii=False, indent=2), encoding="utf-8")
-    os.replace(tmp, USERS_FILE)
+    """Replace every account by `users`, in one transaction: removed accounts are deleted."""
+    with db.connect() as conn:
+        for row in conn.execute("SELECT username FROM users").fetchall():
+            if row["username"] not in users:
+                conn.execute("DELETE FROM users WHERE username = ?", (row["username"],))
+        for username, user in users.items():
+            conn.execute("INSERT INTO users (username, data) VALUES (?, ?) ON CONFLICT (username) DO UPDATE SET data = excluded.data",
+                         (username, json.dumps(user, ensure_ascii=False)))
 
 
 def normalize_username(username: str) -> str:

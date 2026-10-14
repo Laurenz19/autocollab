@@ -123,14 +123,14 @@ def _next_run_at(schedule: dict | None, enabled: bool) -> str | None:
 
 def list_for(owner: str) -> list[dict]:
     with connect() as conn:
-        rows = conn.execute("SELECT * FROM agents WHERE owner = ? ORDER BY name COLLATE NOCASE", (owner,)).fetchall()
+        rows = conn.execute("SELECT * FROM agents WHERE owner = ? ORDER BY lower(name)", (owner,)).fetchall()
     return [decode(dict(r)) for r in rows]
 
 
 def list_all() -> list[dict]:
     """Everyone's agents, for the firm-wide view (read only for non-owners)."""
     with connect() as conn:
-        rows = conn.execute("SELECT * FROM agents ORDER BY name COLLATE NOCASE").fetchall()
+        rows = conn.execute("SELECT * FROM agents ORDER BY lower(name)").fetchall()
     return [decode(dict(r)) for r in rows]
 
 

@@ -199,7 +199,7 @@ d'agent s'ouvre d'un clic dans le formulaire « Nouvel agent », que la personne
   en lecture seule), mais ne crée, ne modifie, ne lance et ne valide rien.
 - Il utilise le fournisseur d'IA choisi dans **Administration › Intelligence artificielle** : les données consultées
   (résultats d'exécutions, contexte) lui sont envoyées, comme pour les agents.
-- Les conversations sont enregistrées dans `data/app.db`, visibles seulement par leur auteur, et supprimables
+- Les conversations sont enregistrées dans la base de données, visibles seulement par leur auteur, et supprimables
   depuis l'historique du panneau. 30 questions au plus par 5 minutes et par personne.
 
 ## Applications connectées (Gmail, Drive, Slack… via MCP)
@@ -295,7 +295,7 @@ vraie protection est un **disque ou volume chiffré** (LUKS, BitLocker) pour `da
 
 Le **fournisseur d'IA, le modèle, la vision et les clés d'API** ne sont plus dans `.env` : un
 administrateur les règle dans **Administration › Intelligence artificielle** (bouton « Tester la
-connexion » avant d'enregistrer). Ils sont stockés dans `data/settings.json` ; les clés n'en
+connexion » avant d'enregistrer). Ils sont stockés dans la base (table `app_settings`), clés chiffrées ; elles n'en
 ressortent jamais vers les navigateurs, seules leurs 4 dernières lettres sont affichées.
 
 | Variable | Rôle |
@@ -341,7 +341,7 @@ node --test tests/dashboard.test.cjs tests/run-feedback.test.cjs
 ## Langue (FR / EN)
 
 L'interface existe en français et en anglais : bouton **FR/EN** en bas du menu, et sur la page de
-connexion. Le choix est enregistré dans le compte (`users.json`, champ `lang`) et suit l'utilisateur
+connexion. Le choix est enregistré dans le compte (table `users`, champ `lang`) et suit l'utilisateur
 d'un poste à l'autre. La traduction est faite côté navigateur par `static/i18n.js` (dictionnaire
 EN + motifs pour les phrases dynamiques) ; les contenus saisis (noms d'agents, consignes, contexte,
 résultats) ne sont jamais traduits. Pour ajouter un texte à l'interface, ajoutez sa traduction
@@ -367,13 +367,13 @@ l'application.
 - `app/main.py` : API web (FastAPI) utilisée par la page, et plus tard par n8n.
 - `app/auth.py` : comptes, mots de passe et sessions.
 - `app/agents.py` : agents enregistrés et variables de date.
-- `app/db.py` : base SQLite (`data/app.db`) : agents et historique des tâches.
+- `app/db.py` : base de données, PostgreSQL ou SQLite (`data/app.db`) : comptes, réglages, agents, historique.
 - `app/schedule.py` : fréquences, calcul des prochaines exécutions, planificateur.
 - `app/context.py` : contexte de l'organisation et des utilisateurs ajouté aux consignes.
 - `app/browsers.py` : profils de navigateur par utilisateur, choix du navigateur, ports.
 - `app/connections.py` : « Mes connexions », navigateur affiché et piloté depuis la page.
 - `app/llm.py` : création du modèle d'IA.
-- `app/settings.py` : réglages d'IA choisis par l'administrateur (`data/settings.json`).
+- `app/settings.py` : réglages d'IA choisis par l'administrateur (table `app_settings`).
 - `app/integrations.py` : applications connectées (catalogue, OAuth Google/Slack, jetons chiffrés).
 - `app/mcp_client.py` : client MCP (Streamable HTTP) utilisé par les agents.
 - `app/oauth.py` : connexion OAuth des assistants IA au serveur MCP (claude.ai, ChatGPT…).
@@ -389,3 +389,35 @@ l'application.
   Les suivantes attendent dans une file et démarrent automatiquement (10 tâches en attente au plus par
   utilisateur). Une tâche en attente peut être retirée de la file. Un redémarrage du serveur vide la file :
   les tâches en attente passent en « Interrompu ».
+
+## Base de données : PostgreSQL ou SQLite
+
+Sans réglage, AutoCollab garde ses données dans un fichier SQLite (`data/app.db`) : suffisant pour
+une installation sur un seul poste. Pour un serveur qui accueille plusieurs clients, utiliser
+**PostgreSQL** en renseignant `DATABASE_URL` dans `.env` :
+
+```
+DATABASE_URL=postgresql://autocollab:<mot de passe>@localhost:5432/autocollab
+DATABASE_POOL_SIZE=10
+```
+
+Les tables sont créées au premier démarrage, et les colonnes ajoutées par les nouvelles versions le
+sont aussi. Les comptes et réglages encore dans `data/users.json` et `data/settings.json` (versions
+précédentes) sont importés une fois dans la base ; les fichiers sont renommés en `.importe`.
+
+Passer une installation existante de SQLite à PostgreSQL :
+
+```powershell
+$env:DATABASE_URL = "postgresql://autocollab:<mot de passe>@localhost:5432/autocollab"
+.venv\Scripts\python.exe tools\sqlite_to_postgres.py      # copie data/app.db, vérifie chaque table
+```
+
+La base cible doit être vide. Les captures et fichiers restent dans `runs/`, et la **clé de
+chiffrement** (`AUTOCOLLAB_MASTER_KEY` ou son fichier) doit être la même : elle n'est jamais dans la base.
+
+Tests sur les deux bases (PostgreSQL seulement si `TEST_DATABASE_URL` est renseignée) :
+
+```powershell
+$env:TEST_DATABASE_URL = "postgresql://autocollab:<mot de passe>@localhost:5432/autocollab_tests"
+.venv\Scripts\python.exe -m unittest tests.test_storage -v
+```

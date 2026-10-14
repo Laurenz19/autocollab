@@ -22,7 +22,7 @@ via MCP) et comment le code est organisé. Pour l'installation et l'usage, voir 
 | **Agent** | browser-use 0.1.48 pilote un navigateur Chromium (Playwright) ; un modèle d'IA (Claude, Mistral, OpenAI, DeepSeek) décide des actions. |
 | **Exécution (run)** | Un lancement d'agent ou de tâche ponctuelle. Asynchrone : la création renvoie tout de suite, on suit ensuite l'état. |
 | **File d'attente** | Une exécution à la fois par utilisateur (un profil de navigateur chacun), plusieurs utilisateurs en parallèle jusqu'à `MAX_PARALLEL_RUNS`. |
-| **Stockage** | `data/app.db` (SQLite : agents, exécutions, connexions, contexte, clés d'API), `data/users.json` (comptes), `data/settings.json` (réglages d'IA et clés des fournisseurs), `data/profils/<utilisateur>/` (sessions de navigateur), `runs/<id>/` (journal, captures, fichiers de chaque exécution). |
+| **Stockage** | Base PostgreSQL (`DATABASE_URL`) ou SQLite (`data/app.db`) : comptes (`users`), réglages d'IA et clés chiffrées (`app_settings`), agents, exécutions, connexions, contexte, clés d'API. Sur disque : `data/profils/<utilisateur>/` (sessions de navigateur), `runs/<id>/` (journal, captures, fichiers de chaque exécution). |
 
 Chaque utilisateur ne voit que **ses** agents, exécutions, connexions et clés. Les administrateurs ont en
 plus les routes `/api/admin/*` et le contexte de l'organisation ; ils ne voient pas le travail des autres.
@@ -468,7 +468,7 @@ print(run["status"], run["result"])
 | `app/context.py` | Contexte de l'organisation et personnel ajouté aux consignes |
 | `app/files.py` | Pièces jointes et fichiers des exécutions |
 | `app/settings.py`, `app/llm.py` | Réglages d'IA de l'administrateur, création du modèle |
-| `app/db.py` | Schéma SQLite et migrations automatiques |
+| `app/db.py` | Schéma, migrations automatiques, PostgreSQL ou SQLite derrière la même API (`connect()`) |
 | `static/` | Interface (HTML/JS sans framework, `app.css` commun) |
 
 **Ajouter une route** : la déclarer dans `app/main.py` avec `user: str = Depends(current_user)` (ou

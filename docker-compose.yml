@@ -1,4 +1,4 @@
-# docker compose up -d --build, then http://127.0.0.1:8800
+# docker compose up -d --build, then http://127.0.0.1:8800 (POSTGRES_PASSWORD must be set in .env)
 # First account: docker compose exec app python manage_users.py ajouter <identifiant> --admin
 services:
   app:
@@ -6,21 +6,40 @@ services:
     image: autocollab
     restart: unless-stopped
     env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
       # These win over .env, which is written for the Windows workstation.
       APP_HOST: 0.0.0.0
+      DATABASE_URL: postgresql://autocollab:${POSTGRES_PASSWORD:?mot de passe PostgreSQL dans .env}@db:5432/autocollab
       BROWSER_PATH: ""
       BROWSER_PROFILES_DIR: data/profils
     ports:
       # Local only: put an HTTPS proxy in front (then COOKIE_SECURE=true in .env).
       - "127.0.0.1:8800:8800"
     volumes:
-      - data:/app/data                       # accounts, database, settings, browser profiles
+      - data:/app/data                       # browser profiles (accounts and settings are in PostgreSQL)
       - runs:/app/runs                       # run history and screenshots
       - masterkey:/home/app/.autocollab      # master key, kept apart from data/
     shm_size: 1gb
+
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: autocollab
+      POSTGRES_USER: autocollab
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?mot de passe PostgreSQL dans .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data      # the database; back it up with pg_dump
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U autocollab -d autocollab"]
+      interval: 5s
+      retries: 10
 
 volumes:
   data:
   runs:
   masterkey:
+  pgdata:

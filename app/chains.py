@@ -40,13 +40,13 @@ def _decode(row) -> dict | None:
 
 def list_for(owner: str) -> list[dict]:
     with connect() as conn:
-        rows = conn.execute("SELECT * FROM chains WHERE owner = ? ORDER BY name COLLATE NOCASE", (owner,)).fetchall()
+        rows = conn.execute("SELECT * FROM chains WHERE owner = ? ORDER BY lower(name)", (owner,)).fetchall()
     return [_decode(r) for r in rows]
 
 
 def list_all() -> list[dict]:
     with connect() as conn:
-        rows = conn.execute("SELECT * FROM chains ORDER BY name COLLATE NOCASE").fetchall()
+        rows = conn.execute("SELECT * FROM chains ORDER BY lower(name)").fetchall()
     return [_decode(r) for r in rows]
 
 
