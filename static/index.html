@@ -118,11 +118,11 @@
   .conn-safe { display: flex; gap: 12px; align-items: flex-start; margin: 0; padding: 14px 16px; border-radius: 14px; background: var(--accent-soft); color: var(--accent-hover); font-size: 14px; }
   .conn-safe svg { width: 20px; height: 20px; flex: none; margin-top: 1px; }
   .conn-nav { gap: 4px; border-bottom: 1px solid var(--line); }
-  .sign-state { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 550; border-radius: 99px; padding: 1px 9px 1px 8px; }
+  .sign-state { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 550; border-radius: 6px; padding: 1px 8px; white-space: nowrap; }
   .sign-state::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-  .sign-state.ok { background: var(--ok-soft); color: var(--ok); }
+  .sign-state.ok { background: var(--ok-soft); color: var(--ok-ink); }
   .sign-state.off { background: var(--warn-soft); color: var(--warn); }
-  .site-card:has(.sign-state.ok) { border-color: color-mix(in srgb, var(--ok) 35%, var(--line)); }
+
   .site-card .row { display: flex; gap: 6px; align-items: center; margin-top: auto; }
   .site-card .row .grow { flex: 1; }
   .conn-screen { position: relative; aspect-ratio: 1280 / 800; width: 100%; background: var(--panel); cursor: pointer; outline: none; overflow: hidden; }
@@ -2323,7 +2323,8 @@ function renderDashboard() {
   const seg = (n, color) => n ? `<b style="height: calc(${n / max * 100}% - 2px); background: ${color}"></b>` : "";
   $("dashChart").innerHTML = days.map(x => {
     const label = `${x.d.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit" })} · ${plural(x.ok, "réussie")} · ${plural(x.err, "échec")}${x.other ? ` · ${x.other} autre${x.other > 1 ? "s" : ""}` : ""}`;
-    return `<div class="chart-day" tabindex="0" data-tip="${esc(label)}" aria-label="${esc(label)}">${seg(x.ok, "var(--ok)")}${seg(x.err, "var(--err)")}${seg(x.other, "var(--dot)")}</div>`;
+    const today = dayKey(x.d) === dayKey(now);
+    return `<div class="chart-day" tabindex="0" data-tip="${esc(label)}" aria-label="${esc(label)}">${seg(x.ok, today ? "var(--accent)" : "var(--chart-ok)")}${seg(x.err, "var(--chart-err)")}${seg(x.other, "var(--dot)")}</div>`;
   }).join("") + `<div class="chart-tip" id="dashTip" hidden></div>`;
 
   // To handle: approvals first, then the latest failure of each agent.
@@ -2531,6 +2532,7 @@ function renderAgents() {
     const f = LIST_CFG.agents.filters.find(x => x[0] === b.dataset.lf);
     b.textContent = `${f[1]} · ${f[2] ? all.filter(f[2]).length : all.length}`;
   }
+  const onTpl = agentsSub === "templates";
   const failing = team ? [] : agentsList.filter(a => a.last_run?.status === "echec");
   $("agentHint").hidden = !failing.length || onTpl;
   if (failing.length) {
@@ -2538,7 +2540,6 @@ function renderAgents() {
     $("agentHint").innerHTML = `${ICON.failed}<span><strong>« ${esc(a.name)} » a échoué à sa dernière exécution.</strong> ${esc(lost ? "La session du site semble expirée : une reconnexion suffit." : (a.last_run.result || "").slice(0, 140))}</span>`
       + (lost ? `<a class="btn btn-primary btn-sm" href="#/connexions">Reconnecter</a>` : `<a class="btn btn-primary btn-sm" href="#/executions/${a.last_run.id}">Voir l'exécution</a>`);
   }
-  const onTpl = agentsSub === "templates";
   for (const id of ["agentGrid", "agentsNoMatch"]) if (onTpl) $(id).hidden = true;
   $("agentGrid").hidden = onTpl;
   document.querySelector('[data-tools="agents"]').hidden = onTpl || !all.length;

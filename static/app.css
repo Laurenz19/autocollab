@@ -7,6 +7,7 @@
   --ink: #13171A; --ink-2: #3C4449; --muted: #687076; --line: #E4E2DC; --line-2: #D3D0C8; --hair: #ECEAE4;
   --accent: #0A6B4F; --accent-hover: #085A42; --accent-soft: #E3F1EB; --accent-ring: rgb(10 107 79 / .16); --on-accent: #FFFFFF;
   --run: #2F6FDB; --run-soft: #E8F0FD; --ok: #0A6B4F; --ok-soft: #E3F1EB;
+  --ok-ink: #064734; --run-ink: #1D4FA8; --chart-ok: #BFE3D2; --chart-err: #F2B8B0;
   --err: #B42318; --err-soft: #FDECEA; --warn: #5B3FC4; --warn-soft: #F1EDFD;
   --chrome: #ECEAE4; --dot: #D3D0C8;
   --side: #FFFFFF; --side-ink: #13171A; --side-muted: #687076; --side-link: #3C4449; --side-active: #E3F1EB;
@@ -23,6 +24,7 @@
     --ink: #E6EBE8; --ink-2: #C3CCC8; --muted: #8E9C96; --line: #26312C; --line-2: #34413B; --hair: #1B2421;
     --accent: #5FD3A5; --accent-hover: #8AE3BF; --accent-soft: #10291F; --accent-ring: rgb(95 211 165 / .22); --on-accent: #062A1E;
     --run: #6AA8FF; --run-soft: #16223A; --ok: #5FD3A5; --ok-soft: #10291F;
+    --ok-ink: #8AE3BF; --run-ink: #9CC3FF; --chart-ok: #2C5B49; --chart-err: #7A3A33;
     --err: #FF8A7A; --err-soft: #331816; --warn: #A898F0; --warn-soft: #231D3D;
     --chrome: #1B2421; --dot: #34413B;
     --side: #111715; --side-ink: #E6EBE8; --side-muted: #8E9C96; --side-link: #C3CCC8; --side-active: #10291F;
@@ -74,7 +76,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
   color: var(--side-link); text-decoration: none; font-weight: 500; font-size: 14px; border: 1px solid transparent;
 }
 .nav a:hover { background: var(--side-hover); color: var(--side-strong); }
-.nav a[aria-current="page"] { background: var(--side-active); color: var(--accent-hover); font-weight: 600; }
+.nav a[aria-current="page"] { background: var(--side-active); color: var(--ok-ink); font-weight: 600; }
 .nav a[aria-current="page"] svg { color: var(--accent); }
 .nav svg { width: 17px; height: 17px; flex: none; }
 .nav .soon { margin-left: auto; font-size: 11px; color: var(--side-muted); font-weight: 400; }
@@ -191,19 +193,19 @@ td.row-act { text-align: right; white-space: nowrap; width: 1%; padding-right: 1
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px; box-shadow: var(--shadow-xs); min-width: 0; }
 @media (max-width: 600px) { .card { padding: 16px; } .card > .table-wrap { margin: 0 -16px; } .card > .table-wrap + .pager { margin: 0 -16px -4px; padding: 12px 16px 0; } }
 .label { margin: 0 0 14px; font-size: 15px; font-weight: 650; letter-spacing: -.01em; color: var(--ink); }
-.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 550; border-radius: 99px; padding: 1px 9px 1px 8px; white-space: nowrap; background: var(--hair); color: var(--muted); box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 18%, transparent); }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 550; border-radius: 6px; padding: 1px 8px; white-space: nowrap; background: var(--hair); color: var(--muted); }
 .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.pill.en_cours { background: var(--run-soft); color: var(--run); }
+.pill.en_cours { background: var(--run-soft); color: var(--run-ink); }
 .pill.en_attente { background: var(--hair); color: var(--muted); }
-.pill.termine { background: var(--ok-soft); color: var(--ok); }
+.pill.termine { background: var(--ok-soft); color: var(--ok-ink); }
 .pill.a_valider { background: var(--warn-soft); color: var(--warn); }
 .pill.echec { background: var(--err-soft); color: var(--err); }
 .pill.arrete { background: var(--hair); color: var(--ink-2); }
 .pill.lg { font-size: 12.5px; padding: 2px 10px 2px 9px; }
 .status-text { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 550; color: var(--muted); }
 .status-text::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.status-text.en_cours { color: var(--run); }
-.status-text.termine { color: var(--ok); }
+.status-text.en_cours { color: var(--run-ink); }
+.status-text.termine { color: var(--ok-ink); }
 .status-text.a_valider { color: var(--warn); }
 .status-text.echec { color: var(--err); }
 .status-text.arrete { color: var(--ink-2); }
