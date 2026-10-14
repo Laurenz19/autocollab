@@ -61,6 +61,16 @@ les sessions ouvertes du compte. Après 5 essais ratés, la connexion est bloqu�
 Les comptes (mots de passe hachés) et la clé de session sont dans `data/`. Ce dossier ne doit
 jamais être partagé ni versionné. En production derrière HTTPS, mettre `COOKIE_SECURE=true`.
 
+## Tableau de bord
+
+L'accueil présente d'abord les validations attendues et les derniers essais en échec des sept derniers
+jours. Un agent n'y apparaît qu'une fois : une réussite ultérieure retire son ancien échec des priorités,
+sans modifier l'historique. Les tâches ponctuelles restent distinctes. Les prochaines exécutions
+comprennent les agents et les chaînes planifiés.
+
+Les boutons « Nouvelle tâche » et « Partir d'un modèle » ouvrent directement leurs formulaires.
+Sur petit écran, le bouton « Menu » déplie la navigation ; Échap le referme et rend le focus au bouton.
+
 ## Agents
 
 Un agent est une consigne enregistrée qu'on relance quand on veut (panneau « Mes agents ») :
@@ -308,6 +318,25 @@ Chaque tâche crée un dossier `runs/<date-heure-id>/` contenant :
 - `etape_NNN.png` : la capture d'écran de chaque étape ;
 - `telechargements/` : les fichiers téléchargés par l'agent ;
 - `summary.json` : statut et résultat final.
+
+## Comprendre une exécution inachevée
+
+La page d'une exécution affiche sa cause d'arrêt et la prochaine étape conseillée : réponse IA
+invalide, limite d'étapes, répétition sans progression, arrêt demandé ou interruption du serveur.
+Le détail de l'erreur reste accessible dans un volet repliable. Les anciens journaux d'erreur
+profitent également de cette présentation. Avant de relancer, vérifiez les actions et les fichiers
+déjà produits pour éviter les doublons. Les tentatives du moteur restent limitées à trois échecs
+consécutifs ; l'application ne relance pas automatiquement une tâche entière.
+
+Le taux de réussite inclut les arrêts et interruptions parmi les exécutions achevées ; leur nombre
+apparaît dans « autres ». La durée cumulée va de la mise en file à la fin, attentes incluses.
+
+Tests de régression, avec données temporaires et sans appels aux fournisseurs d'IA :
+
+```powershell
+.venv\Scripts\python.exe -m unittest discover -s tests -v
+node --test tests/dashboard.test.cjs tests/run-feedback.test.cjs
+```
 
 ## Langue (FR / EN)
 

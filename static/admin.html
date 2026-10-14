@@ -672,8 +672,8 @@ $("tabInt").onsubmit = async (e) => {
 // --- AI settings --------------------------------------------------------------------
 
 let ai = null, clearKeys = new Set();
-const KEY_NAMES = { anthropic: "Claude (Anthropic)", mistral: "Mistral", openai: "OpenAI", deepseek: "DeepSeek" };
-const NOTES = { anthropic: "Recommandé · lit les captures d'écran", mistral: "Hébergé en Europe (France)", openai: "GPT-4o lit les captures d'écran", deepseek: '<span class="warn-tag">Serveurs en Chine</span>' };
+const KEY_NAMES = { anthropic: "Claude (Anthropic)", mistral: "Mistral", openai: "OpenAI", deepseek: "DeepSeek", nvidia: "NVIDIA" };
+const NOTES = { anthropic: "Recommandé · lit les captures d'écran", mistral: "Hébergé en Europe (France)", openai: "GPT-4o lit les captures d'écran", deepseek: '<span class="warn-tag">Serveurs en Chine</span>', nvidia: "Offre d'essai : seul gpt-oss-20b répond assez vite" };
 
 let typedKeys = {};
 const ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';

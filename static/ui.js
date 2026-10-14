@@ -277,7 +277,13 @@ window.UI = (() => {
       if (!list.hidden) renderList();
     }
     function renderList(active = sel.selectedIndex) {
-      list.innerHTML = options().map((o, i) => `<div class="dd-opt" role="option" id="${id}o${i}" data-i="${i}" aria-selected="${i === sel.selectedIndex}" ${o.disabled ? 'aria-disabled="true"' : ""}>${CHECK}<span>${esc(o.textContent)}</span></div>`).join("");
+      let group = null;  // <optgroup> labels become headings in the list
+      list.innerHTML = options().map((o, i) => {
+        const g = o.parentElement.tagName === "OPTGROUP" ? o.parentElement : null;
+        const head = g && g !== group ? `<div class="dd-group" role="presentation">${esc(g.label)}</div>` : "";
+        group = g;
+        return `${head}<div class="dd-opt" role="option" id="${id}o${i}" data-i="${i}" aria-selected="${i === sel.selectedIndex}" ${o.disabled ? 'aria-disabled="true"' : ""}>${CHECK}<span>${esc(o.textContent)}</span></div>`;
+      }).join("");
       setActive(active);
     }
     function setActive(i) {

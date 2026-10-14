@@ -36,6 +36,11 @@ def create_llm(overrides: dict | None = None) -> BaseChatModel:
 
         return ChatMistralAI(model=model, api_key=key("mistral"), temperature=0.2)
 
+    if provider == "nvidia":
+        from langchain_openai import ChatOpenAI
+
+        return ChatOpenAI(model=model, base_url=settings.NVIDIA_ENDPOINT, api_key=key("nvidia"), temperature=0.2)
+
     raise ValueError(f"Fournisseur d'IA inconnu : {provider!r}")
 
 

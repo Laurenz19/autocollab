@@ -5,7 +5,7 @@ form pre-filled, through window.openAgentDraft on the main page, or sessionStora
 from the other pages; the person saves it themselves. Conversations are stored on the server.
 */
 (() => {
-  const OPEN_KEY = "ac_asst_open", CONV_KEY = "ac_asst_conv";
+  const OPEN_KEY = "ac_asst_open", CONV_KEY = "ac_asst_conv", MODEL_KEY = "ac_asst_model";
   const svg = (paths) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
   const ICONS = {
     spark: svg('<path d="M12 3l1.8 4.9L19 9.7l-5.2 1.8L12 16.5l-1.8-5L5 9.7l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>'),
@@ -19,7 +19,7 @@ from the other pages; the person saves it themselves. Conversations are stored o
   };
   const TOOL_LABELS = {
     get_documentation: "Lecture de la documentation", list_agents: "Consultation de vos agents",
-    list_variables: "Lecture des variables", list_runs: "Consultation de vos exécutions", get_run: "Lecture d'une exécution",
+    list_variables: "Lecture des variables", list_templates: "Lecture des modèles d'agents", list_runs: "Consultation de vos exécutions", get_run: "Lecture d'une exécution",
     list_chains: "Consultation de vos chaînes", get_chain_run: "Lecture d'une exécution de chaîne",
     get_context: "Lecture du contexte", preview_context: "Aperçu du contexte",
   };
@@ -117,13 +117,16 @@ from the other pages; the person saves it themselves. Conversations are stored o
     <div class="asst-list" id="asstList" hidden></div>
     <form class="asst-foot" id="asstForm">
       <textarea id="asstInput" rows="1" maxlength="4000" placeholder="Posez votre question…" aria-label="Votre message"></textarea>
-      <button type="submit" class="asst-send" id="asstSend" aria-label="Envoyer" title="Envoyer (Entrée)">${ICONS.send}</button>
+      <div class="asst-actions">
+        <select class="asst-model" id="asstModel" aria-label="Modèle d'IA de l'assistant" hidden></select>
+        <button type="submit" class="asst-send" id="asstSend" aria-label="Envoyer" title="Envoyer (Entrée)">${ICONS.send}</button>
+      </div>
     </form>
     <p class="asst-note">Lecture seule : l'assistant consulte vos agents, exécutions et contexte, mais ne lance et ne modifie rien.</p>
     <span class="sr-only" aria-live="polite" id="asstStatus"></span>`;
 
   const $ = (sel) => panel.querySelector(sel);
-  const body = $("#asstBody"), listEl = $("#asstList"), input = $("#asstInput"), sendBtn = $("#asstSend");
+  const body = $("#asstBody"), listEl = $("#asstList"), input = $("#asstInput"), sendBtn = $("#asstSend"), modelSel = $("#asstModel");
   let convId = store.get(CONV_KEY), messages = [], controller = null, loaded = false;
 
   function suggestions() {
@@ -170,6 +173,28 @@ from the other pages; the person saves it themselves. Conversations are stored o
     }
     return r;
   }
+
+  // Model picker: the models of the providers that have a key (GET /api/assistant/models), the
+  // Administration's choice first. The person's choice is remembered on this browser.
+  let models = [];
+  async function loadModels() {
+    try { models = await (await request("/api/assistant/models")).json(); } catch { models = []; }
+    const saved = store.get(MODEL_KEY);
+    const groups = [...new Set(models.map(m => m.provider_label))];
+    modelSel.innerHTML = groups.map(g => `<optgroup label="${esc(g)}">${models.map((m, i) => m.provider_label !== g ? "" :
+      `<option value="${i}">${esc(m.model)}${m.default ? " (par défaut)" : ""}</option>`).join("")}</optgroup>`).join("");
+    const pick = models.findIndex(m => `${m.provider}|${m.model}` === saved);
+    modelSel.value = String(pick >= 0 ? pick : 0);
+    modelSel.hidden = models.length < 2;  // nothing to choose with a single model
+    modelSel.title = models[+modelSel.value] ? `${models[+modelSel.value].provider_label} · ${models[+modelSel.value].model}` : "";
+  }
+  modelSel.addEventListener("change", () => {
+    const m = models[+modelSel.value];
+    if (!m) return;
+    store.set(MODEL_KEY, m.default ? null : `${m.provider}|${m.model}`);
+    modelSel.title = `${m.provider_label} · ${m.model}`;
+  });
+  const chosenModel = () => { const m = models[+modelSel.value]; return m && !m.default ? { provider: m.provider, model: m.model } : {}; };
 
   async function loadConversation(id) {
     try {
@@ -218,7 +243,7 @@ from the other pages; the person saves it themselves. Conversations are stored o
     try {
       const r = await request("/api/assistant/chat", {
         method: "POST", signal: controller.signal,
-        body: JSON.stringify({ message: text, conversation_id: convId, page: (location.pathname + location.hash).slice(0, 200), lang: window.I18N ? I18N.lang : "fr" }),
+        body: JSON.stringify({ message: text, conversation_id: convId, page: (location.pathname + location.hash).slice(0, 200), lang: window.I18N ? I18N.lang : "fr", ...chosenModel() }),
       });
       const reader = r.body.getReader(), decoder = new TextDecoder();
       let buffer = "";
@@ -271,6 +296,7 @@ from the other pages; the person saves it themselves. Conversations are stored o
     store.set(OPEN_KEY, on ? "1" : null);
     if (on) {
       if (!loaded) { loaded = true; if (convId) loadConversation(convId); else render(); }
+      loadModels();  // each time: a key may have been added or removed in Administration
       setTimeout(() => input.focus(), 0);
     } else fab.focus();
   }

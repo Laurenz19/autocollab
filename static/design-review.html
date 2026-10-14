@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proposition de direction UI · AutoCollab</title>
+<style>
+:root{color-scheme:light;--bg:#f4f6f7;--side:#edf0f1;--surface:#fff;--surface2:#f7f8f8;--line:#dce2e4;--text:#252d30;--muted:#59666a;--dim:#748084;--accent:#376c58;--accent-bg:#e6efea;--warning:#8a641f;--warning-bg:#f5eedf;--error:#a1483d;--error-bg:#f7ebe8;--blue:#476a82;--radius:9px;font:14px/1.5 Inter,"Segoe UI",system-ui,sans-serif}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text)}a{color:inherit;text-decoration:none}.layout{min-height:100vh;display:grid;grid-template-columns:228px minmax(0,1fr)}aside{background:var(--side);border-right:1px solid var(--line);padding:24px 14px;display:flex;flex-direction:column}.brand{height:46px;display:flex;align-items:center;gap:10px;padding:0 9px;font-size:15px;font-weight:650;letter-spacing:-.3px}.mark{width:28px;height:28px;display:grid;place-items:center;color:var(--accent);border:1px solid #3e6550;border-radius:6px;font-size:13px;font-weight:700;letter-spacing:-1px}.section{margin:25px 0 7px;padding:0 11px;color:var(--dim);font-size:10px;font-weight:650;letter-spacing:.13em;text-transform:uppercase}.nav{display:grid;gap:2px}.nav a{min-height:38px;display:flex;align-items:center;gap:10px;padding:0 10px;color:var(--muted);border-radius:6px}.nav a.active{background:#e1e8e7;color:var(--text)}.ni{display:grid;place-items:center;width:18px;height:18px;color:var(--dim);font-size:13px}.active .ni{color:var(--accent)}.badge{margin-left:auto;color:var(--warning);font-size:11px;font-variant-numeric:tabular-nums}.account{margin-top:auto;border-top:1px solid var(--line);padding:17px 8px 0;display:flex;align-items:center;gap:10px}.avatar{width:30px;height:30px;border-radius:50%;background:#dfe9e3;color:var(--accent);display:grid;place-items:center;font-size:12px}.account small{display:block;color:var(--muted)}main{min-width:0;max-width:1400px;width:100%;margin:auto;padding:38px 48px 60px}.head{display:flex;justify-content:space-between;align-items:center;padding-bottom:23px;border-bottom:1px solid var(--line)}.kicker{font-size:12px;color:var(--muted)}h1{margin:4px 0 0;font-size:24px;letter-spacing:-.5px;font-weight:600}h2{font-size:14px;font-weight:620;margin:0}.head-actions{display:flex;gap:9px}.btn{padding:9px 13px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--text);font:inherit;font-size:12px;font-weight:600}.btn.primary{background:#376c58;border-color:#376c58;color:#fff}.summary{display:flex;align-items:center;gap:12px;padding:17px 0;border-bottom:1px solid var(--line)}.signal{width:7px;height:7px;border-radius:50%;background:var(--warning);flex:none}.summary b{font-size:14px;font-weight:600}.summary span{font-size:12px;color:var(--muted)}.summary .link{margin-left:auto;color:var(--warning);font-size:12px;font-weight:600}.queue{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(290px,.85fr);gap:16px;margin-top:20px}.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);min-width:0}.panel-head{display:flex;align-items:center;justify-content:space-between;padding:17px 18px 14px;border-bottom:1px solid var(--line)}.panel-head .note{font-size:11px;color:var(--muted)}.rows{padding:0 18px}.row{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:10px;align-items:center;padding:15px 0;border-bottom:1px solid var(--line)}.row:last-child{border-bottom:0}.state{width:21px;height:21px;border-radius:5px;background:var(--error-bg);color:var(--error);display:grid;place-items:center;font-size:12px;font-weight:700}.row-copy{min-width:0}.row-title{font-weight:600;font-size:13px}.row-desc{margin-top:3px;color:var(--muted);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.row-meta{display:flex;gap:9px;align-items:center;margin-top:6px;color:var(--dim);font-size:10.5px}.status{color:var(--error);font-weight:600}.row-action{color:var(--muted);font-size:11px;font-weight:600;white-space:nowrap}.row-action::after{content:' ›';color:var(--dim)}.schedule .row{grid-template-columns:minmax(0,1fr) auto}.schedule time{color:var(--accent);font-size:11px;font-weight:600;white-space:nowrap}.schedule .row-desc{white-space:normal}.below{margin-top:17px;display:grid;grid-template-columns:1.45fr .85fr;gap:16px}.metrics{display:grid;grid-template-columns:repeat(4,1fr)}.metric{padding:15px 17px;border-right:1px solid var(--line)}.metric:last-child{border:0}.metric span{display:block;color:var(--muted);font-size:11px}.metric b{display:block;margin-top:7px;font-size:21px;font-weight:600;font-variant-numeric:tabular-nums}.activity{padding:15px 18px}.activity-top{display:flex;justify-content:space-between;align-items:center}.period{font-size:10px;color:var(--muted)}.bars{height:48px;margin-top:15px;display:flex;align-items:flex-end;gap:5px;border-bottom:1px solid var(--line)}.bars i{flex:1;border-radius:2px 2px 0 0;background:#6d9a7a}.bars i:nth-child(3n){background:#b68d4d}.bars i:nth-child(4n){background:#d3dcde}.legend{display:flex;gap:12px;margin-top:9px;color:var(--muted);font-size:10px}.legend i{display:inline-block;width:6px;height:6px;border-radius:2px;background:#6d9a7a;margin-right:4px}.foot{margin-top:18px;display:flex;justify-content:space-between;color:var(--dim);font-size:10.5px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}aside{padding:10px 16px;border-right:0;border-bottom:1px solid var(--line);flex-direction:row;align-items:center;gap:10px}.brand{flex:none}.section,.nav,.account{display:none}main{padding:26px 22px}.queue,.below{grid-template-columns:1fr}.schedule{min-height:auto}.metrics{grid-template-columns:repeat(2,1fr)}.metric:nth-child(2){border-right:0}.metric:nth-child(n+3){border-top:1px solid var(--line)}}
+@media(max-width:500px){main{padding:22px 15px}.head{align-items:flex-start;gap:12px;flex-direction:column}.head-actions{width:100%}.head-actions .btn{flex:1}.panel-head,.rows{padding-left:13px;padding-right:13px}.row{grid-template-columns:23px minmax(0,1fr);gap:8px}.row-action{grid-column:2;justify-self:start}.summary{align-items:flex-start}.summary .link{white-space:nowrap}.row-title{overflow-wrap:anywhere}.metrics .metric{padding:13px}.metric b{font-size:19px}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <a href="#" class="brand"><span class="mark">AC</span>AutoCollab</a>
+    <div class="section">Mon travail</div>
+    <nav class="nav">
+      <a href="#" class="active"><span class="ni">▦</span>Vue d'ensemble</a>
+      <a href="#"><span class="ni">○</span>À examiner <span class="badge">2</span></a>
+      <a href="#"><span class="ni">≡</span>Historique</a>
+    </nav>
+    <div class="section">Automatisations</div>
+    <nav class="nav">
+      <a href="#"><span class="ni">□</span>Agents</a>
+      <a href="#"><span class="ni">⋈</span>Chaînes</a>
+      <a href="#"><span class="ni">◷</span>Planification</a>
+    </nav>
+    <div class="section">Configuration</div>
+    <nav class="nav">
+      <a href="#"><span class="ni">◇</span>Connexions</a>
+      <a href="#"><span class="ni">≣</span>Contexte partagé</a>
+    </nav>
+    <div class="account"><span class="avatar">L</span><div>Laurenzio<small>Compte</small></div></div>
+  </aside>
+  <main>
+    <header class="head"><div><div class="kicker">Mardi 13 octobre 2026</div><h1>Vue d'ensemble</h1></div><div class="head-actions"><button class="btn">Créer un agent</button><button class="btn primary">Nouvelle tâche</button></div></header>
+    <div class="summary"><i class="signal"></i><b>2 éléments demandent votre attention</b><span>sur les 18 exécutions du mois</span><a class="link" href="#">Les examiner <span aria-hidden="true">→</span></a></div>
+    <div class="queue">
+      <section class="panel"><div class="panel-head"><h2>À examiner</h2><span class="note">Triées par urgence</span></div><div class="rows">
+        <article class="row"><span class="state">!</span><div class="row-copy"><div class="row-title">4DWS · Télécharger les factures de Drive</div><div class="row-desc">Dernier essai : erreur du modèle après la recherche dans Drive.</div><div class="row-meta"><span class="status">Échec · aujourd'hui 11:45</span><span>Agent · Google Drive</span></div></div><a class="row-action" href="#">Voir le journal</a></article>
+        <article class="row"><span class="state">!</span><div class="row-copy"><div class="row-title">Résumé quotidien des courriels</div><div class="row-desc">La dernière exécution de Gmail n'a pas abouti.</div><div class="row-meta"><span class="status">Échec · 11 octobre</span><span>Tâche ponctuelle · Gmail</span></div></div><a class="row-action" href="#">Voir le journal</a></article>
+      </div></section>
+      <section class="panel schedule"><div class="panel-head"><h2>Prochain passage</h2><a class="note" href="#">Horaires →</a></div><div class="rows">
+        <article class="row"><div class="row-copy"><div class="row-title">Résumé quotidien des courriels</div><div class="row-desc">Chaque jour · Gmail · dernier passage réussi</div></div><time>Demain, 20:00</time></article>
+        <article class="row"><div class="row-copy"><div class="row-title">4DWS · Drive vers courriel</div><div class="row-desc">En pause · dernier passage échoué</div></div><a class="row-action" href="#">Revoir</a></article>
+      </div></section>
+    </div>
+    <div class="below">
+      <section class="panel"><div class="panel-head"><h2>Activité récente</h2><span class="note">30 derniers jours</span></div><div class="metrics"><div class="metric"><span>Exécutions</span><b>18</b></div><div class="metric"><span>Terminées</span><b>8</b></div><div class="metric"><span>À examiner</span><b style="color:var(--warning)">2</b></div><div class="metric"><span>En cours</span><b>0</b></div></div></section>
+      <section class="panel activity"><div class="activity-top"><h2>Rythme des tâches</h2><span class="period">14 jours</span></div><div class="bars" aria-label="Exécutions récentes"><i style="height:12%"></i><i style="height:18%"></i><i style="height:24%"></i><i style="height:20%"></i><i style="height:42%"></i><i style="height:31%"></i><i style="height:20%"></i><i style="height:28%"></i><i style="height:17%"></i><i style="height:45%"></i><i style="height:90%"></i><i style="height:55%"></i><i style="height:70%"></i><i style="height:30%"></i></div><div class="legend"><span><i></i>Réussies</span><span>■ Échecs</span></div></section>
+    </div>
+    <footer class="foot"><span>Les exécutions restent consultables dans l'historique, avec leurs étapes et leurs fichiers.</span><span>AutoCollab · Revue de design</span></footer>
+  </main>
+</div>
+</body>
+</html>

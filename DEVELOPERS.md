@@ -144,6 +144,7 @@ pas activée. Limites de débit : `/oauth/register` 20 par heure, `/oauth/token`
 | DELETE | `/api/agents/{id}/files/{name}` | utilisateur | → `{"ok": true}` |
 | GET | `/api/variables` | utilisateur | → variables utilisables dans une consigne (`{mois_precedent}`…) |
 | POST | `/api/variables/preview` | utilisateur | `{"instructions"}` → `{"text"}` avec les variables remplies |
+| GET | `/api/templates` | utilisateur | → `{"categories", "templates"}` : modèles d'agents prêts à l'emploi ; `[À COMPLÉTER : …]` est à remplir avant d'enregistrer |
 
 Corps d'un agent :
 
@@ -286,6 +287,7 @@ L'application expose un serveur **MCP** (Model Context Protocol) pour qu'un assi
 |---|---|---|
 | `list_agents` | — | lecture |
 | `list_variables` | — | lecture |
+| `list_templates` | — | lecture |
 | `create_agent` | `name`, `instructions`, `max_steps`?, `allowed_domains`?, `approval_mode`?, `schedule`?, `schedule_enabled`? | modifie |
 | `update_agent` | `agent_id` + champs à changer | modifie |
 | `run_agent` | `agent_id` | agit sur les sites |

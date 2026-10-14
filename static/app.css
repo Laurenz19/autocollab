@@ -261,6 +261,23 @@ dialog > h2, dialog > form > h2 { flex: none; margin: 0; padding: 18px 60px 16px
 .dialog-foot { flex: none; display: flex; flex-direction: row-reverse; gap: 8px; flex-wrap: wrap; align-items: center; padding: 14px 24px; border-top: 1px solid var(--line); }
 .dialog-foot .form-err { flex-basis: 100%; min-height: 0; }
 .dialog-foot .form-err:empty { display: none; }
+
+/* --- agent templates (Mes agents › Partir d'un modèle) ------------------------- */
+
+#atplDlg { width: min(780px, calc(100vw - 32px)); }
+.atpl-group + .atpl-group { margin-top: 18px; }
+.atpl-group h3 { margin: 0 0 8px; font-size: 12px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.atpl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px; }
+.atpl-card { display: flex; flex-direction: column; gap: 6px; text-align: left; font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: border-color .12s, background .12s; }
+.atpl-card:hover { border-color: var(--accent); background: var(--accent-soft); }
+.atpl-card:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-ring); border-color: var(--accent); }
+.atpl-card strong { font-size: 14px; font-weight: 620; }
+.atpl-card span { font-size: 13px; color: var(--ink-2); line-height: 1.4; }
+.atpl-card .atpl-meta { margin-top: auto; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.atpl-card .atpl-meta em { font-style: normal; }
+.atpl-card .atpl-cost { font-size: 12px; font-weight: 550; color: var(--accent); }
+.atpl-todo { font-family: var(--mono); font-size: 12px; background: var(--accent-soft); color: var(--accent); border-radius: 5px; padding: 1px 5px; }
+.atpl-inline { margin-top: 20px; }
 .toast { position: fixed; bottom: 20px; right: 20px; left: 20px; margin-left: auto; max-width: 420px; background: var(--err); color: #FFFFFF; padding: 11px 16px; border-radius: 10px; box-shadow: var(--shadow); z-index: 10; font-size: 14px; }
 .toast.ok { background: var(--ink); color: var(--panel); }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
@@ -385,6 +402,15 @@ dialog > h2, dialog > form > h2 { flex: none; margin: 0; padding: 18px 60px 16px
 .asst-send { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 10px; background: var(--accent); color: var(--on-accent); }
 .asst-send:hover { background: var(--accent-hover); }
 .asst-send svg { width: 17px; height: 17px; }
+/* Input area: the question on top, the model picker and the send button below. */
+.asst-foot { flex-direction: column; align-items: stretch; }
+.asst-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.asst-actions > .dd, .asst-actions > select.asst-model { margin-right: auto; max-width: calc(100% - 52px); }
+.asst-actions .dd-btn, .asst-model { min-height: 32px; padding: 0 8px; border-color: transparent; background: transparent; color: var(--muted); font-size: 12.5px; border-radius: 8px; }
+.asst-actions .dd-btn:hover:not(:disabled), .asst-model:hover { background: var(--hair); color: var(--ink); border-color: transparent; }
+.asst-model { font: inherit; font-size: 12.5px; border: 1px solid transparent; }
+.asst-actions .dd-value { flex: 0 1 auto; }  /* the button fits its label instead of shrinking to nothing */
+.dd-group { padding: 8px 10px 3px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 .asst-note { flex: none; margin: 0; padding: 8px 16px 12px; font-size: 11.5px; color: var(--muted); text-align: center; }
 .asst-conv { display: flex; align-items: center; gap: 4px; border-radius: 8px; }
 .asst-conv:hover, .asst-conv.current { background: var(--hair); }

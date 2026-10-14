@@ -11,14 +11,15 @@ Stateless: no session id, no server-to-client stream.
 
 import json
 
-from . import agents, billing, config, schedule
+from . import agents, billing, config, schedule, templates
 
 SERVER_INFO = {"name": "autocollab", "title": "AutoCollab", "version": "1.2.0"}
 PROTOCOL_VERSIONS = ["2025-06-18", "2025-03-26", "2024-11-05"]
 INSTRUCTIONS = (
     "AutoCollab, l'outil de l'organisation : des agents IA travaillent dans un navigateur (Gmail, Pennylane, banques...).\n"
     "- Lancer : run_task (consigne ponctuelle), run_agent (agent enregistré), run_chain (suite d'agents).\n"
-    "- Construire : create_agent / update_agent, create_chain / update_chain. list_variables donne les variables "
+    "- Construire : create_agent / update_agent, create_chain / update_chain. list_templates donne les modèles d'agents "
+    "prêts à l'emploi : pars de l'un d'eux quand il correspond. list_variables donne les variables "
     "utilisables dans une consigne ({mois_precedent}, {resultat_precedent} dans une chaîne...).\n"
     "- Avant de créer ou modifier un agent ou une chaîne, montre le projet à l'utilisateur et attends son accord.\n"
     "- Dès qu'un agent modifie des données (envoi, import, validation, paiement), propose des sites autorisés "
@@ -98,6 +99,9 @@ TOOLS = [
           {"topic": {"type": "string", "enum": list(DOC_TOPICS)}}),
     _tool("list_agents", "Lister les agents", "Liste les agents enregistrés : consigne, sites autorisés, mode avec validation, planification, dernière exécution.", {}),
     _tool("list_variables", "Variables de consigne", "Variables utilisables dans une consigne d'agent, remplacées au lancement.", {}),
+    _tool("list_templates", "Modèles d'agents", "Modèles d'agents prêts à l'emploi pour les tâches courantes (Pennylane, impots.gouv, URSSAF, "
+          "factures fournisseurs, veille BODACC…). Ce qui est marqué [À COMPLÉTER : …] est à demander à l'utilisateur. "
+          "estimate donne les crédits d'une exécution type et au plus, pour le modèle d'IA actuel : indique-les en proposant l'agent.", {}),
     _tool("create_agent", "Créer un agent", "Crée un agent enregistré (sans le lancer). Montrer le projet à l'utilisateur avant.",
           _AGENT_FIELDS, ["name", "instructions"], BUILD),
     _tool("update_agent", "Modifier un agent", "Modifie un agent : seuls les champs fournis changent.",
@@ -360,6 +364,8 @@ def call_tool(name: str, args: dict, user: str, manager, chain_manager=None) -> 
         return {"agents": [_agent_view(a, manager) for a in agents.list_for(user)]}
     if name == "list_variables":
         return {"variables": agents.VARIABLES}
+    if name == "list_templates":
+        return templates.catalog()
     if name == "create_agent":
         f = _agent_changes(args, partial=False)
         agent = agents.create(user, f["name"], f["instructions"], f.get("max_steps"), f.get("allowed_domains", []),

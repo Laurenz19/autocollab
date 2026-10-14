@@ -28,8 +28,16 @@ PROVIDERS = {
     "deepseek": {"label": "DeepSeek", "model": "deepseek-chat", "vision": False,
                  "models": ["deepseek-chat", "deepseek-reasoner"],
                  "console": "https://platform.deepseek.com/api_keys", "region": "Serveurs en Chine"},
+    # NVIDIA's hosted catalogue (build.nvidia.com), OpenAI-compatible; the free tier is for trying models out.
+    # On it, only the small gpt-oss-20b answers in time: the large reasoning models queue past the 45 s test,
+    # so it is the only suggestion (another model name can still be typed).
+    "nvidia": {"label": "NVIDIA", "model": "openai/gpt-oss-20b", "vision": False,
+               "models": ["openai/gpt-oss-20b"],
+               "console": "https://build.nvidia.com/settings/api-keys", "region": "États-Unis (NVIDIA)"},
 }
-KEY_ENV = {"deepseek": "DEEPSEEK_API_KEY", "anthropic": "ANTHROPIC_API_KEY", "openai": "OPENAI_API_KEY", "mistral": "MISTRAL_API_KEY"}
+KEY_ENV = {"deepseek": "DEEPSEEK_API_KEY", "anthropic": "ANTHROPIC_API_KEY", "openai": "OPENAI_API_KEY", "mistral": "MISTRAL_API_KEY",
+           "nvidia": "NVIDIA_API_KEY"}
+NVIDIA_ENDPOINT = "https://integrate.api.nvidia.com/v1"
 DEFAULT_DEEPSEEK_ENDPOINT = "https://api.deepseek.com"
 
 _lock = threading.Lock()

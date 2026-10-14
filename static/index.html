@@ -11,6 +11,8 @@
 <link rel="stylesheet" href="/static/app.css">
 <script src="/static/i18n.js"></script>
 <script src="/static/ui.js"></script>
+<script src="/static/run-feedback.js"></script>
+<script src="/static/dashboard.js"></script>
 <script src="/static/assistant.js" defer></script>
 <style>
   /* Agents page */
@@ -21,7 +23,7 @@
   .examples { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); }
   .examples button { background: var(--ground); color: var(--ink-2); border: 1px solid var(--line); border-radius: 99px; padding: 3px 10px; font-size: 12.5px; }
   .examples button:hover { border-color: var(--line-2); color: var(--ink); }
-  .agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  .agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 16px; }
   .agent-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; box-shadow: var(--shadow-xs); transition: box-shadow .15s, border-color .15s; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
   .agent-top { display: flex; align-items: flex-start; gap: 12px; }
   .agent-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; flex: none; }
@@ -377,6 +379,14 @@
   .result-head > svg { width: 18px; height: 18px; flex: none; color: var(--ok); }
   .result.bad .result-head > svg { color: var(--err); }
   .result-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14.5px; }
+  .result.bad { border-left: 3px solid var(--err); }
+  .result.advisory { border-left: 3px solid var(--warn); }
+  .result.advisory .result-head > svg { color: var(--warn); }
+  .result-guidance { padding: 12px 14px; background: var(--ground); border-radius: 8px; font-size: 14px; }
+  .result-guidance p { margin: 4px 0 0; }
+  .result-details { border-top: 1px solid var(--hair); padding-top: 10px; font-size: 13px; }
+  .result-details summary { cursor: pointer; color: var(--muted); }
+  .result-details pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 240px; overflow: auto; }
   .result-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; padding-top: 10px; border-top: 1px solid var(--hair); font-size: 13px; color: var(--muted); }
   .result-foot > span { flex: 1 1 260px; }
   .result-foot a { font-weight: 600; }
@@ -484,6 +494,7 @@
   .dash-list a { color: var(--ink); text-decoration: none; font-weight: 550; }
   .dash-list a:hover { color: var(--accent); }
 </style>
+<link rel="stylesheet" href="/static/dashboard.css">
 </head>
 <body>
 <div class="shell">
@@ -492,7 +503,8 @@
       <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l5 13.5 2.2-6.3L16.5 8z"/><path d="M13 13l2.6 8 1.3-3.7 3.7-1.3z"/></svg></span>
       <span class="brand-name"><strong>AutoCollab</strong><span class="org-name" id="orgName" hidden></span></span>
     </a>
-    <div class="nav">
+    <button type="button" class="btn btn-outline mobile-nav-toggle" id="mobileNavToggle" aria-expanded="false" aria-controls="primaryNavLinks mobileNavAccount">Menu</button>
+    <div class="nav" id="primaryNavLinks">
       <a href="#/tableau-de-bord" data-nav="dashboard">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
         Tableau de bord
@@ -534,7 +546,7 @@
       <span class="nav-title">Récents</span>
       <div id="recent" style="display: contents"></div>
     </div>
-    <div class="side-foot">
+    <div class="side-foot" id="mobileNavAccount">
       <div class="nav">
         <a href="/guide" target="_blank">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.7c0 1.7-2.4 2.3-2.4 3.8M12 17h.01"/></svg>
@@ -566,50 +578,58 @@
     <header class="page-head">
       <div>
         <h1>Tableau de bord</h1>
-        <p>L'activité de vos agents sur les 30 derniers jours.</p>
+        <p>Vos priorités, vos agents et la suite de votre journée.</p>
+      </div>
+      <div class="dash-head-actions">
+        <button type="button" class="btn btn-outline" id="dashTemplatesBtn">Partir d'un modèle</button>
+        <button type="button" class="btn btn-primary" id="dashNewTaskBtn">+ Nouvelle tâche</button>
       </div>
     </header>
-    <div class="kpis">
-      <section class="card kpi"><span class="kpi-label">Exécutions</span><span class="kpi-value" id="kpiRuns">0</span><span class="sub" id="kpiRunsSub"></span></section>
-      <section class="card kpi"><span class="kpi-label">Taux de réussite</span><span class="kpi-value" id="kpiRate">—</span><span class="sub" id="kpiRateSub"></span></section>
-      <section class="card kpi"><span class="kpi-label">Temps de travail des agents</span><span class="kpi-value" id="kpiTime">0 min</span><span class="sub">Durée cumulée des exécutions terminées</span></section>
-      <section class="card kpi"><span class="kpi-label">En cours</span><a class="kpi-value" id="kpiActive" href="#/executions">0</a><span class="sub" id="kpiActiveSub"></span></section>
-    </div>
-    <section class="card" style="display: flex; flex-direction: column; gap: 14px">
-      <div class="row-between">
-        <h2 class="label" style="margin: 0">Activité · 14 derniers jours</h2>
-        <div class="legend">
-          <span><i style="background: var(--ok)"></i>Réussies</span>
-          <span><i style="background: var(--err)"></i>Échecs</span>
-          <span><i style="background: var(--dot)"></i>Autres</span>
-        </div>
+    <section class="dash-focus" id="dashFocus" aria-labelledby="dashFocusTitle">
+      <span class="dash-focus-icon" id="dashFocusIcon" aria-hidden="true"></span>
+      <div class="dash-focus-copy">
+        <span class="dash-eyebrow">Votre espace de travail</span>
+        <h2 id="dashFocusTitle">Bienvenue dans AutoCollab</h2>
+        <p id="dashFocusText">Choisissez un modèle pour préparer votre premier agent.</p>
       </div>
-      <div>
-        <div class="chart" id="dashChart" role="group" aria-label="Exécutions par jour"></div>
-        <div class="chart-days" id="dashDays" aria-hidden="true"></div>
+      <a class="btn btn-outline" id="dashFocusAction" href="#/agents">Mes agents →</a>
+    </section>
+    <div class="dash-workspace">
+      <section class="card" aria-labelledby="dashTodoTitle">
+        <div class="dash-section-head"><h2 class="label" id="dashTodoTitle">À traiter<span class="dash-count" id="dashTodoCount">0</span></h2><a href="#/executions">Historique →</a></div>
+        <ul class="dash-list" id="dashTodo"></ul>
+        <div class="dash-empty" id="dashTodoEmpty"><strong>Vous êtes à jour</strong><p>Aucune validation en attente ni dernier essai en échec cette semaine.</p><a class="btn btn-outline btn-sm" href="#/agents">Voir mes agents</a></div>
+        <p class="dash-footnote">Validations en premier. Un seul échec par agent : son dernier essai sur 7 jours.</p>
+      </section>
+      <section class="card" aria-labelledby="dashNextTitle">
+        <div class="dash-section-head"><h2 class="label" id="dashNextTitle">À venir</h2><a href="#/planification">Planification →</a></div>
+        <ul class="dash-list" id="dashNext"></ul>
+        <div class="dash-empty" id="dashNextEmpty"><strong>Votre prochaine routine commence ici</strong><p>Planifiez un agent pour retrouver son prochain passage ici.</p><a class="btn btn-outline btn-sm" href="#/agents">Choisir un agent</a></div>
+        <p class="dash-footnote">Les horaires suivent le fuseau du serveur.</p>
+      </section>
+    </div>
+    <section aria-labelledby="dashStatsTitle">
+      <div class="dash-section-head"><h2 class="label" id="dashStatsTitle">Vue d'ensemble</h2><span class="dash-period">30 derniers jours</span></div>
+      <div class="kpis">
+        <section class="card kpi"><span class="kpi-label">Exécutions</span><span class="kpi-value" id="kpiRuns">0</span><span class="sub" id="kpiRunsSub"></span></section>
+        <section class="card kpi"><div class="kpi-label-row"><span class="kpi-label">Taux de réussite</span><details class="kpi-help"><summary aria-label="Comment est calculé le taux de réussite ?">?</summary><p>Sur les exécutions achevées, arrêts et interruptions inclus.</p></details></div><span class="kpi-value" id="kpiRate">—</span><span class="sub" id="kpiRateSub"></span></section>
+        <section class="card kpi"><div class="kpi-label-row"><span class="kpi-label">Durée cumulée</span><details class="kpi-help"><summary aria-label="Que comprend la durée cumulée ?">?</summary><p>De la mise en file à la fin, attentes incluses.</p></details></div><span class="kpi-value" id="kpiTime">0 min</span><span class="sub">Attentes incluses</span></section>
+        <section class="card kpi"><span class="kpi-label">En cours</span><a class="kpi-value" id="kpiActive" href="#/executions">0</a><span class="sub" id="kpiActiveSub"></span></section>
       </div>
     </section>
-    <div class="dash-grid">
-      <section class="card">
-        <h2 class="label">À traiter</h2>
-        <ul class="dash-list" id="dashTodo"></ul>
-        <p class="empty" id="dashTodoEmpty">Rien à traiter : aucune validation en attente ni échec récent.</p>
-      </section>
-      <section class="card">
-        <div class="row-between" style="margin-bottom: 14px">
-          <h2 class="label" style="margin: 0">Prochaines exécutions</h2>
-          <a class="sub" href="#/planification">Planification</a>
+    <div class="dash-reporting">
+      <section class="card" aria-labelledby="dashActivityTitle">
+        <div class="dash-section-head"><h2 class="label" id="dashActivityTitle">Activité</h2><span class="dash-period">14 derniers jours</span></div>
+        <div class="legend">
+          <span><i style="background: var(--ok)"></i>Réussies</span><span><i style="background: var(--err)"></i>Échecs</span><span><i style="background: var(--dot)"></i>Autres</span>
         </div>
-        <ul class="dash-list" id="dashNext"></ul>
-        <p class="empty" id="dashNextEmpty">Aucune exécution planifiée.</p>
+        <div class="chart" id="dashChart" role="group" aria-label="Exécutions par jour"></div>
+        <div class="chart-days" id="dashDays" aria-hidden="true"></div>
       </section>
-      <section class="card">
-        <div class="row-between" style="margin-bottom: 14px">
-          <h2 class="label" style="margin: 0">Agents les plus utilisés</h2>
-          <a class="sub" href="#/agents">Mes agents</a>
-        </div>
+      <section class="card" aria-labelledby="dashTopTitle">
+        <div class="dash-section-head"><h2 class="label" id="dashTopTitle">Vos agents réguliers</h2><a href="#/agents">Tous les agents →</a></div>
         <ul class="dash-list" id="dashTop"></ul>
-        <p class="empty" id="dashTopEmpty">Aucun agent lancé ces 30 derniers jours.</p>
+        <div class="dash-empty" id="dashTopEmpty"><strong>Prêt pour un premier essai ?</strong><p>Les agents que vous utilisez le plus apparaîtront ici.</p><button type="button" class="btn btn-outline btn-sm" id="dashEmptyTemplateBtn">Découvrir les modèles</button></div>
       </section>
     </div>
   </main>
@@ -622,6 +642,7 @@
         <p>Des consignes enregistrées, prêtes à relancer chaque mois. Leur historique est dans <a href="#/executions" data-runs-kind="agent">Exécutions</a>.</p>
       </div>
       <div class="head-actions"><div class="seg scope-seg" role="group" aria-label="Afficher"><button type="button" data-scope="mine" aria-pressed="true">Les miens</button><button type="button" data-scope="all" aria-pressed="false">Toute l'organisation</button></div>
+      <button class="btn btn-outline" id="atplBtn">Partir d'un modèle</button>
       <button class="btn btn-primary" id="newAgentBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
         Nouvel agent
@@ -632,7 +653,8 @@
     <div class="toolbar list-toolbar" data-tools="agents"></div>
     <section class="agent-grid" id="agentGrid" aria-label="Agents"></section>
     <p class="empty" id="agentsNoMatch" hidden>Aucun agent ne correspond à ces critères.</p>
-    <p class="empty empty-start" id="agentsEmpty" hidden>Aucun agent pour l'instant. Cliquez sur « Nouvel agent », ou enregistrez une tâche qui a bien fonctionné avec « Enregistrer comme agent ».</p>
+    <p class="empty empty-start" id="agentsEmpty" hidden>Aucun agent pour l'instant. Partez d'un modèle ci-dessous, cliquez sur « Nouvel agent », ou enregistrez une tâche qui a bien fonctionné avec « Enregistrer comme agent ».</p>
+    <section class="atpl-inline" id="atplInline" hidden aria-label="Modèles d'agents"></section>
 
   </main>
 
@@ -964,6 +986,7 @@
             <tr><td class="main"><code>update_firm_context</code></td><td><code>idem</code></td><td>Modifie le contexte de l'organisation — administrateurs</td><td><span class="acc admin">admin</span></td></tr>
             <tr><td class="main"><code>list_agents</code></td><td><code>—</code></td><td>Vos agents : consigne, garde-fous, planification, dernière exécution</td><td><span class="acc public">lecture</span></td></tr>
             <tr><td class="main"><code>list_variables</code></td><td><code>—</code></td><td>Variables utilisables dans une consigne</td><td><span class="acc public">lecture</span></td></tr>
+            <tr><td class="main"><code>list_templates</code></td><td><code>—</code></td><td>Modèles d'agents prêts à l'emploi</td><td><span class="acc public">lecture</span></td></tr>
             <tr><td class="main"><code>create_agent</code></td><td><code>name, instructions, allowed_domains?, approval_mode?, schedule?…</code></td><td>Crée un agent (sans le lancer)</td><td><span class="acc ">modifie</span></td></tr>
             <tr><td class="main"><code>update_agent</code></td><td><code>agent_id + champs à changer</code></td><td>Modifie un agent</td><td><span class="acc ">modifie</span></td></tr>
             <tr><td class="main"><code>run_agent</code></td><td><code>agent_id</code></td><td>Lance un agent</td><td><span class="acc admin">agit sur les sites</span></td></tr>
@@ -1180,6 +1203,14 @@
     </div>
   </main>
 </div>
+
+<dialog id="atplDlg" aria-labelledby="atplDlgTitle">
+  <h2 id="atplDlgTitle">Partir d'un modèle</h2>
+  <div class="dialog-body">
+    <p class="hint" style="margin: 0">Le modèle ouvre le formulaire « Nouvel agent » déjà rempli. Complétez ce qui est marqué <span class="atpl-todo">[À COMPLÉTER]</span>, vérifiez les sites autorisés, puis enregistrez.</p>
+    <div id="atplList"></div>
+  </div>
+</dialog>
 
 <dialog id="agentDlg">
   <form method="dialog" id="agentForm" autocomplete="off">
@@ -1495,6 +1526,7 @@ const ACTIVE = ["en_attente", "en_cours", "a_valider"];
 const JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const svg = (paths, extra = "") => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${paths}</svg>`;
 const ICON = {
+  clock: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
   agent: svg('<rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 7V4M9 12h.01M15 12h.01M9 16h6"/>'),
   check: svg('<path d="M20 6 9 17l-5-5"/>', 'stroke-width="3"'),
   info: svg('<path d="M12 16v-4M12 8h.01"/>', 'stroke-width="3"'),
@@ -2025,18 +2057,51 @@ function workTime(seconds) {
 }
 const plural = (n, word) => `${n} ${word}${n > 1 ? "s" : ""}`;
 
+$("dashNewTaskBtn").onclick = () => $("newTaskBtn").click();
+for (const id of ["dashTemplatesBtn", "dashEmptyTemplateBtn"]) $(id).onclick = () => $("atplBtn").click();
+const mobileSide = $("mobileNavToggle").closest(".side");
+let mobileNavFocusPending = false;
+function focusPageHeading() {
+  const heading = document.querySelector("main:not([hidden]) h1");
+  if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }); }
+}
+function closeMobileNav() {
+  mobileSide.classList.remove("nav-open");
+  $("mobileNavToggle").setAttribute("aria-expanded", "false");
+}
+$("mobileNavToggle").onclick = () => {
+  const open = mobileSide.classList.toggle("nav-open");
+  $("mobileNavToggle").setAttribute("aria-expanded", String(open));
+};
+mobileSide.addEventListener("keydown", e => {
+  if (e.key === "Escape" && mobileSide.classList.contains("nav-open")) {
+    closeMobileNav(); $("mobileNavToggle").focus();
+  }
+});
+mobileSide.addEventListener("click", e => {
+  const link = e.target.closest('a[href^="#/"]');
+  if (!link || !mobileSide.classList.contains("nav-open")) return;
+  closeMobileNav();
+  if (link.hash === location.hash) focusPageHeading();
+  else mobileNavFocusPending = true;
+});
+window.addEventListener("hashchange", () => {
+  if (mobileNavFocusPending) { mobileNavFocusPending = false; focusPageHeading(); }
+});
+
 function renderDashboard() {
   const now = new Date(), since = new Date(now - 30 * 864e5);
   const recent = runs.filter(r => parseTime(r.created_at) >= since);
   const ok = recent.filter(r => r.status === "termine").length;
   const failed = recent.filter(r => r.status === "echec").length;
-  const ended = recent.filter(r => !isActive(r)).length;
+  const totals = RunFeedback.stats(recent);
   const active = runs.filter(isActive), toValidate = runs.filter(r => r.status === "a_valider");
 
   $("kpiRuns").textContent = recent.length;
   $("kpiRunsSub").textContent = recent.length ? `dont ${plural(recent.filter(r => r.trigger === "planifie").length, "planifiée")}` : "Aucune exécution";
-  $("kpiRate").textContent = ended ? `${Math.round(ok / ended * 100)} %` : "—";
-  $("kpiRateSub").textContent = ended ? `${plural(ok, "réussie")} · ${plural(failed, "échec")}` : "Aucune exécution terminée";
+  $("kpiRate").textContent = totals.rate === null ? "—" : `${totals.rate} %`;
+  $("kpiRateSub").textContent = totals.rate === null ? "Aucune exécution terminée"
+    : `${plural(ok, "réussie")} · ${plural(failed, "échec")}` + (totals.other ? ` · ${plural(totals.other, "autre")}` : "");
   const seconds = recent.filter(r => r.finished_at).reduce((s, r) => s + Math.max(0, (parseTime(r.finished_at) - parseTime(r.created_at)) / 1000), 0);
   $("kpiTime").textContent = workTime(seconds);
   $("kpiActive").textContent = active.length;
@@ -2059,25 +2124,44 @@ function renderDashboard() {
   }).join("") + `<div class="chart-tip" id="dashTip" hidden></div>`;
   $("dashDays").innerHTML = days.map(x => `<span>${x.d.getDate()}</span>`).join("");
 
-  // To handle: pending approvals, then failures of the last 7 days.
-  const weekAgo = new Date(now - 7 * 864e5);
-  const todo = [...toValidate, ...runs.filter(r => r.status === "echec" && parseTime(r.created_at) >= weekAgo)].slice(0, 6);
+  // Prioritize approvals, then the most recent attempt for each agent.
+  const priorities = Dashboard.priorities(runs, now.getTime());
+  const todo = priorities.slice(0, 4);
+  $("dashTodoCount").textContent = priorities.length;
   $("dashTodoEmpty").hidden = todo.length > 0;
-  $("dashTodo").innerHTML = todo.map(r => `<li>${runPill(r)}<a class="grow" href="#/executions/${r.id}">${esc(runName(r))}</a><span class="sub">${whenLabel(r.created_at)}</span></li>`).join("");
+  $("dashTodo").innerHTML = todo.map(r => `<li><a class="dash-item" href="#/executions/${r.id}">
+    <span class="dash-item-icon attention" aria-hidden="true">${r.status === "a_valider" ? ICON.info : ICON.failed}</span>
+    <span class="dash-item-main"><span class="dash-item-title">${esc(runName(r))}</span><span class="dash-item-meta">${runPill(r)}<span>${whenLabel(r.created_at)}</span></span></span>
+    <span class="dash-item-action">${r.status === "a_valider" ? "Examiner" : "Comprendre"} →</span></a></li>`).join("");
 
-  const next = agentsList.filter(a => a.schedule_enabled && a.next_run_at)
+  const focusTitle = toValidate.length ? `${plural(toValidate.length, "action")} à valider`
+    : priorities.length ? `${plural(priorities.length, "exécution")} à vérifier`
+    : active.length ? "Vos agents sont au travail" : recent.length ? "Vous êtes à jour" : "Votre première tâche commence ici";
+  $("dashFocusTitle").textContent = focusTitle;
+  $("dashFocusText").textContent = toValidate.length ? "Votre accord est attendu pour poursuivre."
+    : priorities.length ? "Consultez le dernier essai pour décider de la suite."
+    : active.length ? "Suivez leur progression et retrouvez les fichiers au même endroit."
+    : recent.length ? "Aucune intervention en attente. Préparez la prochaine tâche à déléguer."
+    : "Partez d'un modèle ou décrivez simplement ce que vous souhaitez accomplir.";
+  $("dashFocus").dataset.state = priorities.length ? "attention" : "ready";
+  $("dashFocusIcon").innerHTML = priorities.length ? ICON.info : ICON.done;
+  $("dashFocusAction").href = priorities.length ? `#/executions/${priorities[0].id}` : active.length ? `#/executions/${active[0].id}` : "#/agents";
+  $("dashFocusAction").textContent = toValidate.length ? "Examiner l'action →" : priorities.length ? "Voir l'exécution →" : active.length ? "Suivre l'exécution →" : "Mes agents →";
+
+  const next = [...agentsList.map(a => ({...a, type: "Agent"})), ...chainList.map(c => ({...c, type: "Chaîne"}))].filter(a => a.schedule_enabled && a.next_run_at)
     .sort((a, b) => parseTime(a.next_run_at) - parseTime(b.next_run_at)).slice(0, 5);
   $("dashNextEmpty").hidden = next.length > 0;
-  $("dashNext").innerHTML = next.map(a => `<li><span class="grow"><a href="#/planification">${esc(a.name)}</a> <span class="sub">· ${esc(a.schedule_label)}</span></span><span class="sub">${whenLabel(a.next_run_at)}</span></li>`).join("");
+  $("dashNext").innerHTML = next.map(a => `<li><a class="dash-item" href="#/planification"><span class="dash-item-icon scheduled" aria-hidden="true">${ICON.clock}</span><span class="dash-item-main"><span class="dash-item-title">${esc(a.name)}</span><span class="dash-item-meta"><span>${esc(a.type)}</span><span>· ${esc(a.schedule_label || "")}</span></span><span class="dash-item-action">${whenLabel(a.next_run_at)}</span></span><span aria-hidden="true">↗</span></a></li>`).join("");
 
   const counts = {};
   for (const r of recent) if (r.agent_id) {
-    const c = counts[r.agent_id] ||= { name: r.agent_name, n: 0, ok: 0 };
+    const c = counts[r.agent_id] ||= { name: r.agent_name, n: 0, ok: 0, last: r };
+    if (parseTime(r.created_at) > parseTime(c.last.created_at)) c.last = r;
     c.n++; if (r.status === "termine") c.ok++;
   }
   const top = Object.values(counts).sort((a, b) => b.n - a.n).slice(0, 5);
   $("dashTopEmpty").hidden = top.length > 0;
-  $("dashTop").innerHTML = top.map(c => `<li><span class="grow" style="font-weight: 550">${esc(c.name)}</span><span class="sub">${plural(c.n, "exécution")} · ${Math.round(c.ok / c.n * 100)} % réussies</span></li>`).join("");
+  $("dashTop").innerHTML = top.map((c, i) => `<li><a class="dash-top-link" href="#/executions/${c.last.id}" aria-label="${esc(c.name)} : dernière exécution"><span class="dash-rank" aria-hidden="true">0${i + 1}</span><span class="dash-item-main"><span class="dash-item-title">${esc(c.name)}</span><span class="dash-item-meta">${plural(c.n, "exécution")} · ${Math.round(c.ok / c.n * 100)} % réussies</span></span><span aria-hidden="true">↗</span></a></li>`).join("");
 }
 
 function dashTip(e) {
@@ -2140,6 +2224,10 @@ function renderAgents() {
   UI.paginate(grid, items, (page) => mode === "list" ? agentsListHtml(page)
     : page.map(agentCard).join(""), renderAgents, mode === "list" ? 25 : 12, mode === "list" ? [25, 50, 100] : [12, 24, 48]);
   $("agentsEmpty").hidden = all.length > 0;
+  // No agent yet: the templates are the quickest start, so they show right on the page.
+  const showTpl = !team && !all.length;
+  $("atplInline").hidden = !showTpl;
+  if (showTpl) loadTemplates().then(c => { $("atplInline").innerHTML = tplCards(c); }).catch(() => { $("atplInline").hidden = true; });
 }
 
 // A colleague's agent or chain: what it does and how it went, without any action but looking.
@@ -2222,6 +2310,35 @@ window.openAgentDraft = (d) => {
   $("agentApproval").checked = !!d.approval_mode;
   $("agentMaxSteps").value = d.max_steps || "";
 };
+// Agent templates (app/templates.py): a template opens the same pre-filled form as a draft,
+// with the first [À COMPLÉTER : …] selected so the person types over it.
+let tplCatalog = null;
+const loadTemplates = async () => tplCatalog || (tplCatalog = await api("/api/templates"));
+function tplCards({ categories, templates }) {
+  return categories.map(c => {
+    const items = templates.filter(t => t.category === c.id);
+    return !items.length ? "" : `<div class="atpl-group"><h3>${esc(c.label)}</h3><div class="atpl-grid">${items.map(t => `
+      <button type="button" class="atpl-card" data-atpl="${esc(t.id)}">
+        <strong>${esc(t.name)}</strong><span>${esc(t.summary)}</span>
+        <span class="atpl-meta">${esc(t.allowed_domains.join(", "))}${t.approval_mode ? "<em> · avec validation</em>" : ""}</span>
+        <span class="atpl-cost" title="Estimation pour le modèle d'IA choisi dans l'administration : le coût réel dépend du nombre d'étapes.">≈ ${t.estimate.credits} crédits par exécution · ${t.estimate.max_credits} au plus</span>
+      </button>`).join("")}</div></div>`;
+  }).join("");
+}
+function useTemplate(id) {
+  const t = tplCatalog?.templates.find(x => x.id === id);
+  if (!t) return;
+  if ($("atplDlg").open) $("atplDlg").close();
+  openAgentDraft(t);
+  const ta = $("agentInstructions"), at = ta.value.indexOf("[À COMPLÉTER");
+  if (at >= 0) { ta.focus(); ta.setSelectionRange(at, ta.value.indexOf("]", at) + 1 || at); }
+}
+$("atplBtn").onclick = async () => {
+  try { await loadTemplates(); } catch (e) { toast(e.message); return; }
+  $("atplList").innerHTML = tplCards(tplCatalog);
+  $("atplDlg").showModal();
+};
+document.addEventListener("click", (e) => { const b = e.target.closest("[data-atpl]"); if (b) useTemplate(b.dataset.atpl); });
 $("newAgentBtn").onclick = () => openAgentDialog(null);
 $("saveAsAgentBtn").onclick = () => { const text = $("task").value.trim(); $("newTaskDlg").close(); openAgentDialog(null, text); };
 $("saveRunAsAgentBtn").onclick = () => { if (currentRun) openAgentDialog(null, currentRun.task); };
@@ -2287,6 +2404,7 @@ $("startBtn").onclick = async () => {
 // --- run detail ------------------------------------------------------------
 
 let tab = "browser", frames = [], recIndex = 0, liveFrame = null, liveBlobUrl = null, stepCount = 0, lastUrl = "";
+let lastRunError = "";
 const hostOf = (u) => { try { return new URL(u).host; } catch { return u; } };
 // The check mark already says it worked: drop the model's "Succès :" / "Success -" prefix.
 const stripSuccess = (s) => s.replace(/^\s*(succès|success)\s*[:\-–]\s*/i, "").replace(/^./, c => c.toUpperCase());
@@ -2342,6 +2460,7 @@ async function openRun(id) {
     try { currentRun = await api(`/api/tasks/${id}`); } catch { toast("Exécution introuvable."); location.hash = "#/executions"; return; }
   }
   frames = []; recIndex = 0; liveFrame = null; stepCount = 0; lastUrl = ""; tab = "browser";
+  lastRunError = "";
   $("steps").innerHTML = ""; $("stepsEmpty").hidden = false;
   $("result").hidden = true; $("result").innerHTML = "";
   $("recCount").textContent = "0";
@@ -2393,6 +2512,7 @@ function renderEvent(ev) {
       </div></li>`);
     scheduleFiles();
   } else if (ev.type === "info" || ev.type === "error") {
+    if (ev.type === "error") lastRunError = ev.message || "";
     $("stepsEmpty").hidden = true;
     list.insertAdjacentHTML("beforeend", `<li class="${ev.type}"><div class="rail"><span class="mark">${ev.type === "error" ? ICON.error : ICON.info}</span><span class="line"></span></div>
       <div class="step-body"><div class="step-title">${ev.type === "error" ? "Erreur" : "Info"}<span class="step-time">${hms(ev.time)}</span></div><div class="step-text">${esc(ev.message)}</div></div></li>`);
@@ -2424,10 +2544,15 @@ function renderEvent(ev) {
   } else if (ev.type === "done") {
     if (currentRun) { currentRun.status = ev.status; currentRun.finished_at = ev.time; renderRunHeader(); }
     const ok = ev.status === "termine";
-    $("result").className = "result" + (ok ? "" : " bad");
-    $("result").innerHTML = `<div class="result-head">${ok ? ICON.done : ICON.failed}<h2>${ok ? "Résultat" : "Fin de la tâche"}</h2>
-        ${ev.result ? `<button type="button" class="btn btn-outline btn-sm" data-copy-result>${ICON.copy}<span>Copier</span></button>` : ""}</div>
-      <div class="result-text">${esc(ev.result || "Aucun résultat renvoyé par l'agent.")}</div>
+    const error = ev.error || lastRunError;
+    const feedback = RunFeedback.describe(ev.status, error);
+    const report = ev.result && (ok || ev.result !== error) ? ev.result : "";
+    $("result").className = "result" + (ok ? "" : ev.status === "echec" ? " bad" : " advisory");
+    $("result").innerHTML = `<div class="result-head">${ok ? ICON.done : ICON.failed}<h2>${esc(feedback ? feedback.title : "Résultat")}</h2>
+        ${report ? `<button type="button" class="btn btn-outline btn-sm" data-copy-result>${ICON.copy}<span>Copier</span></button>` : ""}</div>
+      ${feedback ? `<div>${esc(feedback.message)}</div><div class="result-guidance"><strong>Prochaine étape</strong><p>${esc(feedback.advice)}</p></div>` : ""}
+      ${report ? `${ok ? "" : "<strong>Compte rendu de l'agent</strong>"}<div class="result-text">${esc(report)}</div>` : ok ? '<div class="result-text">Aucun résultat renvoyé par l\'agent.</div>' : ""}
+      ${feedback && error ? `<details class="result-details"><summary>Détails de l'erreur</summary><pre>${esc(error)}</pre></details>` : ""}
       ${ok && ev.result ? `<div class="result-foot"><span>Résultat produit par l'IA : vérifiez-le avant de l'utiliser.</span>
         ${lastUrl ? `<a href="${esc(lastUrl)}" target="_blank" rel="noopener noreferrer">Ouvrir la page source ↗</a>` : ""}</div>` : ""}`;
     $("result").hidden = false;
@@ -3516,6 +3641,7 @@ async function loadChains() {
   [chainList, chainRuns] = await Promise.all([api("/api/chains"), api("/api/chain-runs")]);
   renderChains();
   renderSchedules();  // scheduled chains are listed there too, and counted in the menu
+  if (view === "dashboard") renderDashboard();
 }
 
 const flowHtml = (steps) => `<div class="flow">${steps.map((st, i) => `${i ? '<span class="arrow" aria-hidden="true">→</span>' : ""}<span class="node ${st.agent_name === "Agent supprimé" ? "missing" : ""}" title="${esc(st.agent_name)}${st.on_failure === "continue" ? " (continue si échec)" : ""}">${i + 1}. ${esc(st.agent_name)}</span>`).join("")}</div>`;

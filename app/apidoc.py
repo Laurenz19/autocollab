@@ -52,6 +52,14 @@ DOCS: dict[str, dict] = {
     "GET /api/config": {"group": "compte", "summary": "Réglages visibles par tous",
         "response": {"provider": "anthropic", "model": "claude-sonnet-5-5", "vision": True, "headless": True, "max_steps": 40, "browser": "Chromium (intégré)", "approval_timeout": 60}},
     "GET /api/variables": {"group": "agents", "summary": "Variables de date disponibles", "response": {"mois_precedent": "mois précédent (septembre 2026)"}},
+    "GET /api/templates": {"group": "agents", "summary": "Modèles d'agents",
+        "description": "Brouillons prêts à l'emploi, par catégorie. Ce qui est marqué [À COMPLÉTER : …] est à remplir avant d'enregistrer l'agent (POST /api/agents). estimate : crédits d'une exécution type (typical_steps) et au plus (max_steps), pour le modèle d'IA actuel.",
+        "response": {"categories": [{"id": "compta", "label": "Comptabilité"}], "credits_per_step": 1.6,
+                     "templates": [{"id": "justificatifs-manquants", "category": "compta", "name": "Justificatifs manquants du mois",
+                                    "summary": "Liste les transactions bancaires de Pennylane sans justificatif sur le mois précédent.",
+                                    "instructions": "Sur Pennylane, ouvre le dossier [À COMPLÉTER : nom du client]…",
+                                    "allowed_domains": ["*.pennylane.com"], "approval_mode": False, "max_steps": 40, "typical_steps": 15,
+                                    "to_complete": True, "estimate": {"credits": 24, "max_credits": 64}}]}},
     "POST /api/variables/preview": {"group": "agents", "summary": "Remplir les variables d'une consigne",
         "body": {"instructions": "Relevés de {mois_precedent}"}, "response": {"text": "Relevés de septembre 2026"}},
     # --- tâches
@@ -146,8 +154,14 @@ DOCS: dict[str, dict] = {
     "POST /api/assistant/chat": {"group": "assistant", "summary": "Poser une question à l'assistant",
         "description": "Réponse en flux (text/event-stream) : conversation, puis tool et delta au fil de l'eau, puis done ou error. "
                        "Lecture seule : l'assistant consulte agents, exécutions, chaînes et contexte de l'utilisateur, sans rien modifier. "
-                       "Sans conversation_id, une nouvelle conversation est créée.",
-        "body": {"message": "Pourquoi ma dernière exécution a-t-elle échoué ?", "conversation_id": None, "page": "/#/executions", "lang": "fr"}},
+                       "Sans conversation_id, une nouvelle conversation est créée. provider et model (facultatifs) choisissent "
+                       "l'un des modèles de GET /api/assistant/models ; sans eux, le modèle choisi dans l'administration.",
+        "body": {"message": "Pourquoi ma dernière exécution a-t-elle échoué ?", "conversation_id": None, "page": "/#/executions", "lang": "fr",
+                 "provider": "anthropic", "model": "claude-sonnet-5-5"}},
+    "GET /api/assistant/models": {"group": "assistant", "summary": "Modèles proposés à l'assistant",
+        "description": "Les modèles des fournisseurs dont une clé est enregistrée ; le premier, default: true, est celui de l'administration.",
+        "response": [{"provider": "anthropic", "provider_label": "Claude (Anthropic)", "model": "claude-sonnet-5-5", "default": True},
+                     {"provider": "anthropic", "provider_label": "Claude (Anthropic)", "model": "claude-haiku-5-5", "default": False}]},
     "GET /api/assistant/conversations": {"group": "assistant", "summary": "Mes conversations avec l'assistant",
         "response": [{"id": "23fe295d2c23", "title": "Pourquoi ma dernière exécution a-t-elle échoué ?", "updated_at": "2026-10-11T23:35:33"}]},
     "GET /api/assistant/conversations/{conversation_id}": {"group": "assistant", "summary": "Lire une conversation",

@@ -744,26 +744,12 @@ class TaskRun:
             live_task = asyncio.create_task(self._live_loop(context))
             history = await self._agent.run(max_steps=self.max_steps)
 
-            self.result = history.final_result()
-            errors = [e for e in history.errors() if e]
-            if self._stuck:
-                self.status = "echec"
-                self.publish("error", message="L'agent répétait la même action sans résultat : exécution arrêtée pour ne pas consommer d'étapes inutilement. "
-                                              "Vérifiez la dernière capture ; si un bouton ne réagit pas, précisez dans la consigne une autre façon de faire.")
-                errors = []
-            elif self._stop_requested:
-                self.status = "arrete"
-            elif history.is_done() and history.is_successful() is not False:
-                self.status = "termine"
-            else:
-                self.status = "echec"
-            if errors and self.status != "termine":
-                last_error = _explain_error(errors[-1])
-                self.publish("error", message=last_error)
+            last_error = self._apply_outcome(history)
         except Exception as e:
             logger.exception("Task %s failed", self.id)
             self.status = "echec"
             last_error = _explain_error(str(e))
+            self.result = last_error
             self.publish("error", message=last_error)
         finally:
             self._account(step=False)  # calls after the last step (e.g. reading a page for the result)
@@ -777,10 +763,38 @@ class TaskRun:
                         logger.debug("Close failed", exc_info=True)
             self.finished_at = _now()
             self.save()
-            self.publish("done", status=self.status, result=self.result)
+            self.publish("done", status=self.status, result=self.result, error=last_error)
             (self.dir / "summary.json").write_text(
                 json.dumps(self.summary(), ensure_ascii=False, indent=2), encoding="utf-8"
             )
+
+    def _apply_outcome(self, history) -> str | None:
+        """Keep a useful terminal result for the API, chains and the event history."""
+        self.result = history.final_result()
+        error = None
+        if self._stop_requested:
+            self.status = "arrete"
+        elif self._stuck:
+            self.status = "echec"
+            error = ("L'agent répétait la même action sans résultat : exécution arrêtée pour ne pas consommer d'étapes inutilement. "
+                     "Vérifiez la dernière capture ; si un bouton ne réagit pas, précisez dans la consigne une autre façon de faire.")
+        elif history.is_done() and history.is_successful() is not False:
+            self.status = "termine"
+        else:
+            self.status = "echec"
+            # Earlier, recovered errors must not replace an explicit final failure from the agent.
+            if not history.is_done():
+                errors = history.errors()
+                error = _explain_error(errors[-1]) if errors and errors[-1] else (
+                    "Le nombre maximal d'étapes a été atteint sans terminer la tâche. "
+                    "Précisez la consigne ou découpez-la en plusieurs agents avant de relancer.")
+            elif not self.result:
+                error = "L'agent a signalé un échec sans en préciser la cause. Consultez les dernières étapes avant de relancer."
+        if error:
+            self.publish("error", message=error)
+            if not self.result:
+                self.result = error
+        return error
 
     @staticmethod
     async def _close_extra_tabs(context: BrowserContext) -> None:
@@ -933,6 +947,7 @@ def _explain_error(message: str) -> str:
     """Add a plain-French hint to the errors people hit most often."""
     text = str(message)
     hints = [
+        ("Could not parse response", "Le modèle d'IA a renvoyé une réponse au format invalide. Les tentatives de correction n'ont pas permis de terminer la tâche. Vérifiez les dernières actions avant de relancer ; si cela se reproduit, faites vérifier le modèle dans Administration › Intelligence artificielle."),
         ("close all existing Chrome instances", "Le navigateur de votre profil n'a pas pu démarrer (un ancien navigateur l'occupait). Relancez l'exécution ; si cela se reproduit, prévenez l'administrateur."),
         ("ECONNREFUSED", "Le navigateur n'a pas pu démarrer. Réessayez ; si le problème persiste, prévenez l'administrateur."),
         ("playwright install chromium", "Chromium n'est pas installé sur le serveur : l'administrateur doit lancer « playwright install chromium »."),

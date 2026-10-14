@@ -42,6 +42,8 @@ dis-lui où le faire dans l'application (ex. « Mes agents › Nouvel agent », 
 En cas de doute sur le fonctionnement, appelle get_documentation.
 - Avant de rédiger un agent, lis le contexte (get_context) : ne répète pas ce qu'il contient et ne le contredis pas. \
 Utilise les variables (list_variables) pour les dates, par exemple {mois_precedent}.
+- Avant de rédiger un agent, regarde aussi les modèles (list_templates) : si l'un correspond, pars de sa consigne et de ses \
+garde-fous, et remplace ce qui est marqué [À COMPLÉTER : …] par ce que l'utilisateur t'a dit, ou demande-le-lui.
 - Pour proposer un agent, écris un seul bloc ```agent contenant un JSON valide, que l'utilisateur pourra ouvrir \
 dans le formulaire et enregistrer lui-même :
 ```agent
@@ -60,6 +62,25 @@ allowed_domains aux sites nécessaires.
 
 class AssistantError(Exception):
     """A failure to show to the user as is (no key, provider error...)."""
+
+
+def available_models() -> list[dict]:
+    """The models the person can pick in the panel: those of every provider with a key, the one chosen
+    in Administration first (it is the default). A provider without a key could not answer anyway."""
+    current = settings.load()
+    keys = current["api_keys"]
+    out = []
+    for provider, p in settings.PROVIDERS.items():
+        if not (keys.get(provider) or "").strip():
+            continue
+        names = list(p["models"])
+        if provider == current["provider"] and current["model"] not in names:
+            names.insert(0, current["model"])
+        for model in names:
+            out.append({"provider": provider, "provider_label": p["label"], "model": model,
+                        "default": provider == current["provider"] and model == current["model"]})
+    out.sort(key=lambda m: not m["default"])
+    return out
 
 
 def _now() -> str:
@@ -180,7 +201,8 @@ def _provider_error(e: Exception) -> str:
     return f"Le fournisseur d'IA n'a pas pu répondre. Détail : {text[:250]}"
 
 
-async def chat(user: str, message: str, conversation_id: str | None, page: str, lang: str, manager, chain_manager, docs):
+async def chat(user: str, message: str, conversation_id: str | None, page: str, lang: str, manager, chain_manager, docs,
+               provider: str | None = None, model_name: str | None = None):
     """Answer one question. Yields events for the page: (kind, data) with kind in
     conversation | tool | delta | done | error. Saves the question at once and the answer at the end
     (also when the person closes the panel mid-answer: what was written so far is kept)."""
@@ -200,7 +222,12 @@ async def chat(user: str, message: str, conversation_id: str | None, page: str, 
     answer, used, finished = "", [], False
     try:
         try:
-            base = create_llm()
+            overrides = None
+            if provider and model_name:  # a model picked in the panel, only among those offered
+                if not any(m["provider"] == provider and m["model"] == model_name for m in available_models()):
+                    raise ValueError("Ce modèle n'est plus disponible : choisissez-en un autre sous le champ de saisie.")
+                overrides = {"provider": provider, "model": model_name}
+            base = create_llm(overrides)
             llm = base.bind_tools(_SPECS)
         except ValueError as e:
             raise AssistantError(str(e))

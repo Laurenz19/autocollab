@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from . import (agents, apidoc, assistant, auth, billing, browsers, chains, config, connections, context, files, guide, integrations, mcp,
-               netguard, oauth, pricing, schedule, settings, sites, tokens, twofa, usage)
+               netguard, oauth, pricing, schedule, settings, sites, templates, tokens, twofa, usage)
 from html import escape
 from .llm import create_llm
 from .auth import current_admin, current_user
@@ -182,13 +182,13 @@ class BrowserAction(BaseModel):
 
 
 class AISettings(BaseModel):
-    provider: Literal["anthropic", "mistral", "openai", "deepseek"]
+    provider: Literal["anthropic", "mistral", "openai", "deepseek", "nvidia"]
     model: str = Field(min_length=1, max_length=100)
     use_vision: bool = False
     deepseek_endpoint: str = Field(default=settings.DEFAULT_DEEPSEEK_ENDPOINT, max_length=300)
     # Empty or missing = keep the current key; a value replaces it.
-    api_keys: dict[Literal["anthropic", "mistral", "openai", "deepseek"], str] = {}
-    clear_keys: list[Literal["anthropic", "mistral", "openai", "deepseek"]] = []
+    api_keys: dict[Literal["anthropic", "mistral", "openai", "deepseek", "nvidia"], str] = {}
+    clear_keys: list[Literal["anthropic", "mistral", "openai", "deepseek", "nvidia"]] = []
 
 
 class ContextIn(BaseModel):
@@ -225,6 +225,8 @@ class AssistantMessage(BaseModel):
     conversation_id: str | None = Field(default=None, max_length=40)
     page: str = Field(default="", max_length=200)   # where the panel was opened, e.g. /#/executions/<id>
     lang: Literal["fr", "en"] = "fr"
+    provider: str | None = Field(default=None, max_length=40)   # a model picked in the panel (see /api/assistant/models)
+    model: str | None = Field(default=None, max_length=120)
 
 
 class MeChanges(BaseModel):
@@ -800,6 +802,11 @@ def _clean_agent_fields(changes: dict) -> dict:
 @app.get("/api/variables")
 def list_variables(user: str = Depends(current_user)):
     return agents.VARIABLES
+
+
+@app.get("/api/templates")
+def list_templates(user: str = Depends(current_user)):
+    return templates.catalog()
 
 
 @app.post("/api/variables/preview")
@@ -1419,6 +1426,11 @@ def revoke_oauth_grant(grant_id: str, user: str = Depends(current_user)):
 # --- in-app assistant (side panel, read only: see app/assistant.py) ------------------------
 
 
+@app.get("/api/assistant/models")
+def assistant_models(user: str = Depends(current_user)):
+    return assistant.available_models()
+
+
 @app.get("/api/assistant/conversations")
 def assistant_conversations(user: str = Depends(current_user)):
     return assistant.list_conversations(user)
@@ -1449,7 +1461,7 @@ async def assistant_chat(body: AssistantMessage, request: Request, user: str = D
 
     async def stream():
         async for kind, data in assistant.chat(user, body.message, body.conversation_id, body.page, body.lang,
-                                               manager, chain_manager, docs):
+                                               manager, chain_manager, docs, body.provider, body.model):
             yield f"event: {kind}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
@@ -1648,6 +1660,13 @@ async def task_events(task_id: str, user: str = Depends(current_user)):
             for event in list(run.events):
                 yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
             if run.events and run.events[-1]["type"] == "done":
+                return
+            # A server restart leaves no final event on disk. End the replay instead of
+            # keeping the page waiting forever for an execution that is already interrupted.
+            if run.status not in ("en_attente", "en_cours", "a_valider"):
+                event = {"type": "done", "status": run.status, "result": run.result,
+                         "time": run.finished_at or run.created_at}
+                yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
                 return
             while True:
                 try:
