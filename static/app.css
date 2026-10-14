@@ -553,3 +553,4 @@ dialog.agent-sheet { width: min(1080px, calc(100vw - 32px)); }
 .asst-sub { font-size: 11.5px; font-weight: 400; color: var(--muted); }
 #chainGrid:not(.as-list) { grid-template-columns: repeat(auto-fill, minmax(min(100%, 560px), 1fr)); }
 @media (max-width: 640px) { .asst { bottom: 76px !important; } }
+.side-search, .side-search:hover { text-decoration: none; }

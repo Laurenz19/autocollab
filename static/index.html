@@ -4455,6 +4455,8 @@ async function boot() {
     $("sideCredits").hidden = false;
   }).catch(() => {});
   showOrganisation(me.organisation);
+  // Coming from another page's « Rechercher ou lancer » (/?cmd): open the command bar here.
+  if (new URLSearchParams(location.search).has("cmd")) { history.replaceState(null, "", "/" + location.hash); setTimeout(() => openCmd(), 0); }
   meUser = me.username;
   isAdmin = !!me.admin;
   if (appCatalog.length) renderApps();
