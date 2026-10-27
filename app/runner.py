@@ -47,6 +47,65 @@ _browser_use_agent.SKIP_LLM_API_KEY_VERIFICATION = True
 LIVE_INTERVAL_SECONDS = 1.5
 
 
+class Screencast:
+    """Chrome's screencast of the agent's page: a JPEG each time the page changes, only while someone watches.
+
+    The live loop calls follow() with the agent's current page, so the stream moves with it to a new tab.
+    """
+
+    KEEPALIVE_SECONDS = 5  # the last frame again after this, so a closed viewer is noticed
+
+    def __init__(self):
+        self.frame: bytes | None = None
+        self.seq = 0
+        self.viewers = 0
+        self._page = None
+        self._cdp = None
+        self._changed = asyncio.Condition()
+
+    async def follow(self, page) -> None:
+        if self.viewers <= 0 or page is None:
+            await self.stop()
+            return
+        if page is self._page and self._cdp is not None:
+            return
+        await self.stop()
+        try:
+            cdp = await page.context.new_cdp_session(page)
+            cdp.on("Page.screencastFrame", lambda params: asyncio.create_task(self._received(cdp, params)))
+            await cdp.send("Page.startScreencast", {"format": "jpeg", "quality": 60, "maxWidth": 1280, "maxHeight": 1280})
+            self._cdp, self._page = cdp, page
+        except Exception:
+            logger.debug("Screencast not started", exc_info=True)
+
+    async def _received(self, cdp, params: dict) -> None:
+        try:
+            await cdp.send("Page.screencastFrameAck", {"sessionId": params["sessionId"]})  # else Chrome sends no more
+        except Exception:
+            pass
+        self.frame = base64.b64decode(params["data"])
+        self.seq += 1
+        async with self._changed:
+            self._changed.notify_all()
+
+    async def next_frame(self, seen: int) -> None:
+        """Wait for a frame newer than `seen`, at most KEEPALIVE_SECONDS."""
+        async with self._changed:
+            try:
+                await asyncio.wait_for(self._changed.wait_for(lambda: self.seq != seen), self.KEEPALIVE_SECONDS)
+            except asyncio.TimeoutError:
+                pass
+
+    async def stop(self) -> None:
+        cdp, self._cdp, self._page = self._cdp, None, None
+        if cdp is not None:
+            try:
+                await cdp.send("Page.stopScreencast")
+                await cdp.detach()
+            except Exception:
+                pass
+
+
 def _now() -> str:
     return datetime.now().isoformat(timespec="seconds")
 
@@ -109,6 +168,10 @@ _install_trusted_click()
 # Same action on the same page this many steps in a row: the agent is stuck, the run stops.
 MAX_REPEATS = 5
 
+# After a stop, the agent may end its current step cleanly for this long; past it, the step is cut short
+# (a slow model call or a page that never finishes loading would keep the browser open).
+STOP_GRACE_SECONDS = 5
+
 HIDE_HIGHLIGHTS_JS = """(() => {
   const add = () => {
     if (document.getElementById("ac-hide-highlights")) return;
@@ -157,6 +220,12 @@ class TaskRun:
         self.approval_mode = bool(options.get("approval_mode"))
         self.approval: dict | None = None
         self._approval_future: asyncio.Future | None = None
+        # Guided session: after each instruction the agent waits for the next message instead of ending the run.
+        self.guided = bool(options.get("guided"))
+        self.waiting_for_user = False
+        self._messages: asyncio.Queue | None = None
+        self._working = False
+        self._work_task: asyncio.Task | None = None
         self.uploads: list[dict] = []
         self.task = task
         self.agent_id = agent_id
@@ -179,6 +248,8 @@ class TaskRun:
         self.live_screenshot: bytes | None = None
         self.live_url = ""
         self.live_title = ""
+        self._screencast = Screencast()
+        self._live_context: BrowserContext | None = None
         self.dir: Path = config.RUNS_DIR / self.id
         self.dir.mkdir(parents=True, exist_ok=True)
         # Attachments are copied, so later changes to the agent's files don't alter this run.
@@ -208,6 +279,11 @@ class TaskRun:
         run.approval = None
         run.uploads = []
         run._approval_future = None
+        run.guided = bool(row["guided"]) if "guided" in row.keys() else False
+        run.waiting_for_user = False
+        run._messages = None
+        run._working = False
+        run._work_task = None
         run.headless = True
         run.max_steps = 0
         run.status = row["status"]
@@ -227,6 +303,8 @@ class TaskRun:
         run.live_screenshot = None
         run.live_url = ""
         run.live_title = ""
+        run._screencast = Screencast()
+        run._live_context = None
         run.dir = config.RUNS_DIR / run.id
         run._subscribers = set()
         run._agent = None
@@ -246,10 +324,10 @@ class TaskRun:
             conn.execute(
                 "INSERT INTO runs (id, owner, agent_id, agent_name, task, status, created_at, finished_at, result, steps, trigger,"
                 " chain_run_id, chain_name, provider, model,"
-                " input_tokens, output_tokens, cache_read_tokens, cache_write_tokens, cost_usd, credits)"
+                " input_tokens, output_tokens, cache_read_tokens, cache_write_tokens, cost_usd, credits, guided)"
                 " VALUES (:id, :owner, :agent_id, :agent_name, :task, :status, :created_at, :finished_at, :result, :steps, :trigger,"
                 " :chain_run_id, :chain_name, :provider, :model,"
-                " :input_tokens, :output_tokens, :cache_read_tokens, :cache_write_tokens, :cost_usd, :credits)"
+                " :input_tokens, :output_tokens, :cache_read_tokens, :cache_write_tokens, :cost_usd, :credits, :guided)"
                 " ON CONFLICT(id) DO UPDATE SET status = :status, finished_at = :finished_at,"
                 " result = :result, steps = :steps, provider = :provider, model = :model,"
                 " input_tokens = :input_tokens, output_tokens = :output_tokens, cache_read_tokens = :cache_read_tokens,"
@@ -262,7 +340,7 @@ class TaskRun:
                     "chain_run_id": self.chain_run_id, "chain_name": self.chain_name,
                     "provider": self.provider, "model": self.model,
                     **{field: self.tokens[field] for field in pricing.TOKEN_FIELDS},
-                    "cost_usd": self.cost_usd, "credits": self.credits,
+                    "cost_usd": self.cost_usd, "credits": self.credits, "guided": int(self.guided),
                 },
             )
 
@@ -311,6 +389,8 @@ class TaskRun:
             "chain_name": self.chain_name,
             "approval": self.approval,
             "approval_mode": self.approval_mode,
+            "guided": self.guided,
+            "waiting_for_user": self.waiting_for_user,
             "provider": self.provider,
             "model": self.model,
             "usage": {**{field: self.tokens[field] for field in pricing.TOKEN_FIELDS},
@@ -340,6 +420,65 @@ class TaskRun:
     def unsubscribe(self, queue: asyncio.Queue) -> None:
         self._subscribers.discard(queue)
 
+    async def _work(self, steps):
+        """The agent at work on an instruction: a message sent meanwhile is given to it at once."""
+        self._working = True
+        self._work_task = asyncio.ensure_future(steps)
+        try:
+            return await self._work_task
+        except asyncio.CancelledError:
+            # Cut short by a stop (see request_stop), not by the server shutting down: end the run normally.
+            if self._work_task.cancelled() and self._stop_requested and not asyncio.current_task().cancelling():
+                return self._agent.state.history
+            raise
+        finally:
+            self._working = False
+            self._work_task = None
+
+    def _cut_work_short(self) -> None:
+        if self._stop_requested and self._work_task and not self._work_task.done():
+            self._work_task.cancel()
+
+    @staticmethod
+    def _segment_error(history) -> str:
+        errors = [e for e in history.errors() if e]
+        return f"Je n'ai pas pu terminer : {errors[-1][:300]}" if errors else "Je n'ai pas pu terminer cette consigne."
+
+    async def _next_message(self) -> str | None:
+        """Wait for the next message of the person guiding; None when the session ends (finished, stopped, idle)."""
+        if self._messages is None:
+            self._messages = asyncio.Queue()
+        self.waiting_for_user = True
+        self.publish("waiting")
+        try:
+            return await asyncio.wait_for(self._messages.get(), timeout=config.GUIDED_IDLE_MINUTES * 60)
+        except asyncio.TimeoutError:
+            self.publish("info", message=f"Session terminée après {config.GUIDED_IDLE_MINUTES} minutes sans message.")
+            return None
+        finally:
+            self.waiting_for_user = False
+
+    def send_message(self, text: str, by: str) -> bool:
+        """A message of the person guiding: the next instruction, or a correction while the agent works."""
+        if not self.guided or self.status not in ("en_cours", "a_valider") or self._stop_requested:
+            return False
+        self.publish("user_message", text=text, by=by)
+        if self._working and self._agent is not None:
+            self._agent.add_new_task(text)  # taken into account at its next step
+        else:
+            if self._messages is None:
+                self._messages = asyncio.Queue()
+            self._messages.put_nowait(text)
+        return True
+
+    def finish_session(self) -> bool:
+        """End a guided session waiting for a message: the run ends with the agent's last answer."""
+        if not self.guided or not self.waiting_for_user or self._messages is None:
+            return False
+        self.publish("info", message="Session terminée.")
+        self._messages.put_nowait(None)
+        return True
+
     def request_stop(self) -> None:
         self._stop_requested = True
         if self.status == "en_attente":
@@ -353,8 +492,15 @@ class TaskRun:
             return
         if self._approval_future and not self._approval_future.done():
             self.resolve_approval(False, "Exécution arrêtée.", None)
+        if self.waiting_for_user and self._messages is not None:
+            self._messages.put_nowait(None)
         if self._agent:
             self._agent.stop()
+        task = self._work_task
+        if task and not task.done():
+            # Called from a request thread: the timer goes on the run's own event loop.
+            loop = task.get_loop()
+            loop.call_soon_threadsafe(loop.call_later, STOP_GRACE_SECONDS, self._cut_work_short)
         self.publish("info", message="Arrêt demandé : l'agent s'arrête après l'étape en cours.")
 
     # --- approval -----------------------------------------------------
@@ -742,7 +888,20 @@ class TaskRun:
             if not use_vision():
                 await self._hide_highlights(context)
             live_task = asyncio.create_task(self._live_loop(context))
-            history = await self._agent.run(max_steps=self.max_steps)
+            history = await self._work(self._agent.run(max_steps=self.max_steps))
+            while self.guided and not self._stop_requested and not self._stuck:
+                self.publish("agent_reply", text=history.final_result() or self._segment_error(history))
+                message = await self._next_message()
+                if message is None:
+                    break
+                try:
+                    billing.check_credits(auth.org_of(self.owner))
+                except billing.LimitReached as e:
+                    self.publish("info", message=str(e))
+                    break
+                self._agent.state.consecutive_failures = 0
+                self._agent.add_new_task(message)
+                history = await self._work(self._agent.run(max_steps=self.max_steps))
 
             last_error = self._apply_outcome(history)
         except Exception as e:
@@ -904,18 +1063,47 @@ class TaskRun:
             logger.debug("Sign-in state not recorded", exc_info=True)
 
     async def _live_loop(self, context: BrowserContext) -> None:
-        """Grab a fresh screenshot regularly so the page can show the browser live."""
-        while True:
-            await asyncio.sleep(LIVE_INTERVAL_SECONDS)
-            if context.session is None:
-                continue
-            try:
-                page = await context.get_agent_current_page()
-                self.live_url = page.url
-                self.live_title = await page.title()
-                self.live_screenshot = base64.b64decode(await context.take_screenshot())
-            except Exception:
-                pass
+        """Grab a fresh screenshot regularly so the page can show the browser live (and the thumbnails, and the
+        address and title); while someone watches, the screencast follows the agent's current tab."""
+        self._live_context = context
+        try:
+            while True:
+                await asyncio.sleep(LIVE_INTERVAL_SECONDS)
+                if context.session is None:
+                    continue
+                try:
+                    page = await context.get_agent_current_page()
+                    self.live_url = page.url
+                    self.live_title = await page.title()
+                    await self._screencast.follow(page)
+                    self.live_screenshot = base64.b64decode(await context.take_screenshot())
+                except Exception:
+                    pass
+        finally:
+            self._live_context = None
+            await self._screencast.stop()
+
+    async def live_frames(self):
+        """The agent's screen as it changes (JPEG frames), until the run ends or the viewer leaves."""
+        cast = self._screencast
+        cast.viewers += 1
+        try:
+            context = self._live_context
+            if context is not None and context.session is not None:
+                try:
+                    await cast.follow(await context.get_agent_current_page())  # at once, not at the next tick
+                except Exception:
+                    pass
+            seen = -1
+            while self.status in ACTIVE_STATUSES:
+                if cast.frame is not None:
+                    seen = cast.seq
+                    yield cast.frame
+                await cast.next_frame(seen)
+        finally:
+            cast.viewers -= 1
+            if cast.viewers <= 0:
+                await cast.stop()
 
 
 def _app_key(row, taken: dict) -> str:
@@ -1035,7 +1223,7 @@ class TaskManager:
     ) -> TaskRun:
         if sum(1 for r in self.waiting if r.owner == owner) >= MAX_WAITING_PER_USER:
             raise RuntimeError(f"Vous avez déjà {MAX_WAITING_PER_USER} tâches en attente. Attendez qu'elles avancent.")
-        billing.check_credits()  # a run already started always goes to the end, even past the credits
+        billing.check_credits(auth.org_of(owner))  # a run already started always goes to the end, even past the credits
         own_busy = browsers.owner_lock(owner).locked() or any(
             r.owner == owner and r.status in ACTIVE_STATUSES for r in self.runs.values()
         )
@@ -1059,8 +1247,10 @@ class TaskManager:
             if run.status != "en_attente":
                 return  # removed from the queue while waiting
             async with self.slots:
-                # The plan's agents at the same time, when lower than the server's browsers.
-                while (limit := billing.parallel_limit()) and len(self.running) >= limit and run.status == "en_attente":
+                # The plan's agents at the same time (per organisation), when lower than the server's browsers.
+                org = auth.org_of(run.owner)
+                while ((limit := billing.parallel_limit(org))
+                       and sum(1 for r in self.running if auth.org_of(r.owner) == org) >= limit and run.status == "en_attente"):
                     await asyncio.sleep(2)
                 if run.status != "en_attente":
                     return

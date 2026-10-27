@@ -469,6 +469,9 @@ print(run["status"], run["result"])
 | `app/files.py` | Pièces jointes et fichiers des exécutions |
 | `app/settings.py`, `app/llm.py` | Réglages d'IA de l'administrateur, création du modèle |
 | `app/db.py` | Schéma, migrations automatiques, PostgreSQL ou SQLite derrière la même API (`connect()`) |
+| `app/billing.py` | Abonnement et crédits de chaque organisation (Stripe), formules et prix modifiables, limites, suspension |
+| `app/backoffice.py` | Back-office de la plateforme (Administration › Clients) : clients, revenus, coût de l'IA, marge |
+| `app/pricing.py`, `app/usage.py` | Coût de chaque appel d'IA en crédits, jetons facturés par exécution |
 | `static/` | Interface (HTML/JS sans framework, `app.css` commun) |
 
 **Ajouter une route** : la déclarer dans `app/main.py` avec `user: str = Depends(current_user)` (ou

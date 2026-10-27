@@ -50,6 +50,12 @@ def isolate(tmp: Path) -> dict:
         "PUBLIC_URL": "",
         "COOKIE_SECURE": "false",
         "MAX_PARALLEL_RUNS": "3",
+        # Empty, not absent: .env must not fill them in (load_dotenv leaves variables already set). Without this,
+        # a DATABASE_URL in .env makes the demo write into the real database and replace its accounts and settings.
+        "DATABASE_URL": "",
+        "AUTOCOLLAB_MASTER_KEY": "",
+        "STRIPE_SECRET_KEY": "",
+        "STRIPE_WEBHOOK_SECRET": "",
     }
     os.environ.update(env)  # before any app module is imported: config reads them once
     sys.path.insert(0, str(ROOT))

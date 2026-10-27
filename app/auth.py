@@ -17,7 +17,7 @@ import time
 
 from fastapi import HTTPException, Request
 
-from . import config, db
+from . import billing, config, db
 
 SECRET_FILE = config.DATA_DIR / "secret.key"
 COOKIE_NAME = "session"
@@ -57,6 +57,11 @@ def org_of(username: str | None) -> str | None:
         _orgs.clear()
         _orgs.update({row["username"]: row["organisation_id"] or default for row in rows})
     return _orgs.get(username)
+
+
+def forget_orgs() -> None:
+    """After an account was added outside save_users (the back office creating a client)."""
+    _orgs.clear()
 
 
 def same_org(a: str | None, b: str | None) -> bool:
@@ -234,6 +239,8 @@ def current_user(request: Request) -> str:
     username = session_user(request)
     if not username:
         raise HTTPException(401, "Session expirée : reconnectez-vous.")
+    if billing.suspended(org_of(username)):  # 401: the pages go back to the sign-in page, which says why
+        raise HTTPException(401, billing.SUSPENDED)
     if request.url.path not in PASSWORD_CHANGE_PATHS and must_change_password(username):
         raise HTTPException(403, "Choisissez d'abord votre propre mot de passe.")
     if request.url.path not in TWO_FACTOR_SETUP_PATHS:

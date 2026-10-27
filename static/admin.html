@@ -29,8 +29,9 @@
   .seg { display: inline-flex; background: var(--hair); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
   .seg button { border: 0; background: transparent; color: var(--muted); font-weight: 550; font-size: 13px; padding: 6px 12px; border-radius: 7px; }
   .seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); box-shadow: var(--shadow-xs); }
-  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
-  .tab { background: transparent; border: 0; border-bottom: 2px solid transparent; padding: 10px 12px; font-weight: 550; font-size: 14px; color: var(--muted); margin-bottom: -1px; }
+  /* The line under the tabs is a shadow, so the row can scroll sideways on a phone without growing the page. */
+  .tabs { display: flex; gap: 4px; box-shadow: inset 0 -1px var(--line); overflow-x: auto; scrollbar-width: none; }
+  .tab { flex: none; white-space: nowrap; background: transparent; border: 0; border-bottom: 2px solid transparent; padding: 10px 12px; font-weight: 550; font-size: 14px; color: var(--muted); }
   .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
   .tab:hover { color: var(--ink); }
   .row-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
@@ -91,6 +92,39 @@
   .steps-list { margin: 0; padding-left: 20px; font-size: 13.5px; color: var(--ink-2); display: flex; flex-direction: column; gap: 4px; }
   .provider-head { display: flex; align-items: center; gap: 10px; }
   .provider-head img { width: 22px; height: 22px; }
+  .role.err-role { background: var(--err-soft); color: var(--err); }
+  .role.ok-role { background: var(--ok-soft); color: var(--ok-ink); }
+  .bo-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+  .bo-kpi { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); min-width: 0; }
+  .bo-kpi .kpi-label { font-size: 12.5px; font-weight: 550; color: var(--muted); }
+  .bo-kpi .kpi-value { font-size: 24px; font-weight: 650; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .bo-kpi .sub { font-size: 12px; color: var(--muted); }
+  .neg { color: var(--err); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .mini-meter { display: block; width: 90px; height: 5px; border-radius: 99px; background: var(--hair); overflow: hidden; margin-top: 4px; }
+  .mini-meter i { display: block; height: 100%; background: var(--ink); }
+  .mini-meter i.full { background: var(--err); }
+  .client-name { font-weight: 600; color: var(--ink); background: none; border: 0; padding: 0; text-align: left; cursor: pointer; font-size: 13.5px; }
+  .client-name:hover { color: var(--accent); text-decoration: underline; }
+  .tags-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+  dialog.wide { width: min(900px, calc(100vw - 32px)); }
+  .bo-section { display: flex; flex-direction: column; gap: 10px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .bo-section:first-child { border-top: 0; padding-top: 0; }
+  .bo-section h3 { margin: 0; font-size: 14px; }
+  .bo-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+  .bo-row .field { flex: 1 1 160px; min-width: 0; }
+  .bo-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 16px; font-size: 13px; }
+  .bo-facts span { display: block; color: var(--muted); font-size: 12px; }
+  .bo-facts strong { font-size: 14px; }
+  .journal { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 13px; max-height: 220px; overflow: auto; }
+  .journal li { display: flex; gap: 10px; }
+  .journal time { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .plans-grid { overflow-x: auto; }
+  .plans-grid table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 13.5px; }
+  .plans-grid th, .plans-grid td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+  .plans-grid th[scope="row"] { font-weight: 550; color: var(--ink-2); white-space: nowrap; }
+  .plans-grid .input { width: 100%; min-width: 90px; padding: 6px 8px; font-size: 13px; }
+  .plans-grid .input.mono { font-family: var(--mono); font-size: 12px; }
 </style>
 </head>
 <body>
@@ -161,6 +195,8 @@
       <button class="tab" role="tab" id="tabAIBtn" aria-controls="tabAI" aria-selected="false">Intelligence artificielle</button>
       <button class="tab" role="tab" id="tabIntBtn" aria-controls="tabInt" aria-selected="false">Intégrations</button>
       <button class="tab" role="tab" id="tabBillBtn" aria-controls="tabBill" aria-selected="false">Abonnement</button>
+      <button class="tab" role="tab" id="tabClientsBtn" aria-controls="tabClients" aria-selected="false" hidden>Clients</button>
+      <button class="tab" role="tab" id="tabPlansBtn" aria-controls="tabPlans" aria-selected="false" hidden>Formules</button>
     </div>
 
     <div id="tabUsers" role="tabpanel" aria-labelledby="tabUsersBtn" style="display: flex; flex-direction: column; gap: 18px">
@@ -294,6 +330,7 @@
 
     <div id="tabBill" role="tabpanel" aria-labelledby="tabBillBtn" hidden style="display: flex; flex-direction: column; gap: 18px">
       <p class="notice" id="billOff" hidden>La facturation n'est pas activée sur cette installation : aucune limite de crédits ni de formule.</p>
+      <p class="notice" id="billManual" hidden>Votre formule est convenue directement avec nous. Pour la changer, contactez votre interlocuteur.</p>
       <section class="card" style="display: flex; flex-direction: column; gap: 12px">
         <div class="row-head">
           <div>
@@ -320,6 +357,56 @@
         <p class="hint" style="margin: 0">Prix hors taxes, en dollars. Paiement sécurisé par Stripe ; factures, carte et résiliation dans « Gérer l'abonnement ».</p>
       </section>
     </div>
+
+    <div id="tabClients" role="tabpanel" aria-labelledby="tabClientsBtn" hidden style="display: flex; flex-direction: column; gap: 18px">
+      <p class="notice" id="clientsBillingOff" hidden>La facturation Stripe n'est pas activée sur ce serveur (STRIPE_SECRET_KEY vide) : les formules ne limitent rien. Les formules manuelles, crédits et suspensions sont tout de même enregistrés.</p>
+      <div class="notice" id="clientCreated" hidden></div>
+      <div class="bo-kpis" id="clientsKpis" aria-live="polite"></div>
+      <section class="card" style="display: flex; flex-direction: column; gap: 12px" aria-labelledby="clientsTitle">
+        <div class="row-head">
+          <div>
+            <h2 class="label" id="clientsTitle" style="margin: 0">Clients</h2>
+            <p class="hint" style="margin: 2px 0 0">Revenus, coût de l'IA et marge du mois en cours, hors taxes, en dollars.</p>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap">
+            <label for="clientsSearch" class="sr-only">Rechercher un client</label>
+            <input class="input" id="clientsSearch" type="search" placeholder="Rechercher un client" style="width: 220px; max-width: 100%">
+            <button type="button" class="btn btn-primary" id="newClientBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              Nouveau client
+            </button>
+          </div>
+        </div>
+        <div class="table-wrap" id="clients"></div>
+        <p class="empty" id="clientsEmpty" hidden>Aucun client ne correspond.</p>
+      </section>
+    </div>
+
+    <form id="tabPlans" role="tabpanel" aria-labelledby="tabPlansBtn" hidden autocomplete="off" style="display: flex; flex-direction: column; gap: 18px">
+      <p class="notice" id="plansStripeOff" hidden>La facturation Stripe n'est pas activée sur ce serveur : ces formules s'appliqueront dès qu'elle le sera.</p>
+      <section class="card" style="display: flex; flex-direction: column; gap: 12px">
+        <div>
+          <h2 class="label" style="margin: 0">Formules</h2>
+          <p class="hint" style="margin: 2px 0 0">Ce que chaque formule comprend et le prix affiché aux clients. Laissez une limite vide pour « illimité ». Le montant facturé est celui du prix Stripe : créez-le dans Stripe › Catalogue de produits, puis collez son identifiant (price_…). Les crédits et limites changés s'appliquent tout de suite à tous les clients de la formule.</p>
+        </div>
+        <div class="plans-grid" id="plansGrid"></div>
+      </section>
+      <section class="card" style="display: flex; flex-direction: column; gap: 12px">
+        <div>
+          <h2 class="label" style="margin: 0">Pack de crédits</h2>
+          <p class="hint" style="margin: 2px 0 0">Achat unique, crédits reportés d'un mois sur l'autre.</p>
+        </div>
+        <div class="bo-row">
+          <div class="field"><label for="packCredits">Crédits</label><input class="input" id="packCredits" type="number" min="1" step="1" required></div>
+          <div class="field"><label for="packUsd">Prix ($)</label><input class="input" id="packUsd" type="number" min="0" step="0.01" required></div>
+          <div class="field" style="flex-basis: 260px"><label for="packStripe">ID du prix Stripe</label><input class="input" id="packStripe" spellcheck="false" placeholder="price_…" style="font-family: var(--mono)"></div>
+        </div>
+      </section>
+      <div class="actions">
+        <button class="btn btn-primary" id="plansSaveBtn">Enregistrer</button>
+        <button type="button" class="btn btn-outline" id="plansDefaultsBtn">Revenir aux valeurs par défaut</button>
+      </div>
+    </form>
   </main>
 </div>
 
@@ -390,6 +477,60 @@
       <p class="form-err" id="editErr" role="alert"></p>
       <button class="btn btn-primary" value="save" id="saveBtn">Enregistrer</button>
       <button class="btn btn-outline" value="cancel" formnovalidate>Annuler</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="newClientDlg">
+  <form id="newClientForm" autocomplete="off">
+    <h2>Nouveau client</h2>
+    <div class="dialog-body">
+      <div class="field">
+        <label for="ncName">Nom du client</label>
+        <input class="input" id="ncName" required maxlength="80" placeholder="Cabinet Martin">
+      </div>
+      <h3 style="margin: 4px 0 0; font-size: 14px">Premier administrateur</h3>
+      <div class="bo-row">
+        <div class="field"><label for="ncUsername">Identifiant</label><input class="input" id="ncUsername" required placeholder="jmartin" autocapitalize="none" spellcheck="false"></div>
+        <div class="field"><label for="ncAdminName">Nom affiché</label><input class="input" id="ncAdminName" placeholder="Jeanne Martin"></div>
+      </div>
+      <div class="field">
+        <label for="ncEmail">E-mail</label>
+        <input class="input" type="email" id="ncEmail" placeholder="j.martin@cabinet-martin.fr" autocapitalize="none" spellcheck="false">
+      </div>
+      <div class="field">
+        <label for="ncPassword">Mot de passe provisoire</label>
+        <div class="pw">
+          <input class="input" id="ncPassword" required minlength="10" spellcheck="false">
+          <button type="button" class="btn btn-outline" id="ncGenBtn">Générer</button>
+        </div>
+        <span class="hint">La personne le remplace à sa première connexion, puis crée elle-même les comptes de son équipe.</span>
+      </div>
+      <h3 style="margin: 4px 0 0; font-size: 14px">Formule</h3>
+      <div class="bo-row">
+        <div class="field">
+          <label for="ncPlan">Formule</label>
+          <select class="input" id="ncPlan"></select>
+        </div>
+        <div class="field"><label for="ncPrice">Prix mensuel convenu ($ HT)</label><input class="input" id="ncPrice" type="number" min="0" step="0.01" placeholder="—"></div>
+      </div>
+      <span class="hint">« Le client choisit en ligne » : il démarre en Gratuit et s'abonne lui-même par carte. Une formule choisie ici s'applique sans paiement Stripe (devis, essai) ; indiquez le prix convenu pour suivre vos revenus.</span>
+    </div>
+    <div class="dialog-foot">
+      <p class="form-err" id="ncErr" role="alert"></p>
+      <button class="btn btn-primary" id="ncBtn">Créer le client</button>
+      <button type="button" class="btn btn-outline" id="ncCancelBtn">Annuler</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="clientDlg" class="wide">
+  <form method="dialog" id="clientForm" autocomplete="off">
+    <h2 id="clientTitle"></h2>
+    <div class="dialog-body" id="clientBody" style="gap: 16px"></div>
+    <div class="dialog-foot">
+      <p class="form-err" id="clientErr" role="alert"></p>
+      <button class="btn btn-outline" value="close">Fermer</button>
     </div>
   </form>
 </dialog>
@@ -531,12 +672,20 @@ $("logoutBtn").onclick = async () => { await fetch("/api/logout", { method: "POS
 api("/api/me").then(u => {
   if (window.I18N) I18N.sync(u.lang);
   if (u.must_change_password) return location.replace("/");
-  // AI, integrations and subscription are shared by every organisation: only the platform's administrators see them.
+  // AI and integrations are shared by every organisation, and the clients and plans are the platform's business:
+  // only the platform's administrators see them. Each client's administrators manage their own subscription.
   if (!u.platform_admin) {
-    for (const id of ["tabAIBtn", "tabIntBtn", "tabBillBtn"]) $(id).hidden = true;
-    $("adminIntro").textContent = "Comptes de l'organisation et sécurité de connexion.";
-    if ($("tabUsers").hidden) showTab("users");
-  } else loadSideCredits();
+    for (const id of ["tabAIBtn", "tabIntBtn", "tabClientsBtn", "tabPlansBtn"]) $(id).hidden = true;
+    $("adminIntro").textContent = "Comptes de l'organisation, sécurité de connexion et abonnement.";
+    const open = ["tabAI", "tabInt", "tabClients", "tabPlans"].some(id => !$(id).hidden);
+    if (open) showTab("users");
+    loadSideCredits();
+  } else {
+    $("tabBillBtn").hidden = true;  // the platform's own organisation has no subscription
+    $("tabClientsBtn").hidden = $("tabPlansBtn").hidden = false;
+    $("adminIntro").textContent = "Comptes, intelligence artificielle, applications connectées, clients et formules.";
+    if (!$("tabBill").hidden) showTab("clients");
+  }
   $("meName").textContent = u.name;
   showOrganisation(u.organisation);
   $("meEmail").textContent = u.email || u.username;
@@ -581,21 +730,27 @@ $("orgForm").onsubmit = async (e) => {
 
 // --- tabs -------------------------------------------------------------------------
 
+const TAB_HASH = { ai: "#ia", int: "#integrations", bill: "#abonnement", clients: "#clients", plans: "#formules" };
+
 function showTab(name) {
-  const panels = { users: "tabUsers", ai: "tabAI", int: "tabInt", bill: "tabBill" };
+  const panels = { users: "tabUsers", ai: "tabAI", int: "tabInt", bill: "tabBill", clients: "tabClients", plans: "tabPlans" };
   for (const [key, id] of Object.entries(panels)) {
     $(id).hidden = key !== name;
     $(id + "Btn").setAttribute("aria-selected", String(key === name));
   }
-  history.replaceState(null, "", { ai: "#ia", int: "#integrations", bill: "#abonnement" }[name] || "#");
+  history.replaceState(null, "", TAB_HASH[name] || "#");
   if (name === "bill") loadBilling().catch(err => toast(err.message));
   if (name === "ai") loadAI().catch(err => toast(err.message));
   if (name === "int") loadIntegrations().catch(err => toast(err.message));
+  if (name === "clients") loadClients().catch(err => toast(err.message));
+  if (name === "plans") loadCatalog().catch(err => toast(err.message));
 }
 $("tabUsersBtn").onclick = () => showTab("users");
 $("tabAIBtn").onclick = () => showTab("ai");
 $("tabIntBtn").onclick = () => showTab("int");
 $("tabBillBtn").onclick = () => showTab("bill");
+$("tabClientsBtn").onclick = () => showTab("clients");
+$("tabPlansBtn").onclick = () => showTab("plans");
 
 // --- subscription (Stripe) ------------------------------------------------------------
 
@@ -606,8 +761,10 @@ const limitText = (n, one, many, none) => n === null ? `${many[0].toUpperCase() 
 
 async function loadBilling() {
   bill = await api("/api/admin/billing");
+  const manual = bill.source === "manuel";
   $("billOff").hidden = bill.enabled;
-  $("billChoose").hidden = !bill.enabled;
+  $("billManual").hidden = !manual;
+  $("billChoose").hidden = !bill.enabled || manual;
   $("billPortalBtn").hidden = !bill.enabled || !bill.customer;
   const c = bill.credits, total = c.included + c.extra;
   $("billPlan").textContent = bill.label + (bill.period ? (bill.period === "yearly" ? " (annuel)" : " (mensuel)") : "");
@@ -656,6 +813,286 @@ $("billPlans").onclick = (e) => {
 };
 $("billPortalBtn").onclick = () => goTo("/api/admin/billing/portal").catch(err => toast(err.message));
 $("billPackBtn").onclick = () => goTo("/api/admin/billing/checkout", { pack: true }).catch(err => toast(err.message));
+
+// --- back office: clients (platform administrators) -------------------------------------
+
+let clientsData = null, clientOpen = null;
+const usd = (n) => `${Number(n || 0).toLocaleString("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} $`;
+const signedUsd = (n) => `<span class="${n < 0 ? "neg" : ""}">${usd(n)}</span>`;
+const SOURCE = { stripe: ["Stripe", "role"], manuel: ["Manuelle", "role warn-role"], gratuit: ["Gratuit", "role user"] };
+
+function clientTags(c) {
+  const tags = [];
+  if (c.platform) tags.push('<span class="role ok-role">Plateforme</span>');
+  else tags.push(`<span class="${SOURCE[c.source][1]}">${SOURCE[c.source][0]}</span>`);
+  if (c.suspended) tags.push('<span class="role err-role">Suspendu</span>');
+  if (c.stripe_status === "past_due") tags.push('<span class="role err-role">Paiement refusé</span>');
+  if (c.cancel_at_period_end) tags.push('<span class="role user">Résiliation programmée</span>');
+  return `<div class="tags-row">${tags.join("")}</div>`;
+}
+
+async function loadClients() {
+  clientsData = await api("/api/platform/clients");
+  const t = clientsData.totals;
+  $("clientsBillingOff").hidden = clientsData.billing_enabled;
+  $("clientsKpis").innerHTML = [
+    ["Clients", t.clients, `${t.paying} payant${t.paying > 1 ? "s" : ""}${t.suspended ? ` · ${t.suspended} suspendu${t.suspended > 1 ? "s" : ""}` : ""}`],
+    ["Revenu mensuel", usd(t.revenue_usd), "Abonnements et formules convenues"],
+    ["Coût de l'IA ce mois", usd(t.ai_cost_usd), t.platform_ai_cost_usd ? `+ ${usd(t.platform_ai_cost_usd)} pour la plateforme` : "Clients uniquement"],
+    ["Marge ce mois", signedUsd(t.margin_usd), t.past_due ? `${t.past_due} paiement${t.past_due > 1 ? "s" : ""} refusé${t.past_due > 1 ? "s" : ""}` : "Revenu − coût de l'IA"],
+  ].map(([label, value, sub]) => `<div class="bo-kpi"><span class="kpi-label">${label}</span><span class="kpi-value">${value}</span><span class="sub">${sub}</span></div>`).join("");
+  renderClients();
+}
+
+function renderClients() {
+  const q = $("clientsSearch").value.trim().toLowerCase();
+  const list = clientsData.clients.filter(c => !q || c.name.toLowerCase().includes(q) || c.id.includes(q));
+  $("clientsEmpty").hidden = list.length > 0;
+  UI.paginate($("clients"), list, (rows) => `<table class="table">
+    <thead><tr><th>Client</th><th>Formule</th><th class="num">Comptes</th><th>Crédits</th><th class="num">Revenu</th><th class="num">Coût IA</th><th class="num">Marge</th><th>Activité</th><th><span class="sr-only">Actions</span></th></tr></thead>
+    <tbody>${rows.map(c => {
+      const total = c.credits.included + c.credits.extra, pct = total ? Math.min(100, c.credits.used / total * 100) : 0;
+      return `<tr>
+      <td class="main"><button type="button" class="client-name" data-client="${esc(c.id)}">${esc(c.name)}</button>${clientTags(c)}</td>
+      <td>${esc(c.label)}</td>
+      <td class="num">${c.users}</td>
+      <td>${c.platform ? '<span class="hint">Illimité</span>' : `<span class="mono" style="font-size: 12.5px">${num(Math.round(c.credits.used))} / ${num(total)}</span><span class="mini-meter" aria-hidden="true"><i class="${pct >= 100 ? "full" : ""}" style="width: ${pct}%"></i></span>`}</td>
+      <td class="num">${c.platform ? "—" : usd(c.month.revenue_usd)}</td>
+      <td class="num">${usd(c.month.ai_cost_usd)}</td>
+      <td class="num">${c.platform ? "—" : signedUsd(c.month.margin_usd)}</td>
+      <td>${c.last_activity ? esc(whenText(c.last_activity)) : '<span class="hint">Aucune</span>'}<br><span class="hint">${c.month.runs} exécution${c.month.runs > 1 ? "s" : ""} ce mois</span></td>
+      <td class="row-act">${UI.actions(UI.action("open", `Ouvrir ${c.name}`, "open", { attrs: `data-client="${esc(c.id)}"` }))}</td></tr>`;
+    }).join("")}</tbody></table>`, renderClients);
+}
+
+$("clientsSearch").addEventListener("input", () => { UI.resetPage("clients"); renderClients(); });
+$("clients").addEventListener("click", (e) => { const b = e.target.closest("[data-client]"); if (b) openClient(b.dataset.client); });
+
+async function openClient(id) {
+  $("clientErr").textContent = "";
+  clientOpen = await api(`/api/platform/clients/${encodeURIComponent(id)}`);
+  renderClient();
+  if (!$("clientDlg").open) $("clientDlg").showModal();
+}
+
+function renderClient() {
+  const c = clientOpen, b = c.billing, total = b.credits.included + b.credits.extra;
+  $("clientTitle").textContent = c.name;
+  const plans = b.plans.map(p => `<option value="${esc(p.key)}" ${p.key === b.manual_plan ? "selected" : ""}>${esc(p.label)}</option>`).join("");
+  const renew = b.source === "stripe" && b.renews_at ? `${b.cancel_at_period_end ? "Résiliée, active jusqu'au" : "Renouvelée le"} ${dateFr(b.renews_at)}` : "—";
+  const stripeState = { active: "Actif", trialing: "Essai", past_due: "Paiement refusé", canceled: "Résilié", unpaid: "Impayé", incomplete: "Incomplet" };
+  $("clientBody").innerHTML = `
+    <section class="bo-section">
+      <div class="bo-facts">
+        <div><span>Formule</span><strong>${esc(b.label)}</strong> ${b.platform || b.source === "gratuit" ? "" : `<span class="${SOURCE[b.source][1]}" style="display: inline">${SOURCE[b.source][0]}</span>`}</div>
+        <div><span>Revenu mensuel</span><strong>${b.platform ? "—" : usd(b.revenue_usd)}</strong></div>
+        <div><span>Crédits ce mois</span><strong>${b.platform ? "Illimité" : `${num(b.credits.remaining)} restants sur ${num(total)}`}</strong></div>
+        <div><span>Abonnement Stripe</span><strong>${b.stripe_subscription ? esc(stripeState[b.status] || b.status || "—") : "Aucun"}</strong></div>
+        <div><span>Renouvellement</span><strong>${esc(renew)}</strong></div>
+        <div><span>Client depuis</span><strong>${dateFr(c.created_at)}</strong></div>
+      </div>
+      <div class="bo-row">
+        <div class="field"><label for="cdName">Nom</label><input class="input" id="cdName" maxlength="80" value="${esc(c.name)}"></div>
+        <button type="button" class="btn btn-outline" data-do="rename">Renommer</button>
+      </div>
+      <p class="hint" style="margin: 0">Identifiant : <code class="mono">${esc(c.id)}</code>${b.stripe_customer ? ` · client Stripe <code class="mono">${esc(b.stripe_customer)}</code>` : ""}</p>
+    </section>
+    ${b.platform ? `<p class="notice" style="margin: 0">L'organisation de la plateforme n'a ni formule ni limite, et ne peut pas être suspendue.</p>` : `
+    <section class="bo-section">
+      <h3>Formule convenue</h3>
+      <p class="hint" style="margin: 0">Une formule donnée ici s'applique à la place de l'abonnement Stripe (devis Entreprise, essai offert). Retirez-la pour revenir à ce que le client paie en ligne.</p>
+      <div class="bo-row">
+        <div class="field"><label for="cdPlan">Formule</label><select class="input" id="cdPlan"><option value="">Aucune : suit l'abonnement Stripe</option>${plans}</select></div>
+        <div class="field"><label for="cdPrice">Prix mensuel convenu ($ HT)</label><input class="input" id="cdPrice" type="number" min="0" step="0.01" value="${b.manual_price_usd ?? ""}" placeholder="—"></div>
+        <button type="button" class="btn btn-primary" data-do="plan">Appliquer</button>
+      </div>
+    </section>
+    <section class="bo-section">
+      <h3>Crédits offerts</h3>
+      <p class="hint" style="margin: 0">Ajoutés aux crédits du mois et reportés tant qu'ils ne sont pas utilisés (geste commercial, correction). Un nombre négatif en retire. Actuellement : ${num(b.credits.extra)} en plus de la formule.</p>
+      <div class="bo-row">
+        <div class="field" style="flex: 0 1 140px"><label for="cdCredits">Crédits</label><input class="input" id="cdCredits" type="number" step="1" placeholder="1000"></div>
+        <div class="field"><label for="cdCreditsNote">Motif</label><input class="input" id="cdCreditsNote" maxlength="300" placeholder="Geste commercial"></div>
+        <button type="button" class="btn btn-outline" data-do="credits">Ajouter</button>
+      </div>
+    </section>
+    <section class="bo-section">
+      <h3>Accès</h3>
+      ${b.suspended
+        ? `<p class="warning" style="margin: 0"><strong>Suspendu.</strong> ${esc(b.suspended_reason || "Sans motif indiqué.")} Personne ne peut se connecter ni lancer d'agent.</p>
+           <div class="bo-row"><button type="button" class="btn btn-primary" data-do="resume">Réactiver</button></div>`
+        : `<p class="hint" style="margin: 0">Suspendre déconnecte tous les comptes du client et arrête ses planifications ; ses données sont conservées.</p>
+           <div class="bo-row"><div class="field"><label for="cdReason">Motif (affiché au client)</label><input class="input" id="cdReason" maxlength="300" placeholder="Facture impayée"></div>
+           <button type="button" class="btn btn-outline btn-del" data-do="suspend">Suspendre</button></div>`}
+      ${!c.users.length && !c.history.length ? `<p class="hint" style="margin: 0">Ce client n'a ni compte ni historique : il peut être supprimé.</p>
+           <div class="bo-row"><button type="button" class="btn btn-outline btn-del" data-do="delete">Supprimer ce client</button></div>` : ""}
+    </section>`}
+    <section class="bo-section">
+      <h3>Note interne</h3>
+      <textarea class="input" id="cdNote" rows="2" maxlength="2000" placeholder="Interlocuteur, conditions, rappel…">${esc(b.note)}</textarea>
+      <div class="bo-row"><button type="button" class="btn btn-outline" data-do="note">Enregistrer la note</button></div>
+    </section>
+    <section class="bo-section">
+      <h3>Comptes (${c.users.length})</h3>
+      ${c.users.length ? `<div class="table-wrap"><table class="table"><thead><tr><th>Identifiant</th><th>Nom</th><th>E-mail</th><th>Rôle</th></tr></thead><tbody>
+        ${c.users.map(u => `<tr><td class="id">${esc(u.username)}</td><td>${esc(u.name)}${u.temporary_password ? '<br><span class="hint">Mot de passe provisoire</span>' : ""}</td><td>${esc(u.email || "—")}</td>
+          <td>${u.admin ? '<span class="role">Admin</span>' : '<span class="role user">Utilisateur</span>'}</td></tr>`).join("")}</tbody></table></div>` : '<p class="hint" style="margin: 0">Aucun compte.</p>'}
+    </section>
+    <section class="bo-section">
+      <h3>Six derniers mois</h3>
+      ${c.history.length ? `<div class="table-wrap"><table class="table"><thead><tr><th>Mois</th><th class="num">Exécutions</th><th class="num">Crédits</th><th class="num">Coût IA</th></tr></thead><tbody>
+        ${c.history.map(h => `<tr><td>${new Date(h.month + "-01T00:00:00").toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}</td><td class="num">${h.runs}</td><td class="num">${num(h.credits)}</td><td class="num">${usd(h.ai_cost_usd)}</td></tr>`).join("")}</tbody></table></div>`
+        : '<p class="hint" style="margin: 0">Aucune exécution.</p>'}
+    </section>
+    <section class="bo-section">
+      <h3>Journal</h3>
+      ${b.journal.length ? `<ul class="journal">${b.journal.map(j => `<li><time>${esc(whenText(j.at))}</time><span>${esc(j.what)} <span class="hint">· ${esc(j.by)}</span></span></li>`).join("")}</ul>`
+        : '<p class="hint" style="margin: 0">Aucune opération.</p>'}
+    </section>`;
+}
+
+async function changeClient(body, done) {
+  $("clientErr").textContent = "";
+  try {
+    clientOpen = await api(`/api/platform/clients/${encodeURIComponent(clientOpen.id)}`, { method: "PATCH", body: JSON.stringify(body) });
+    renderClient(); toast(done, true); loadClients().catch(() => {});
+  } catch (err) { $("clientErr").textContent = err.message; }
+}
+
+$("clientBody").addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-do]"); if (!b) return;
+  const what = b.dataset.do;
+  if (what === "rename") return changeClient({ name: $("cdName").value }, "Client renommé.");
+  if (what === "plan") {
+    const price = $("cdPrice").value === "" ? null : Number($("cdPrice").value);
+    return changeClient({ manual_plan: $("cdPlan").value || null, manual_price_usd: price }, "Formule enregistrée.");
+  }
+  if (what === "note") return changeClient({ note: $("cdNote").value }, "Note enregistrée.");
+  if (what === "suspend") {
+    if (!confirm(`Suspendre « ${clientOpen.name} » ? Tous ses comptes seront déconnectés et ses agents ne pourront plus démarrer.`)) return;
+    return changeClient({ suspended: true, reason: $("cdReason").value }, "Client suspendu.");
+  }
+  if (what === "resume") return changeClient({ suspended: false }, "Client réactivé.");
+  if (what === "delete") {
+    if (!confirm(`Supprimer « ${clientOpen.name} » ? Il n'a ni compte ni historique.`)) return;
+    try {
+      await api(`/api/platform/clients/${encodeURIComponent(clientOpen.id)}`, { method: "DELETE" });
+      $("clientDlg").close(); toast("Client supprimé.", true); await loadClients();
+    } catch (err) { $("clientErr").textContent = err.message; }
+    return;
+  }
+  if (what === "credits") {
+    const credits = Number($("cdCredits").value);
+    if (!credits) { $("clientErr").textContent = "Indiquez un nombre de crédits."; return; }
+    $("clientErr").textContent = "";
+    try {
+      clientOpen = await api(`/api/platform/clients/${encodeURIComponent(clientOpen.id)}/credits`, { method: "POST", body: JSON.stringify({ credits, note: $("cdCreditsNote").value }) });
+      renderClient(); toast(`${credits > 0 ? "+" : ""}${num(credits)} crédits.`, true); loadClients().catch(() => {});
+    } catch (err) { $("clientErr").textContent = err.message; }
+  }
+});
+
+$("newClientBtn").onclick = async () => {
+  $("newClientForm").reset(); $("ncErr").textContent = "";
+  const catalog = await api("/api/platform/catalog").catch(() => null);
+  const plans = catalog ? Object.entries(catalog.plans) : [];
+  $("ncPlan").innerHTML = '<option value="">Le client choisit en ligne (Gratuit au départ)</option>'
+    + plans.map(([key, p]) => `<option value="${esc(key)}">${esc(p.label)}</option>`).join("");
+  $("ncPassword").value = generatePassword();
+  $("newClientDlg").showModal(); $("ncName").focus();
+};
+$("ncGenBtn").onclick = () => { $("ncPassword").value = generatePassword(); };
+$("ncCancelBtn").onclick = () => $("newClientDlg").close();
+$("ncPlan").onchange = async () => {
+  // Suggest the plan's public price as the agreed one.
+  if (!$("ncPlan").value || $("ncPrice").value) return;
+  const catalog = await api("/api/platform/catalog").catch(() => null);
+  const p = catalog?.plans[$("ncPlan").value];
+  if (p) $("ncPrice").value = p.usd.monthly;
+};
+$("newClientForm").onsubmit = async (e) => {
+  e.preventDefault();
+  $("ncErr").textContent = ""; $("ncBtn").disabled = true;
+  const body = {
+    name: $("ncName").value, username: $("ncUsername").value, admin_name: $("ncAdminName").value, email: $("ncEmail").value,
+    password: $("ncPassword").value, manual_plan: $("ncPlan").value || null,
+    manual_price_usd: $("ncPrice").value === "" ? null : Number($("ncPrice").value),
+  };
+  try {
+    const c = await api("/api/platform/clients", { method: "POST", body: JSON.stringify(body) });
+    $("newClientDlg").close();
+    const n = $("clientCreated");
+    n.innerHTML = `Client <strong>${esc(c.name)}</strong> créé. Administrateur <strong>${esc(c.users[0].username)}</strong>, mot de passe provisoire : <code>${esc(body.password)}</code><br>`
+      + `<span class="hint">Il ne sera plus affiché : transmettez-le par un canal sûr avant de quitter la page.</span>`;
+    n.hidden = false;
+    await loadClients();
+  } catch (err) { $("ncErr").textContent = err.message; }
+  $("ncBtn").disabled = false;
+};
+
+// --- back office: plans and prices (platform administrators) -------------------------------
+
+let catalogData = null;
+const PLAN_ROWS = [
+  ["label", "Nom", "text"], ["credits", "Crédits / mois", "int"],
+  ["usd.monthly", "Prix mensuel ($)", "price"], ["usd.yearly", "Prix annuel ($)", "price"],
+  ["parallel", "Agents en même temps", "limit"], ["agents", "Agents enregistrés", "limit"],
+  ["schedules", "Tâches planifiées", "limit"], ["users", "Utilisateurs", "limit"],
+  ["stripe.monthly", "ID prix Stripe mensuel", "stripe"], ["stripe.yearly", "ID prix Stripe annuel", "stripe"],
+];
+const getPath = (o, path) => path.split(".").reduce((v, k) => v?.[k], o);
+
+async function loadCatalog() {
+  catalogData = await api("/api/platform/catalog");
+  renderCatalog(catalogData);
+}
+
+function renderCatalog(data) {
+  $("plansStripeOff").hidden = data.stripe_enabled;
+  const keys = Object.keys(data.plans);
+  $("plansGrid").innerHTML = `<table><thead><tr><th></th>${keys.map(k => `<th>${esc(data.plans[k].label)}</th>`).join("")}</tr></thead><tbody>
+    ${PLAN_ROWS.map(([path, label, kind]) => `<tr><th scope="row">${label}</th>${keys.map(k => {
+      const value = getPath(data.plans[k], path), free = k === "gratuit";
+      if (free && (kind === "price" || kind === "stripe")) return '<td><span class="hint">—</span></td>';
+      const attrs = `data-plan="${esc(k)}" data-path="${path}" aria-label="${esc(label)} : ${esc(data.plans[k].label)}"`;
+      if (kind === "text") return `<td><input class="input" ${attrs} value="${esc(value)}" maxlength="40" required></td>`;
+      if (kind === "stripe") return `<td><input class="input mono" ${attrs} value="${esc(value || "")}" placeholder="price_…" spellcheck="false"></td>`;
+      const min = kind === "price" || path === "agents" || path === "schedules" ? 0 : 1;
+      return `<td><input class="input" type="number" ${attrs} min="${min}" step="${kind === "price" ? "0.01" : "1"}" value="${value ?? ""}" ${kind === "limit" ? 'placeholder="Illimité"' : "required"}></td>`;
+    }).join("")}</tr>`).join("")}</tbody></table>`;
+  $("packCredits").value = data.pack.credits;
+  $("packUsd").value = data.pack.usd;
+  $("packStripe").value = data.pack.stripe || "";
+}
+
+function catalogBody() {
+  const plans = {};
+  for (const key of Object.keys(catalogData.plans)) plans[key] = { usd: {}, stripe: {} };
+  for (const input of $("plansGrid").querySelectorAll("[data-plan]")) {
+    const plan = plans[input.dataset.plan], [field, sub] = input.dataset.path.split(".");
+    const raw = input.value.trim();
+    const value = input.type === "number" ? (raw === "" ? null : Number(raw)) : raw;
+    if (sub) plan[field][sub] = value ?? 0; else plan[field] = value;
+  }
+  return { plans, pack: { credits: Number($("packCredits").value), usd: Number($("packUsd").value), stripe: $("packStripe").value.trim() } };
+}
+
+$("tabPlans").onsubmit = async (e) => {
+  e.preventDefault();
+  $("plansSaveBtn").disabled = true;
+  try {
+    catalogData = await api("/api/platform/catalog", { method: "PUT", body: JSON.stringify(catalogBody()) });
+    renderCatalog(catalogData);
+    toast("Formules enregistrées.", true);
+  } catch (err) { toast(err.message); }
+  $("plansSaveBtn").disabled = false;
+};
+$("plansDefaultsBtn").onclick = () => {
+  if (!confirm("Remettre les crédits, limites et prix par défaut dans le formulaire ? Les identifiants Stripe sont gardés. Rien n'est enregistré avant « Enregistrer ».")) return;
+  const plans = structuredClone(catalogData.defaults.plans);
+  for (const [key, p] of Object.entries(plans)) p.stripe = catalogData.plans[key].stripe;
+  renderCatalog({ ...catalogData, plans, pack: { ...catalogData.defaults.pack, stripe: catalogData.pack.stripe } });
+};
 
 // --- integrations (MCP applications) -----------------------------------------------
 
@@ -870,6 +1307,8 @@ api("/api/admin/security").then(sec => {
 loadUsers().catch(err => toast(err.message));
 if (location.hash === "#ia") showTab("ai");
 if (location.hash === "#integrations") showTab("int");
+if (location.hash === "#clients") showTab("clients");
+if (location.hash === "#formules") showTab("plans");
 if (location.hash.startsWith("#abonnement")) {
   const paidNow = location.hash.includes("paiement=ok");
   showTab("bill");

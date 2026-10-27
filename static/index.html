@@ -503,6 +503,31 @@
   .chip { font-family: var(--mono); font-size: 12px; color: var(--ink-2); background: var(--ground); border-radius: 6px; padding: 3px 8px; margin-top: 6px; overflow-wrap: anywhere; display: block; }
   .steps .pending .step-title { color: var(--run); }
   .steps-scroll { max-height: 62vh; overflow-y: auto; padding-right: 4px; }
+  /* Guided session: the person's messages and the agent's answers between its steps. */
+  .steps li.user-msg { justify-content: flex-end; padding: 2px 0 14px 28px; }
+  .user-msg .bubble { background: var(--accent-soft); color: var(--ink); border-radius: 14px 14px 4px 14px; padding: 8px 12px; font-size: 13.5px; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; }
+  .user-msg .bubble .step-time { display: block; margin: 2px 0 0; text-align: right; }
+  .steps .agent-reply .mark { background: var(--run-soft); color: var(--run-ink); }
+  .agent-reply .reply { background: var(--sunken); border: 1px solid var(--line); border-radius: 4px 14px 14px 14px; padding: 8px 12px; font-size: 13.5px; white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 4px; }
+  .steps .waiting .mark { background: var(--warn-soft); color: var(--warn); }
+  .steps .waiting .step-title { color: var(--warn); }
+  /* During a session the steps card is a chat: it fills the window and stays in view, the steps scroll inside,
+     the message box stays at the bottom however long the conversation gets. */
+  @media (min-width: 900px) {
+    /* Short enough to stay above the floating Assistant button, from the top of the page or scrolled. */
+    .run-side .card.session-on { position: sticky; top: 16px; display: flex; flex-direction: column; height: calc(100vh - 184px); min-height: 420px; }
+    .run-side .card.session-on .steps-scroll { flex: 1; max-height: none; min-height: 0; }
+  }
+  .session-box { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--line); padding-top: 12px; margin-top: 8px; }
+  .session-input { display: flex; align-items: flex-end; gap: 8px; border: 1px solid var(--line-2); border-radius: 12px; padding: 6px 6px 6px 12px; background: var(--panel); }
+  .session-input:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+  .session-input textarea { flex: 1; min-width: 0; border: 0; outline: 0; resize: none; background: transparent; color: var(--ink); font: inherit; font-size: 14px; line-height: 1.45; padding: 5px 0; max-height: 9.5em; overflow-y: auto; }
+  .session-send { flex: none; width: 34px; height: 34px; border-radius: 9px; border: 0; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); cursor: pointer; }
+  .session-send:disabled { opacity: .45; cursor: default; }
+  .session-send svg { width: 17px; height: 17px; }
+  .session-foot { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .session-foot span { flex: 1; min-width: 0; }
+  .session-foot button { border: 0; background: none; padding: 2px 0; font: inherit; font-size: 12px; font-weight: 600; color: var(--ink-2); text-decoration: underline; cursor: pointer; white-space: nowrap; }
   .task-text { white-space: pre-wrap; overflow-wrap: anywhere; background: var(--sunken); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; font-size: 14px; max-height: 50vh; overflow: auto; }
 
   .vars { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -1245,7 +1270,7 @@
       </div>
 
       <aside class="run-side" aria-label="Étapes de l'agent">
-        <section class="card">
+        <section class="card" id="stepsCard">
           <div class="steps-head">
             <h2 class="label">Étapes</h2>
             <span class="steps-credits" id="runCredits"></span>
@@ -1257,6 +1282,17 @@
             <ol class="steps" id="steps"></ol>
           </div>
           <p class="empty" id="stepsEmpty">Les étapes apparaîtront ici en direct.</p>
+          <form class="session-box" id="sessionBox" hidden>
+            <div class="session-input">
+              <label for="sessionInput" class="sr-only">Message à l'agent</label>
+              <textarea id="sessionInput" rows="1" maxlength="20000"></textarea>
+              <button class="session-send" id="sessionSendBtn" aria-label="Envoyer" title="Envoyer (Entrée)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+            </div>
+            <div class="session-foot">
+              <span id="sessionHint"></span>
+              <button type="button" id="sessionEndBtn">Terminer la session</button>
+            </div>
+          </form>
         </section>
         <section class="card" aria-labelledby="guardTitle">
           <h2 class="label" id="guardTitle">Garde-fous</h2>
@@ -1500,12 +1536,13 @@
         <input class="input" id="mcpName" required maxlength="40" placeholder="Notion de l'équipe">
       </div>
       <div class="field">
-        <label for="mcpUrl">Adresse du serveur (Streamable HTTP)</label>
-        <input class="input" id="mcpUrl" required maxlength="500" placeholder="https://mcp.exemple.com/mcp" autocapitalize="none" spellcheck="false">
+        <label for="mcpServerUrl">Adresse du serveur (Streamable HTTP)</label>
+        <input class="input" id="mcpServerUrl" required maxlength="500" placeholder="https://mcp.exemple.com/mcp" autocapitalize="none" spellcheck="false">
       </div>
       <div class="field">
         <label for="mcpToken">Jeton d'accès (facultatif)</label>
         <input class="input" id="mcpToken" type="password" maxlength="4000" autocomplete="new-password" spellcheck="false" placeholder="Envoyé en « Authorization: Bearer … »">
+        <span class="hint">Laissez vide si le service se connecte avec votre compte (OAuth) : sa page de connexion s'ouvrira.</span>
       </div>
       <label class="check"><input type="checkbox" id="mcpReadOnly" checked> Lecture seule : seuls les outils marqués « lecture » sont proposés ; les autres demandent votre validation</label>
     </div>
@@ -1601,6 +1638,7 @@
     <div class="composer-row">
       <label class="check"><input type="checkbox" id="visible"> Afficher le navigateur</label>
       <label class="check">Étapes max <input class="num" type="number" id="maxSteps" min="1" max="200"></label>
+      <label class="check" title="Après chaque consigne, l'agent attend votre message suivant : vous le guidez pas à pas en le regardant faire."><input type="checkbox" id="guided"> Le guider pas à pas</label>
     </div>
   </div>
   <div class="dialog-foot">
@@ -2776,8 +2814,8 @@ $("startBtn").onclick = async () => {
   $("startBtn").disabled = true;
   try {
     if (taskFiles.some(f => f.busy)) { toast("Attendez la fin de l'envoi des pièces jointes."); $("startBtn").disabled = false; return; }
-    const run = await api("/api/tasks", { method: "POST", body: JSON.stringify({ task, headless: !$("visible").checked, max_steps: +$("maxSteps").value || null, attachments: taskFiles.map(f => f.id) }) });
-    $("task").value = ""; taskFiles = []; renderTaskFiles();
+    const run = await api("/api/tasks", { method: "POST", body: JSON.stringify({ task, headless: !$("visible").checked, max_steps: +$("maxSteps").value || null, attachments: taskFiles.map(f => f.id), guided: $("guided").checked }) });
+    $("task").value = ""; taskFiles = []; renderTaskFiles(); $("guided").checked = false;
     $("newTaskDlg").close();
     queuedToast(run);
     await loadRuns(); goRun(run.id);
@@ -2787,7 +2825,7 @@ $("startBtn").onclick = async () => {
 
 // --- run detail ------------------------------------------------------------
 
-let tab = "browser", frames = [], recIndex = 0, liveFrame = null, liveBlobUrl = null, stepCount = 0, lastUrl = "";
+let tab = "browser", frames = [], recIndex = 0, liveFrame = null, liveBlobUrl = null, liveStream = null, stepCount = 0, lastUrl = "";
 let lastRunError = "";
 const hostOf = (u) => { try { return new URL(u).host; } catch { return u; } };
 // The check mark already says it worked: drop the model's "Succès :" / "Success -" prefix.
@@ -2827,9 +2865,9 @@ function renderRunHeader() {
   highlightNav("activite");
   renderApproval();
   renderSent();
-  const step = r.status === "en_cours" ? ` · étape ${r.steps}${r.max_steps ? ` / ${r.max_steps}` : ""}` : "";
-  const label = r.status === "en_attente" && r.queue_position ? `En attente · ${ordinal(r.queue_position)} dans la file` : (STATUS[r.status] || r.status);
-  $("runPill").innerHTML = `<span class="pill lg ${r.status}">${esc(label)}${step}</span>`;
+  const step = r.status === "en_cours" && !r.waiting_for_user ? ` · étape ${r.steps}${r.max_steps && !r.guided ? ` / ${r.max_steps}` : ""}` : "";
+  const label = r.waiting_for_user ? "À vous" : r.status === "en_attente" && r.queue_position ? `En attente · ${ordinal(r.queue_position)} dans la file` : (STATUS[r.status] || r.status);
+  $("runPill").innerHTML = `<span class="pill lg ${r.waiting_for_user ? "a_valider" : r.status}">${esc(label)}${step}</span>`;
   $("runSub").textContent = r.status === "en_attente"
     ? `Ajoutée ${whenLabel(r.created_at).toLowerCase()} · démarrera dès que la tâche précédente sera terminée`
     : `${r.trigger === "planifie" ? "Lancée par la planification" : "Lancée"} ${whenLabel(r.created_at).toLowerCase()} · ${duration(r)}`
@@ -2841,7 +2879,53 @@ function renderRunHeader() {
   if (r.status === "en_attente" && !liveFrame) showFrame(null);
   $("rerunBtn").hidden = !mine || isActive(r) || (!!r.agent_id && !agentsList.some(a => a.id === r.agent_id));
   $("saveRunAsAgentBtn").hidden = !isTask || !mine;
+  renderSession();
 }
+
+// --- guided session ---------------------------------------------------------------------
+
+function renderSession() {
+  const r = currentRun, mine = r && isMine(r) && (!r.owner || !meUser || r.owner === meUser);
+  const open = !!(r && r.guided && mine && (r.status === "en_cours" || r.status === "a_valider"));
+  $("sessionBox").hidden = !open;
+  $("stepsCard").classList.toggle("session-on", open);
+  if (!open) return;
+  const waiting = !!r.waiting_for_user;
+  $("sessionInput").placeholder = waiting ? "Prochaine consigne…" : "Corriger ou préciser pendant qu'il travaille…";
+  $("sessionEndBtn").hidden = !waiting;
+  $("sessionHint").textContent = waiting
+    ? `Entrée pour envoyer · fin auto après ${config?.guided_idle_minutes || 10} min sans message`
+    : "Il en tiendra compte à sa prochaine étape";
+}
+
+$("sessionBox").onsubmit = async (e) => {
+  e.preventDefault();
+  const text = $("sessionInput").value.trim();
+  if (!text || !currentRun) return;
+  $("sessionSendBtn").disabled = true;
+  try {
+    currentRun = { ...currentRun, ...await api(`/api/tasks/${currentRun.id}/messages`, { method: "POST", body: JSON.stringify({ text }) }) };
+    $("sessionInput").value = ""; growSessionInput();
+    renderRunHeader();
+  } catch (err) { toast(err.message); }
+  $("sessionSendBtn").disabled = false;
+  $("sessionInput").focus();
+};
+// The box grows with the message (up to about six lines, then it scrolls).
+function growSessionInput() {
+  const t = $("sessionInput");
+  t.style.height = "auto";
+  t.style.height = `${t.scrollHeight}px`;
+}
+$("sessionInput").addEventListener("input", growSessionInput);
+$("sessionInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("sessionBox").requestSubmit(); }
+});
+$("sessionEndBtn").onclick = async () => {
+  if (!currentRun) return;
+  try { currentRun = { ...currentRun, ...await api(`/api/tasks/${currentRun.id}/finish`, { method: "POST" }) }; renderRunHeader(); }
+  catch (err) { toast(err.message); }
+};
 
 async function openRun(id) {
   closeRun();
@@ -2878,7 +2962,7 @@ function pendingRow() {
   const old = $("pendingStep"); if (old) old.remove();
   if (!currentRun || !isActive(currentRun)) return;
   $("steps").insertAdjacentHTML("beforeend", `<li class="pending" id="pendingStep"><div class="rail"><span class="mark"></span><span class="line"></span></div>
-    <div class="step-body"><div class="step-title">${currentRun.status === "a_valider" ? (isMine(currentRun) ? "En attente de votre validation…" : `En attente de la validation de ${esc(currentRun.owner_name || currentRun.owner)}…`) : currentRun.status === "en_attente" ? "En attente dans la file…" : "L'agent travaille…"}</div></div></li>`);
+    <div class="step-body"><div class="step-title">${currentRun.waiting_for_user ? "À vous : l'agent attend votre message…" : currentRun.status === "a_valider" ? (isMine(currentRun) ? "En attente de votre validation…" : `En attente de la validation de ${esc(currentRun.owner_name || currentRun.owner)}…`) : currentRun.status === "en_attente" ? "En attente dans la file…" : "L'agent travaille…"}</div></div></li>`);
 }
 
 function renderEvent(ev) {
@@ -2930,6 +3014,16 @@ function renderEvent(ev) {
       if (asked) currentRun.status = "a_valider";
       renderRunHeader();
     }
+  } else if (ev.type === "user_message") {
+    $("stepsEmpty").hidden = true;
+    list.insertAdjacentHTML("beforeend", `<li class="user-msg"><div class="bubble">${esc(ev.text)}<span class="step-time">${hms(ev.time)}</span></div></li>`);
+    if (currentRun) { currentRun.waiting_for_user = false; renderRunHeader(); }
+  } else if (ev.type === "agent_reply") {
+    $("stepsEmpty").hidden = true;
+    list.insertAdjacentHTML("beforeend", `<li class="agent-reply"><div class="rail"><span class="mark">${ICON.info}</span><span class="line"></span></div>
+      <div class="step-body"><div class="step-title">Réponse de l'agent<span class="step-time">${hms(ev.time)}</span></div><div class="reply">${esc(ev.text)}</div></div></li>`);
+  } else if (ev.type === "waiting") {
+    if (currentRun && isActive(currentRun)) { currentRun.waiting_for_user = true; renderRunHeader(); $("sessionInput").focus({ preventScroll: true }); }
   } else if (ev.type === "status") {
     if (currentRun) { currentRun.status = ev.status; renderRunHeader(); }
   } else if (ev.type === "done") {
@@ -2966,6 +3060,22 @@ $("steps").addEventListener("click", (e) => {
 function showFrame(f) {
   $("wUrl").textContent = f?.url || "";
   $("wTitle").textContent = f?.title || hostOf(f?.url || "") || "Nouvel onglet";
+  // While the run is active, the browser tab plays the screencast: the <img> stays, only the address changes.
+  // The stream never ends: started before the page has loaded, it would keep it "loading" for good. Until
+  // then the latest capture shows, and the stream starts on load.
+  if (tab === "browser" && liveStream && f === liveFrame && document.readyState !== "complete") {
+    window.addEventListener("load", () => { if (liveStream && tab === "browser") showFrame(liveFrame); }, { once: true });
+  } else if (tab === "browser" && liveStream && f === liveFrame) {
+    const img = $("screen").querySelector("img.live-stream");
+    if (img?.dataset.src === liveStream) return;
+    $("screen").classList.add("has-img");
+    $("screen").innerHTML = `<img class="live-stream" alt="Écran de l'agent, en direct">`;
+    const stream = $("screen").querySelector("img");
+    stream.dataset.src = liveStream;
+    stream.onerror = () => { liveStream = null; showFrame(liveFrame); };  // back to the image every 1.5 s
+    stream.src = liveStream;
+    return;
+  }
   $("screen").classList.toggle("has-img", !!f?.src);
   $("screen").innerHTML = f?.src ? `<img src="${f.src}" alt="Écran de l'agent">` : `<span>${currentRun?.status === "en_attente" ? "La tâche démarrera à son tour dans la file." : current ? "En attente de la première capture…" : "L'écran de l'agent s'affichera ici."}</span>`;
 }
@@ -3023,6 +3133,8 @@ function sideFilesCard() {
 
 function startLive(id) {
   stopLive();
+  liveStream = `/api/tasks/${id}/live.mjpg`;
+  if (tab === "browser") showFrame(liveFrame);
   liveTimer = setInterval(async () => {
     const r = await fetch(`/api/tasks/${id}/live`, { cache: "no-store" }).catch(() => null);
     if (!r || r.status !== 200 || current !== id) return;
@@ -3033,7 +3145,16 @@ function startLive(id) {
     if (tab === "browser") showFrame(liveFrame);
   }, 1500);
 }
-function stopLive() { if (liveTimer) clearInterval(liveTimer); liveTimer = null; }
+function stopLive() {
+  if (liveTimer) clearInterval(liveTimer);
+  liveTimer = null;
+  if (liveStream) {
+    liveStream = null;
+    const img = $("screen").querySelector("img.live-stream");
+    if (img) img.src = "";  // closes the stream
+    if (tab === "browser") showFrame(liveFrame);  // the last capture stays on screen
+  }
+}
 
 document.querySelector(".vtabs").addEventListener("click", (e) => {
   const b = e.target.closest(".vtab"); if (b) { tab = b.dataset.tab; renderViewer(); }
@@ -3394,10 +3515,11 @@ $("mcpForm").onsubmit = async (e) => {
   e.preventDefault();
   $("mcpSaveBtn").disabled = true; $("mcpErr").textContent = "";
   try {
-    const conn = await api("/api/integrations/custom", { method: "POST", body: JSON.stringify({
-      name: $("mcpName").value, url: $("mcpUrl").value, token: $("mcpToken").value, read_only: $("mcpReadOnly").checked }) });
+    const r = await api("/api/integrations/custom", { method: "POST", body: JSON.stringify({
+      name: $("mcpName").value, url: $("mcpServerUrl").value, token: $("mcpToken").value, read_only: $("mcpReadOnly").checked }) });
+    if (r.sign_in_url) { location.href = r.sign_in_url; return; }  // the service's own sign-in, then back here
     $("mcpDlg").close();
-    toast(`${conn.name} ajouté.`, true);
+    toast(`${r.connection.name} ajouté.`, true);
     await loadApps();
   } catch (err) { $("mcpErr").textContent = err.message; }
   $("mcpSaveBtn").disabled = false;
@@ -4461,7 +4583,7 @@ async function boot() {
   $("avatar").textContent = me.name.split(/[\s.]+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join("");
   $("adminLink").hidden = !me.admin;
   // Credits of the period, under the menu (admins: the figures come from Administration › Abonnement).
-  if (me.platform_admin) api("/api/admin/billing").then(b => {
+  if (me.admin && !me.platform_admin) api("/api/admin/billing").then(b => {
     const c = b.credits, total = c.included + c.extra;
     if (!total) return;
     const fmt = (n) => Math.round(n).toLocaleString("fr-FR");

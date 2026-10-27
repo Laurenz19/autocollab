@@ -33,6 +33,12 @@ class UsageMeter(AsyncCallbackHandler):
     def __init__(self):
         self.total = empty()
         self._taken = empty()
+        # browser-use reports every failed model call as "Error 401: LLM API call failed"; the
+        # provider's real message is kept here so the run can show it instead.
+        self.last_error: str | None = None
+
+    async def on_llm_error(self, error, **kwargs) -> None:
+        self.last_error = str(error)
 
     async def on_llm_end(self, response, **kwargs) -> None:
         for generations in response.generations:

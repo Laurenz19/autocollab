@@ -246,6 +246,7 @@ _MIGRATIONS = [
     ("runs", "cache_write_tokens", "INTEGER NOT NULL DEFAULT 0"),
     ("runs", "cost_usd", "REAL"),                                  # NULL: model missing from the price table
     ("runs", "credits", "REAL NOT NULL DEFAULT 0"),
+    ("runs", "guided", "INTEGER NOT NULL DEFAULT 0"),               # 1 = guided session: the agent waits for messages
     # Several organisations on one server: every row belongs to one (filled in on startup for older rows)
     *[(table, "organisation_id", "TEXT") for table in ORG_TABLES],
 ]
@@ -446,6 +447,18 @@ def _pg_tenancy(conn) -> None:
         _tenant_role = False
 
 
+def _sqlite_fill_org(conn) -> None:
+    """SQLite has no row-level security, but new rows still take their owner's organisation (else the
+    platform's), as on PostgreSQL: what is counted per organisation (credits, plan limits) needs it."""
+    platform = "(SELECT data FROM app_settings WHERE key = 'platform_organisation')"
+    for table in ["users", *OWNER_TABLES]:
+        value = platform if table == "users" else f"COALESCE((SELECT u.organisation_id FROM users u WHERE u.username = NEW.owner), {platform})"
+        conn.execute(f"DROP TRIGGER IF EXISTS autocollab_org_{table}")
+        conn.execute(f"CREATE TRIGGER autocollab_org_{table} AFTER INSERT ON {table}"
+                     f" WHEN NEW.organisation_id IS NULL OR NEW.organisation_id = ''"
+                     f" BEGIN UPDATE {table} SET organisation_id = {value} WHERE rowid = NEW.rowid; END")
+
+
 def default_org() -> str:
     """The installation's own organisation (app_settings 'platform_organisation'): its administrators run the platform."""
     if _default_org is None:
@@ -472,6 +485,8 @@ def _init(conn) -> None:
     _setup_organisations(conn)
     if POSTGRES:
         _pg_tenancy(conn)
+    else:
+        _sqlite_fill_org(conn)
 
 
 @contextmanager

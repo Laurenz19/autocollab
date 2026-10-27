@@ -57,12 +57,22 @@ class LoginSession:
             )
             # Same rule as the agents: no request to the server's own network (app/netguard.py).
             await self._context.route("**/*", netguard.route_guard())
+            # A site's popup (e.g. "Continuer avec Google") opens small: shown stretched it is blurry and the
+            # clicks land beside their target. Every new window gets the size the page shows.
+            self._context.on("page", lambda page: asyncio.create_task(self._fit(page)))
             page = self.page or await self._context.new_page()
             if url:
                 await page.goto(url, timeout=NAV_TIMEOUT_MS)
         except Exception:
             await self.close()
             raise
+
+    @staticmethod
+    async def _fit(page) -> None:
+        try:
+            await page.set_viewport_size(VIEWPORT)
+        except Exception:
+            logger.debug("Window not resized", exc_info=True)
 
     async def close(self) -> None:
         try:
@@ -109,14 +119,15 @@ class LoginSession:
         self.touch()
         page = self.page or await self._context.new_page()
         kind = action["type"]
+        size = page.viewport_size or VIEWPORT  # the page's own size: the click lands where it was aimed
         if kind == "click":
-            await page.mouse.click(action["x"] * VIEWPORT["width"], action["y"] * VIEWPORT["height"])
+            await page.mouse.click(action["x"] * size["width"], action["y"] * size["height"])
         elif kind == "type":
             await page.keyboard.type(action["text"], delay=15)
         elif kind == "key":
             await page.keyboard.press(action["key"])
         elif kind == "scroll":
-            await page.mouse.move(VIEWPORT["width"] / 2, VIEWPORT["height"] / 2)
+            await page.mouse.move(size["width"] / 2, size["height"] / 2)
             await page.mouse.wheel(0, action["dy"])
         elif kind == "goto":
             await page.goto(action["url"], timeout=NAV_TIMEOUT_MS)

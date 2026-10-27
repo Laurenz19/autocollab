@@ -52,6 +52,9 @@ COOKIE_SECURE = _bool("COOKIE_SECURE", False)
 
 # How long an agent in approval mode waits for someone to click Valider or Refuser.
 APPROVAL_TIMEOUT_MINUTES = int(os.getenv("APPROVAL_TIMEOUT_MINUTES", "60"))
+# A guided session ends after this long without a message from the person guiding it: its browser (and the
+# user's profile, which their other runs wait for) is not held for nothing.
+GUIDED_IDLE_MINUTES = int(os.getenv("GUIDED_IDLE_MINUTES", "10"))
 
 # Billing with Stripe (app/billing.py). Empty secret key = billing off and no limits (an installation on the
 # client's own servers, or before launch). The price ids come from the Stripe dashboard (Products).

@@ -13,7 +13,7 @@ import json
 
 from . import agents, billing, config, schedule, templates
 
-SERVER_INFO = {"name": "autocollab", "title": "AutoCollab", "version": "1.2.0"}
+SERVER_INFO = {"name": "autocollab", "title": "AutoCollab", "version": "1.3.0"}
 PROTOCOL_VERSIONS = ["2025-06-18", "2025-03-26", "2024-11-05"]
 INSTRUCTIONS = (
     "AutoCollab, l'outil de l'organisation : des agents IA travaillent dans un navigateur (Gmail, Pennylane, banques...).\n"
@@ -150,6 +150,147 @@ TOOLS += [
           "montrer le changement exact et obtenir l'accord explicite de l'utilisateur avant.", _CONTEXT_CHANGES, (), {**BUILD, "destructiveHint": True}),
 ]
 TOOL_NAMES = {t["name"] for t in TOOLS}
+
+# The platform's back office (app/backoffice.py): listed and callable only by the administrators of the
+# platform's own organisation. Kept out of TOOLS, so the in-app assistant (app/assistant.py) never sees them.
+PLATFORM_INSTRUCTIONS = (
+    "\n- Back-office de la plateforme (outils platform_*, réservés à ses administrateurs) : clients, formules, prix. "
+    "Avant de créer un client, changer sa formule, ses crédits, le suspendre ou changer une formule ou un prix, "
+    "montre le changement exact et attends l'accord explicite de l'utilisateur. Le mot de passe provisoire d'un "
+    "nouveau client n'est donné qu'une fois : transmets-le tel quel à l'utilisateur."
+)
+_CLIENT_ID = {**_STR, "description": "Identifiant du client (org-…), voir platform_list_clients"}
+_PLAN_KEY = {"type": "string", "enum": list(billing.DEFAULT_PLANS)}
+_LIMIT = {"type": ["integer", "null"], "description": "null = illimité"}
+PLATFORM_TOOLS = [
+    _tool("platform_list_clients", "Clients de la plateforme",
+          "Tous les clients : formule (stripe, manuel ou gratuit), statut Stripe, suspension, comptes, agents, crédits de la période, "
+          "et pour le mois en cours exécutions, revenu, coût de l'IA et marge (dollars, hors taxes) ; avec les totaux.", {}),
+    _tool("platform_get_client", "Détail d'un client",
+          "Un client : abonnement et crédits, formule convenue et prix, note interne, comptes, six derniers mois, journal des opérations.",
+          {"client_id": _CLIENT_ID}, ["client_id"]),
+    _tool("platform_create_client", "Créer un client",
+          "Crée un client et son premier administrateur, avec un mot de passe provisoire à changer à la première connexion "
+          "(généré si absent, renvoyé une seule fois). Sans manual_plan, le client démarre en Gratuit et s'abonne lui-même en ligne.",
+          {"name": {**_STR, "description": "Nom du client, ex. Cabinet Martin"},
+           "username": {**_STR, "description": "Identifiant de connexion du premier administrateur"},
+           "admin_name": {**_STR, "description": "Son nom affiché"}, "email": {**_STR, "description": "Son e-mail (facultatif)"},
+           "password": {**_STR, "description": "Mot de passe provisoire, 10 caractères minimum (facultatif : généré)"},
+           "manual_plan": {**_PLAN_KEY, "description": "Formule donnée sans paiement Stripe (devis, essai)"},
+           "manual_price_usd": {"type": "number", "minimum": 0, "description": "Prix mensuel convenu, hors taxes"}},
+          ["name", "username"], BUILD),
+    _tool("platform_update_client", "Modifier un client",
+          "Renomme un client, lui donne ou retire une formule convenue (manual_plan null = suit son abonnement Stripe), "
+          "fixe le prix mensuel convenu, ou change la note interne. Seuls les champs fournis changent.",
+          {"client_id": _CLIENT_ID, "name": _STR,
+           "manual_plan": {"type": ["string", "null"], "enum": [*billing.DEFAULT_PLANS, None]},
+           "manual_price_usd": {"type": ["number", "null"], "minimum": 0}, "note": _STR},
+          ["client_id"], {**BUILD, "idempotentHint": True}),
+    _tool("platform_grant_credits", "Offrir des crédits",
+          "Ajoute des crédits à un client (reportés tant qu'ils ne sont pas utilisés) ; un nombre négatif en retire.",
+          {"client_id": _CLIENT_ID, "credits": {"type": "number", "description": "Ex. 1000, ou -500 pour en retirer"},
+           "note": {**_STR, "description": "Motif, noté au journal"}}, ["client_id", "credits"], BUILD),
+    _tool("platform_set_suspension", "Suspendre ou réactiver un client",
+          "suspended true : tous les comptes du client sont déconnectés, ses agents et planifications ne démarrent plus ; "
+          "ses données sont conservées. false : le réactive.",
+          {"client_id": _CLIENT_ID, "suspended": {"type": "boolean"}, "reason": {**_STR, "description": "Motif affiché au client"}},
+          ["client_id", "suspended"], {**BUILD, "destructiveHint": True, "idempotentHint": True}),
+    _tool("platform_delete_client", "Supprimer un client vide",
+          "Supprime un client qui n'a ni compte ni historique (créé par erreur). Un client avec des données se suspend.",
+          {"client_id": _CLIENT_ID}, ["client_id"], {**BUILD, "destructiveHint": True, "idempotentHint": True}),
+    _tool("platform_get_catalog", "Formules et prix",
+          "Les formules (crédits par mois, limites, prix en dollars, identifiants de prix Stripe) et le pack de crédits, "
+          "avec les valeurs par défaut.", {}),
+    _tool("platform_update_plan", "Modifier une formule",
+          "Change une formule : seuls les champs fournis changent. Les crédits et limites s'appliquent aussitôt à tous ses clients ; "
+          "le montant facturé est celui du prix Stripe (price_…).",
+          {"plan": _PLAN_KEY, "label": _STR, "credits": {"type": "integer", "minimum": 0},
+           "parallel": _LIMIT, "agents": _LIMIT, "schedules": _LIMIT, "users": _LIMIT,
+           "usd_monthly": {"type": "number", "minimum": 0}, "usd_yearly": {"type": "number", "minimum": 0},
+           "stripe_monthly": {**_STR, "description": "price_… ; vide = pas d'abonnement mensuel en ligne"},
+           "stripe_yearly": {**_STR, "description": "price_… ; vide = pas d'abonnement annuel en ligne"}},
+          ["plan"], {**BUILD, "idempotentHint": True}),
+    _tool("platform_update_credit_pack", "Modifier le pack de crédits",
+          "Change le pack de crédits (achat unique) : nombre de crédits, prix en dollars, identifiant du prix Stripe.",
+          {"credits": {"type": "integer", "minimum": 1}, "usd": {"type": "number", "minimum": 0}, "stripe": _STR},
+          (), {**BUILD, "idempotentHint": True}),
+]
+PLATFORM_NAMES = {t["name"] for t in PLATFORM_TOOLS}
+
+
+def _platform_admin(user: str) -> bool:
+    from . import auth
+
+    return auth.is_platform_admin(user)
+
+
+def tools_for(user: str) -> list[dict]:
+    return TOOLS + PLATFORM_TOOLS if _platform_admin(user) else TOOLS
+
+
+def _platform_tool(name: str, args: dict, user: str) -> dict:
+    import secrets
+
+    from . import backoffice
+
+    if not _platform_admin(user):
+        raise ToolError("Réservé à l'administration de la plateforme.")
+    by = f"{user} (MCP)"
+    if name == "platform_list_clients":
+        return backoffice.clients()
+    if name in ("platform_get_catalog", "platform_update_plan", "platform_update_credit_pack"):
+        try:
+            if name == "platform_update_plan":
+                backoffice.update_plan(str(args.get("plan", "")), {k: v for k, v in args.items() if k != "plan"})
+            elif name == "platform_update_credit_pack":
+                if not args:
+                    raise ToolError("Aucun changement demandé.")
+                backoffice.update_pack(args)
+        except ValueError as e:
+            raise ToolError(str(e))
+        return {**billing.catalog(), "defaults": {"plans": billing.DEFAULT_PLANS, "pack": billing.DEFAULT_PACK},
+                "stripe_enabled": billing.enabled()}
+    if name == "platform_create_client":
+        password = str(args.get("password") or "") or secrets.token_urlsafe(12)
+        price = args.get("manual_price_usd")
+        try:
+            created = backoffice.create_client(str(args.get("name", "")), str(args.get("username", "")), str(args.get("admin_name", "")),
+                                               str(args.get("email", "")), password, by, args.get("manual_plan"),
+                                               float(price) if isinstance(price, (int, float)) and not isinstance(price, bool) else None)
+        except ValueError as e:
+            raise ToolError(str(e))
+        return {"client": created, "temporary_password": password,
+                "note": "Mot de passe provisoire affiché une seule fois : à transmettre par un canal sûr ; il sera changé à la première connexion."}
+    org = str(args.get("client_id", ""))
+    if not backoffice.exists(org):
+        raise ToolError("Client introuvable (voir platform_list_clients).")
+    try:
+        if name == "platform_get_client":
+            return {"client": backoffice.client(org)}
+        if name == "platform_update_client":
+            if "name" in args:
+                backoffice.rename(org, str(args["name"] or ""))
+            price = args.get("manual_price_usd", ...)
+            if price is not ... and price is not None and (isinstance(price, bool) or not isinstance(price, (int, float)) or price < 0):
+                raise ToolError("manual_price_usd doit être un nombre positif ou null.")
+            note = args.get("note")
+            billing.manage(org, by, manual_plan=args.get("manual_plan", ...), manual_price_usd=price,
+                           note=str(note)[:2000] if note is not None else None)
+        elif name == "platform_grant_credits":
+            credits = args.get("credits")
+            if isinstance(credits, bool) or not isinstance(credits, (int, float)) or not credits or abs(credits) > 1_000_000:
+                raise ToolError("credits : nombre non nul entre -1 000 000 et 1 000 000.")
+            billing.grant_credits(org, credits, by, str(args.get("note") or ""))
+        elif name == "platform_set_suspension":
+            if not isinstance(args.get("suspended"), bool):
+                raise ToolError("suspended doit être true ou false.")
+            billing.manage(org, by, suspend=args["suspended"], reason=str(args.get("reason") or ""))
+        elif name == "platform_delete_client":
+            backoffice.delete_empty(org)
+            return {"deleted": org}
+    except ValueError as e:
+        raise ToolError(str(e))
+    return {"client": backoffice.client(org)}
 
 
 class ToolError(Exception):
@@ -314,6 +455,8 @@ def _context_tool(name: str, args: dict, user: str) -> dict:
 
 
 def call_tool(name: str, args: dict, user: str, manager, chain_manager=None) -> dict:
+    if name in PLATFORM_NAMES:
+        return _platform_tool(name, args, user)
     if name in ("get_context", "preview_context", "update_personal_context", "update_firm_context"):
         return _context_tool(name, args, user)
     if name in ("list_chains", "run_chain", "get_chain_run", "create_chain", "update_chain", "stop_chain_run"):
@@ -449,12 +592,12 @@ def handle(message: dict, user: str, manager, chain_manager=None, docs=None) -> 
             "protocolVersion": asked if asked in PROTOCOL_VERSIONS else PROTOCOL_VERSIONS[0],
             "capabilities": {"tools": {"listChanged": False}, "resources": {"listChanged": False, "subscribe": False}},
             "serverInfo": SERVER_INFO,
-            "instructions": INSTRUCTIONS,
+            "instructions": INSTRUCTIONS + (PLATFORM_INSTRUCTIONS if _platform_admin(user) else ""),
         }}
     if method == "ping":
         return {"jsonrpc": "2.0", "id": id_, "result": {}}
     if method == "tools/list":
-        return {"jsonrpc": "2.0", "id": id_, "result": {"tools": TOOLS}}
+        return {"jsonrpc": "2.0", "id": id_, "result": {"tools": tools_for(user)}}
     if method == "resources/list":
         return {"jsonrpc": "2.0", "id": id_, "result": {"resources": [
             {"uri": DOC_URI + key, "name": key, "title": label, "description": label, "mimeType": "text/markdown"}
@@ -469,7 +612,7 @@ def handle(message: dict, user: str, manager, chain_manager=None, docs=None) -> 
         return {"jsonrpc": "2.0", "id": id_, "result": {"contents": [{"uri": uri, "mimeType": "text/markdown", "text": docs(key)}]}}
     if method == "tools/call":
         name, args = params.get("name"), params.get("arguments") or {}
-        if name not in TOOL_NAMES:
+        if name not in TOOL_NAMES and not (name in PLATFORM_NAMES and _platform_admin(user)):
             return _error(id_, -32602, f"Outil inconnu : {name}")
         if not isinstance(args, dict):
             return _error(id_, -32602, "arguments doit être un objet")

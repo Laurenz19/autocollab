@@ -11,19 +11,20 @@ next to the browser (see runner.py).
 import base64
 import hashlib
 import json
+import re
 import secrets
 import threading
 import time
 import uuid
 from datetime import datetime
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 import httpx
 from cryptography.fernet import Fernet, InvalidToken
 
 from . import auth, config, settings, vault
 from .db import connect
-from .mcp_client import MCPClient
+from .mcp_client import MCPAuthError, MCPClient, MCPError
 
 MAX_PER_USER = 20
 STATE_TTL_SECONDS = 600
@@ -67,6 +68,8 @@ OAUTH = {
 }
 
 CALLBACK_PATH = "/api/integrations/callback"
+# Where this app describes itself to an MCP server's OAuth server that identifies clients by URL (CIMD).
+CLIENT_METADATA_PATH = "/api/integrations/client-metadata.json"
 
 
 def _now() -> str:
@@ -258,6 +261,14 @@ async def delete(integration_id: str, owner: str) -> bool:
     provider = CATALOG.get(row["kind"], {}).get("provider")
     if provider and secret.get("access_token"):
         await _revoke(provider, secret.get("refresh_token") or secret["access_token"])
+    elif (secret.get("oauth") or {}).get("revocation_endpoint"):
+        try:
+            oauth = secret["oauth"]
+            async with httpx.AsyncClient(timeout=10) as http:
+                await http.post(oauth["revocation_endpoint"], data={"token": secret.get("refresh_token") or secret.get("access_token"),
+                                                                    "client_id": oauth["client_id"]})
+        except Exception:
+            pass
     with connect() as conn:
         conn.execute("DELETE FROM integrations WHERE id = ? AND owner = ?", (integration_id, owner))
     return True
@@ -315,6 +326,8 @@ async def finish_sign_in(owner: str, state: str, code: str) -> dict:
         pending = _pending.pop(state, None)
     if not pending or pending["owner"] != owner or time.time() - pending["at"] > STATE_TTL_SECONDS:
         raise ValueError("Connexion expirée ou demandée par un autre compte : recommencez depuis « Mes connexions ».")
+    if pending["kind"] == "custom":
+        return await _finish_custom_sign_in(owner, pending, code)
     kind = pending["kind"]
     provider = CATALOG[kind]["provider"]
     oauth = admin_config()["oauth"][provider]
@@ -381,6 +394,14 @@ async def access_token(row) -> str | None:
         secret["refresh_token"] = tokens.get("refresh_token") or secret["refresh_token"]
         secret["expires_at"] = time.time() + int(tokens["expires_in"]) if tokens.get("expires_in") else None
         _set(row["id"], secret=_seal(secret))
+    elif secret.get("oauth") and expires_at is not None and expires_at - time.time() < 120 and secret.get("refresh_token"):
+        oauth = secret["oauth"]
+        tokens = await _oauth_token(oauth, {"grant_type": "refresh_token", "refresh_token": secret["refresh_token"],
+                                            **({"resource": oauth["resource"]} if oauth.get("resource") else {})})
+        secret["access_token"] = tokens["access_token"]
+        secret["refresh_token"] = tokens.get("refresh_token") or secret["refresh_token"]
+        secret["expires_at"] = time.time() + int(tokens["expires_in"]) if tokens.get("expires_in") else None
+        _set(row["id"], secret=_seal(secret))
     return secret.get("access_token")
 
 
@@ -409,16 +430,169 @@ async def check(integration_id: str, owner: str) -> dict:
                                    "read_only": is_read_only(t)} for t in tools]}
 
 
-async def add_custom(owner: str, name: str, url: str, token: str, read_only: bool) -> dict:
+async def add_custom(owner: str, name: str, url: str, token: str, read_only: bool, base_url: str) -> dict:
+    """Add another MCP server: with the access token given, or without any, or through the server's own sign-in
+    (OAuth, as the MCP specification describes it). Returns {"connection": ...} or {"sign_in_url": ...}."""
     if not admin_config()["allow_custom"]:
         raise ValueError("Votre organisation n'autorise pas l'ajout d'autres serveurs MCP.")
+    # People often give the server's bare address: its MCP endpoint is then usually /mcp.
+    candidates = [url] + ([url.rstrip("/") + "/mcp"] if urlparse(url).path in ("", "/") else [])
+    failure = None
+    for candidate in candidates:
+        try:
+            async with MCPClient(candidate, token or None, timeout=20) as client:
+                await client.list_tools()
+            return {"connection": save_connection(owner, "custom", name, candidate, {"access_token": token or None}, read_only)}
+        except MCPAuthError:
+            if token:
+                raise ValueError("Le serveur a refusé ce jeton d'accès.")
+            return {"sign_in_url": await _start_custom_sign_in(owner, name, candidate, read_only, base_url)}
+        except Exception as e:
+            failure = str(e).splitlines()[0][:300] if str(e) else type(e).__name__
+    raise ValueError(f"Connexion au serveur impossible : {failure}")
+
+
+# --- sign-in to other MCP servers (OAuth 2.1 as the MCP specification describes it) -----------------------
+#
+# The server says where to sign in (RFC 9728 protected resource metadata), its authorization server says how
+# (RFC 8414), and this app registers itself: dynamic client registration (RFC 7591) when offered, else its
+# client id is the address of a document describing it (Client ID Metadata Document). PKCE always.
+
+_INIT = {"jsonrpc": "2.0", "id": 1, "method": "initialize",
+         "params": {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "AutoCollab", "version": "1.0"}}}
+
+
+def _well_known(url: str, name: str) -> list[str]:
+    """Where a /.well-known document of this address may be: path-aware first, then at the root."""
+    parts = urlparse(url)
+    origin, path = f"{parts.scheme}://{parts.netloc}", parts.path.rstrip("/")
+    return ([f"{origin}/.well-known/{name}{path}"] if path else []) + [f"{origin}/.well-known/{name}"]
+
+
+async def _json(http, url: str) -> dict | None:
     try:
-        async with MCPClient(url, token or None, timeout=20) as client:
-            await client.list_tools()
-    except Exception as e:
-        message = str(e).splitlines()[0][:300] if str(e) else type(e).__name__
-        raise ValueError(f"Connexion au serveur impossible : {message}")
-    return save_connection(owner, "custom", name, url, {"access_token": token or None}, read_only)
+        r = await http.get(url, headers={"Accept": "application/json"})
+        return r.json() if r.status_code == 200 else None
+    except Exception:
+        return None
+
+
+async def _discover(url: str) -> dict:
+    async with httpx.AsyncClient(timeout=15, follow_redirects=True) as http:
+        challenge = ""
+        try:
+            r = await http.post(url, json=_INIT, headers={"Accept": "application/json, text/event-stream"})
+            challenge = r.headers.get("www-authenticate", "")
+        except Exception:
+            pass
+        hinted = re.search(r'resource_metadata="([^"]+)"', challenge)
+        resource = None
+        for candidate in ([hinted.group(1)] if hinted else []) + _well_known(url, "oauth-protected-resource"):
+            resource = await _json(http, candidate)
+            if resource and resource.get("authorization_servers"):
+                break
+            resource = None
+        if not resource:
+            raise ValueError("Ce serveur demande une connexion sans indiquer comment l'obtenir : il faut un jeton d'accès.")
+        issuer = resource["authorization_servers"][0]
+        server = None
+        for candidate in _well_known(issuer, "oauth-authorization-server") + _well_known(issuer, "openid-configuration"):
+            server = await _json(http, candidate)
+            if server and server.get("authorization_endpoint") and server.get("token_endpoint"):
+                break
+            server = None
+        if not server:
+            raise ValueError("Le serveur de connexion de ce service est introuvable : il faut un jeton d'accès.")
+    hinted_scope = re.search(r'scope="([^"]+)"', challenge)
+    scopes = hinted_scope.group(1).split() if hinted_scope else list(resource.get("scopes_supported") or [])
+    if "offline_access" in (server.get("scopes_supported") or []) and "offline_access" not in scopes:
+        scopes.append("offline_access")  # a refresh token: the connection lasts beyond the first hour
+    return {"resource": resource.get("resource") or url, "server": server, "scopes": scopes}
+
+
+def client_metadata(base_url: str) -> dict:
+    """This app as an OAuth client, for servers that identify clients by the address of this document."""
+    base = (config.PUBLIC_URL or base_url).rstrip("/")
+    return {"client_id": base + CLIENT_METADATA_PATH, "client_name": "AutoCollab", "client_uri": base,
+            "redirect_uris": [redirect_uri(base_url)], "grant_types": ["authorization_code", "refresh_token"],
+            "response_types": ["code"], "token_endpoint_auth_method": "none"}
+
+
+async def _register(server: dict, base_url: str) -> dict:
+    methods = server.get("token_endpoint_auth_methods_supported") or ["client_secret_basic"]
+    if server.get("registration_endpoint"):
+        method = "none" if "none" in methods else "client_secret_post" if "client_secret_post" in methods else "client_secret_basic"
+        body = {"client_name": "AutoCollab", "redirect_uris": [redirect_uri(base_url)], "response_types": ["code"],
+                "grant_types": ["authorization_code", "refresh_token"], "token_endpoint_auth_method": method}
+        async with httpx.AsyncClient(timeout=15) as http:
+            r = await http.post(server["registration_endpoint"], json=body, headers={"Accept": "application/json"})
+        data = r.json() if r.headers.get("content-type", "").startswith("application/json") else {}
+        if r.status_code >= 400 or not data.get("client_id"):
+            raise ValueError(f"Le service a refusé l'enregistrement de l'application : {data.get('error_description') or data.get('error') or r.status_code}")
+        return {"client_id": data["client_id"], "client_secret": data.get("client_secret"),
+                "auth_method": data.get("token_endpoint_auth_method") or method}
+    if server.get("client_id_metadata_document_supported"):
+        document = client_metadata(base_url)
+        if not document["client_id"].startswith("https://"):
+            raise ValueError("Ce service demande une adresse publique en https:// : renseignez PUBLIC_URL dans le fichier .env.")
+        return {"client_id": document["client_id"], "client_secret": None, "auth_method": "none"}
+    raise ValueError("Ce service n'accepte pas l'enregistrement automatique d'une application : il faut un jeton d'accès.")
+
+
+async def _start_custom_sign_in(owner: str, name: str, url: str, read_only: bool, base_url: str) -> str:
+    found = await _discover(url)
+    server = found["server"]
+    client = await _register(server, base_url)
+    state, verifier = secrets.token_urlsafe(24), secrets.token_urlsafe(48)
+    challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).decode().rstrip("=")
+    oauth = {**client, "token_endpoint": server["token_endpoint"], "revocation_endpoint": server.get("revocation_endpoint"),
+             "resource": found["resource"], "issuer": server.get("issuer")}
+    with _pending_lock:
+        now = time.time()
+        for key in [k for k, v in _pending.items() if now - v["at"] > STATE_TTL_SECONDS]:
+            del _pending[key]
+        _pending[state] = {"owner": owner, "kind": "custom", "name": name, "url": url, "read_only": read_only,
+                           "verifier": verifier, "redirect_uri": redirect_uri(base_url), "oauth": oauth, "at": now}
+    params = {"response_type": "code", "client_id": client["client_id"], "redirect_uri": redirect_uri(base_url),
+              "state": state, "code_challenge": challenge, "code_challenge_method": "S256", "resource": found["resource"]}
+    if found["scopes"]:
+        params["scope"] = " ".join(found["scopes"])
+    separator = "&" if "?" in server["authorization_endpoint"] else "?"
+    return server["authorization_endpoint"] + separator + urlencode(params)
+
+
+async def _oauth_token(oauth: dict, data: dict) -> dict:
+    """A token request to another MCP server's authorization server, with the client authentication it registered."""
+    data = {**data, "client_id": oauth["client_id"]}
+    auth_ = None
+    if oauth.get("client_secret") and oauth.get("auth_method") == "client_secret_basic":
+        auth_ = (oauth["client_id"], oauth["client_secret"])
+    elif oauth.get("client_secret"):
+        data["client_secret"] = oauth["client_secret"]
+    async with httpx.AsyncClient(timeout=20) as http:
+        response = await http.post(oauth["token_endpoint"], data=data, auth=auth_, headers={"Accept": "application/json"})
+    try:
+        body = response.json()
+    except ValueError:
+        body = {}
+    if response.status_code >= 400 or not body.get("access_token"):
+        raise ValueError(f"Le service a refusé la connexion : {body.get('error_description') or body.get('error') or response.status_code}")
+    return body
+
+
+async def _finish_custom_sign_in(owner: str, pending: dict, code: str) -> dict:
+    oauth = pending["oauth"]
+    tokens = await _oauth_token(oauth, {"grant_type": "authorization_code", "code": code, "redirect_uri": pending["redirect_uri"],
+                                        "code_verifier": pending["verifier"], "resource": oauth["resource"]})
+    secret = {"access_token": tokens["access_token"], "refresh_token": tokens.get("refresh_token"),
+              "expires_at": time.time() + int(tokens["expires_in"]) if tokens.get("expires_in") else None, "oauth": oauth}
+    connection = save_connection(owner, "custom", pending["name"], pending["url"], secret, pending["read_only"],
+                                 urlparse(oauth.get("issuer") or pending["url"]).netloc)
+    try:
+        await check(connection["id"], owner)  # the tools are there: the tile says so, else shows why
+    except Exception:
+        pass
+    return get(connection["id"], owner)
 
 
 def is_read_only(tool: dict) -> bool:

@@ -26,7 +26,18 @@ def create_llm(overrides: dict | None = None) -> BaseChatModel:
     if provider == "anthropic":
         from langchain_anthropic import ChatAnthropic
 
-        return ChatAnthropic(model=model, api_key=key("anthropic"), temperature=0.2)
+        class Claude(ChatAnthropic):
+            """Recent Claude models (Sonnet 5.5, Opus 5.5, Haiku 5.5) answer 400 to a forced tool choice ("any" or
+            one named tool), which LangChain's with_structured_output, used by browser-use for every step, sends.
+            "auto" with that single tool bound gets the same tool call."""
+
+            def bind_tools(self, tools, *, tool_choice=None, **kwargs):
+                if tool_choice not in (None, "auto", "none") and not (isinstance(tool_choice, dict) and tool_choice.get("type") in ("auto", "none")):
+                    tool_choice = "auto"
+                return super().bind_tools(tools, tool_choice=tool_choice, **kwargs)
+
+        # Recent Claude models also reject `temperature` with a 400, so it is left out.
+        return Claude(model=model, api_key=key("anthropic"))
     if provider == "openai":
         from langchain_openai import ChatOpenAI
 

@@ -91,5 +91,63 @@ class EventStreamTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(events), 1)
 
 
+class GuidedSessionTests(unittest.IsolatedAsyncioTestCase):
+    """A guided session: the agent waits for the next message; no browser or model involved."""
+
+    def setUp(self):
+        self.run = TaskRun.__new__(TaskRun)
+        self.run.guided, self.run.status = True, "en_cours"
+        self.run.waiting_for_user, self.run._messages, self.run._working = False, None, False
+        self.run._stop_requested, self.run._agent, self.run._approval_future = False, None, None
+        self.run._work_task = None
+        self.run.publish = Mock()
+
+    async def test_stop_cuts_a_hanging_step_short(self):
+        self.run._agent = Mock()
+        self.run._agent.state.history = "partial history"
+        hanging = asyncio.Event()  # never set: a model call or page load that does not return
+        work = asyncio.create_task(self.run._work(hanging.wait()))
+        await asyncio.sleep(0)
+        with patch("app.runner.STOP_GRACE_SECONDS", 0.01):
+            await asyncio.to_thread(self.run.request_stop)  # the stop route runs in a request thread
+            self.assertEqual(await asyncio.wait_for(work, 1), "partial history")
+        self.run._agent.stop.assert_called_once()
+        self.assertFalse(self.run._working)
+
+    async def test_message_is_the_next_instruction(self):
+        waiting = asyncio.create_task(self.run._next_message())
+        await asyncio.sleep(0)
+        self.assertTrue(self.run.waiting_for_user)
+        self.assertTrue(self.run.send_message("Ouvre le menu Achats", "camille"))
+        self.assertEqual(await waiting, "Ouvre le menu Achats")
+        self.assertFalse(self.run.waiting_for_user)
+
+    async def test_message_while_working_goes_to_the_agent(self):
+        self.run._working, self.run._agent = True, Mock()
+        self.assertTrue(self.run.send_message("Plutôt le mois de septembre", "camille"))
+        self.run._agent.add_new_task.assert_called_once_with("Plutôt le mois de septembre")
+
+    async def test_finish_and_stop_end_the_wait(self):
+        self.assertFalse(self.run.finish_session())  # not waiting yet
+        waiting = asyncio.create_task(self.run._next_message())
+        await asyncio.sleep(0)
+        self.assertTrue(self.run.finish_session())
+        self.assertIsNone(await waiting)
+        waiting = asyncio.create_task(self.run._next_message())
+        await asyncio.sleep(0)
+        self.run.request_stop()
+        self.assertIsNone(await waiting)
+
+    async def test_idle_session_ends(self):
+        with patch("app.runner.config.GUIDED_IDLE_MINUTES", 0.001):
+            self.assertIsNone(await self.run._next_message())
+
+    def test_only_a_guided_active_run_takes_messages(self):
+        self.run.guided = False
+        self.assertFalse(self.run.send_message("Bonjour", "camille"))
+        self.run.guided, self.run.status = True, "termine"
+        self.assertFalse(self.run.send_message("Bonjour", "camille"))
+
+
 if __name__ == "__main__":
     unittest.main()

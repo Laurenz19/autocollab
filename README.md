@@ -433,11 +433,38 @@ d'attente ou la planification.
 
 - **L'organisation de l'installation** (la première, enregistrée dans `app_settings`) est celle de la
   plateforme : seuls ses administrateurs règlent ce que toutes partagent (fournisseur et clés d'IA,
-  applications proposées, abonnement). Les administrateurs d'un client gèrent leurs comptes, leur
-  nom, leur double authentification et leur contexte.
+  applications proposées) et gèrent les clients et les formules. Elle n'a ni formule ni limite. Les
+  administrateurs d'un client gèrent leurs comptes, leur nom, leur double authentification, leur
+  contexte et **leur propre abonnement** (Administration › Abonnement, paiement Stripe).
 - Les **identifiants et adresses e-mail sont uniques sur tout le serveur** ; on se connecte avec l'un
   ou l'autre.
-- Nouveau client, en attendant le back-office :
+
+### Back-office (Administration › Clients et Formules)
+
+Réservé aux administrateurs de la plateforme :
+
+- **Clients** : chaque client avec sa formule, ses crédits, ses comptes, et pour le mois en cours son
+  revenu, le coût de l'IA et la marge (hors taxes, en dollars). Créer un client et son premier
+  administrateur (mot de passe provisoire), lui **donner une formule à la main** (devis Entreprise,
+  essai ; elle remplace l'abonnement Stripe tant qu'elle est en place) avec le prix convenu, **offrir
+  des crédits**, le **suspendre** (comptes déconnectés, agents et planifications arrêtés, données
+  conservées) ou le réactiver. Chaque opération est notée dans le journal du client. Un client sans
+  compte ni historique peut être supprimé ; les autres se suspendent.
+- **Formules** : crédits, limites et prix de chaque formule et du pack de crédits, et les identifiants
+  des prix Stripe (`price_…`) correspondants. Ils remplacent les valeurs par défaut du code et les
+  `STRIPE_PRICE_*` du `.env`.
+
+Le back-office est aussi dans le **serveur MCP** (outils `platform_*` : lister et consulter les clients,
+en créer, changer leur formule, offrir des crédits, suspendre, modifier les formules et le pack). Ces
+outils n'apparaissent qu'aux administrateurs de la plateforme, jamais aux clients ni à l'assistant
+intégré ; chaque opération est notée au journal du client avec la mention « (MCP) ».
+
+Chaque client a son propre abonnement Stripe (même compte Stripe pour tous) : le webhook
+`/api/stripe/webhook` retrouve le client grâce aux métadonnées posées sur le paiement, sinon grâce au
+client Stripe. Sans `STRIPE_SECRET_KEY`, rien n'est limité ; formules manuelles, crédits offerts et
+suspensions sont tout de même enregistrés.
+
+En ligne de commande, sans passer par l'interface :
 
 ```powershell
 .venv\Scripts\python.exe manage_users.py organisation "Cabinet Martin"        # affiche son identifiant

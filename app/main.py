@@ -15,12 +15,12 @@ from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Resp
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import (agents, apidoc, assistant, auth, billing, browsers, chains, config, connections, context, db, files, guide, integrations, mcp,
+from . import (agents, apidoc, assistant, auth, backoffice, billing, browsers, chains, config, connections, context, db, files, guide, integrations, mcp,
                netguard, oauth, pricing, schedule, settings, sites, templates, tokens, twofa, usage)
 from html import escape
 from .llm import create_llm
 from .auth import current_admin, current_user
-from .runner import TaskManager
+from .runner import ACTIVE_STATUSES, TaskManager
 
 STATIC_DIR = config.ROOT / "static"
 
@@ -122,6 +122,7 @@ class NewTask(BaseModel):
     max_steps: int | None = Field(default=None, ge=1, le=200)
     attachments: list[str] = Field(default=[], max_length=20)  # ids returned by POST /api/uploads
     rerun_of: str | None = None  # relaunch: reuse the files given to that run
+    guided: bool = False  # guided session: the agent waits for the next message instead of ending
 
 
 class AgentIn(BaseModel):
@@ -346,6 +347,8 @@ async def login(body: Login, request: Request, response: Response):
         await asyncio.sleep(1)
         raise HTTPException(401, "Identifiant ou mot de passe incorrect.")
     auth.clear_failures(key)
+    if billing.suspended(auth.org_of(username)):
+        raise HTTPException(403, billing.SUSPENDED)
     if twofa.enabled(username):
         # Password right: now the code from the authenticator app (or a recovery code). No session yet.
         return {"two_factor": True, "ticket": twofa.make_ticket(username)}
@@ -373,6 +376,8 @@ async def login_second_factor(body: SecondFactor, request: Request, response: Re
         await asyncio.sleep(1)
         raise HTTPException(401, "Code incorrect ou déjà utilisé.")
     auth.clear_failures(key)
+    if billing.suspended(auth.org_of(username)):
+        raise HTTPException(403, billing.SUSPENDED)
     auth.set_session_cookie(response, username)
     return {"username": username, "name": auth.display_name(username), "must_change_password": auth.must_change_password(username),
             "recovery_used": used == "recovery", "recovery_left": twofa.status(username)["recovery_left"]}
@@ -636,29 +641,30 @@ class Checkout(BaseModel):
 
 
 @app.get("/api/admin/billing")
-def admin_billing(admin: str = Depends(current_platform_admin)):
-    return billing.status()
+def admin_billing(admin: str = Depends(current_admin)):
+    return billing.status(auth.org_of(admin))
 
 
 @app.post("/api/admin/billing/checkout")
-async def admin_billing_checkout(body: Checkout, request: Request, admin: str = Depends(current_platform_admin)):
+async def admin_billing_checkout(body: Checkout, request: Request, admin: str = Depends(current_admin)):
     """Address of the Stripe page where the administrator pays a plan or a credit pack."""
     if not billing.enabled():
         raise HTTPException(400, "La facturation n'est pas activée sur cette installation.")
     try:
-        url = await asyncio.to_thread(billing.checkout, config.PUBLIC_URL or _base_url(request), body.plan, body.period, body.pack)
+        url = await asyncio.to_thread(billing.checkout, config.PUBLIC_URL or _base_url(request), body.plan, body.period, body.pack,
+                                    auth.org_of(admin))
     except RuntimeError as e:
         raise HTTPException(400, str(e))
     return {"url": url}
 
 
 @app.post("/api/admin/billing/portal")
-async def admin_billing_portal(request: Request, admin: str = Depends(current_platform_admin)):
+async def admin_billing_portal(request: Request, admin: str = Depends(current_admin)):
     """Address of Stripe's customer portal (card, invoices, plan change, cancellation)."""
     if not billing.enabled():
         raise HTTPException(400, "La facturation n'est pas activée sur cette installation.")
     try:
-        url = await asyncio.to_thread(billing.portal, config.PUBLIC_URL or _base_url(request))
+        url = await asyncio.to_thread(billing.portal, config.PUBLIC_URL or _base_url(request), auth.org_of(admin))
     except RuntimeError as e:
         raise HTTPException(400, str(e))
     return {"url": url}
@@ -678,6 +684,136 @@ async def stripe_webhook(request: Request):
     except RuntimeError as e:  # Stripe could not be reached: answering an error makes Stripe send it again
         raise HTTPException(502, str(e))
     return {"received": True}
+
+
+# --- back office: the platform's clients, their plans and the catalog (platform administrators only) ---
+
+
+class NewClient(BaseModel):
+    name: str = Field(min_length=1, max_length=backoffice.NAME_MAX)
+    username: str = Field(max_length=40)
+    admin_name: str = Field("", max_length=100)
+    email: str = Field("", max_length=254)
+    password: str = Field(max_length=200)
+    manual_plan: str | None = None
+    manual_price_usd: float | None = Field(None, ge=0, le=1_000_000)
+
+
+class ClientChanges(BaseModel):
+    name: str | None = Field(None, max_length=backoffice.NAME_MAX)
+    manual_plan: str | None = None             # sent as null: back to the Stripe plan (or Gratuit)
+    manual_price_usd: float | None = Field(None, ge=0, le=1_000_000)
+    suspended: bool | None = None
+    reason: str = Field("", max_length=300)
+    note: str | None = Field(None, max_length=2000)
+
+
+class CreditGrant(BaseModel):
+    credits: float = Field(ge=-1_000_000, le=1_000_000)
+    note: str = Field("", max_length=300)
+
+
+class PlanEdit(BaseModel):
+    label: str = Field(min_length=1, max_length=40)
+    credits: int = Field(ge=0, le=100_000_000)
+    parallel: int | None = Field(None, ge=1, le=1000)
+    agents: int | None = Field(None, ge=0, le=100_000)
+    schedules: int | None = Field(None, ge=0, le=100_000)
+    users: int | None = Field(None, ge=1, le=100_000)
+    usd: dict[Literal["monthly", "yearly"], float] = {}
+    stripe: dict[Literal["monthly", "yearly"], str] = {}
+
+
+class PackEdit(BaseModel):
+    credits: int = Field(ge=1, le=100_000_000)
+    usd: float = Field(ge=0, le=1_000_000)
+    stripe: str = Field("", max_length=100)
+
+
+class CatalogEdit(BaseModel):
+    plans: dict[str, PlanEdit]
+    pack: PackEdit
+
+
+def _client_or_404(org: str) -> None:
+    if not backoffice.exists(org):
+        raise HTTPException(404, "Client introuvable.")
+
+
+@app.get("/api/platform/clients")
+def platform_clients(admin: str = Depends(current_platform_admin)):
+    return backoffice.clients()
+
+
+@app.post("/api/platform/clients", status_code=201)
+def platform_create_client(body: NewClient, admin: str = Depends(current_platform_admin)):
+    try:
+        return backoffice.create_client(body.name, body.username, body.admin_name, body.email, body.password, admin,
+                                        body.manual_plan, body.manual_price_usd)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.get("/api/platform/clients/{org}")
+def platform_client(org: str, admin: str = Depends(current_platform_admin)):
+    _client_or_404(org)
+    return backoffice.client(org)
+
+
+@app.patch("/api/platform/clients/{org}")
+def platform_update_client(org: str, body: ClientChanges, admin: str = Depends(current_platform_admin)):
+    _client_or_404(org)
+    sent = body.model_fields_set
+    try:
+        if body.name is not None:
+            backoffice.rename(org, body.name)
+        billing.manage(org, admin,
+                       manual_plan=body.manual_plan if "manual_plan" in sent else ...,
+                       manual_price_usd=body.manual_price_usd if "manual_price_usd" in sent else ...,
+                       suspend=body.suspended, reason=body.reason, note=body.note)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return backoffice.client(org)
+
+
+@app.delete("/api/platform/clients/{org}")
+def platform_delete_client(org: str, admin: str = Depends(current_platform_admin)):
+    """Only an empty client (no account, no history): the others are suspended, so nothing is lost."""
+    _client_or_404(org)
+    try:
+        backoffice.delete_empty(org)
+    except ValueError as e:
+        raise HTTPException(409, str(e))
+    return {"ok": True}
+
+
+@app.post("/api/platform/clients/{org}/credits")
+def platform_grant_credits(org: str, body: CreditGrant, admin: str = Depends(current_platform_admin)):
+    _client_or_404(org)
+    if not body.credits:
+        raise HTTPException(400, "Indiquez un nombre de crédits.")
+    billing.grant_credits(org, body.credits, admin, body.note)
+    return backoffice.client(org)
+
+
+@app.get("/api/platform/catalog")
+def platform_catalog(admin: str = Depends(current_platform_admin)):
+    return {**billing.catalog(), "defaults": {"plans": billing.DEFAULT_PLANS, "pack": billing.DEFAULT_PACK},
+            "stripe_enabled": billing.enabled()}
+
+
+@app.put("/api/platform/catalog")
+def platform_save_catalog(body: CatalogEdit, admin: str = Depends(current_platform_admin)):
+    if set(body.plans) != set(billing.DEFAULT_PLANS):
+        raise HTTPException(400, "Les formules ne peuvent être ni ajoutées ni retirées : modifiez celles qui existent.")
+    for key, plan in body.plans.items():
+        for price in plan.stripe.values():
+            if price.strip() and not price.strip().startswith("price_"):
+                raise HTTPException(400, f"{plan.label} : un identifiant de prix Stripe commence par « price_ ».")
+    if body.pack.stripe.strip() and not body.pack.stripe.strip().startswith("price_"):
+        raise HTTPException(400, "Pack de crédits : un identifiant de prix Stripe commence par « price_ ».")
+    saved = billing.save_catalog({k: v.model_dump() for k, v in body.plans.items()}, body.pack.model_dump())
+    return {**saved, "defaults": {"plans": billing.DEFAULT_PLANS, "pack": billing.DEFAULT_PACK}, "stripe_enabled": billing.enabled()}
 
 
 @app.put("/api/admin/organisation")
@@ -759,6 +895,7 @@ def get_config(user: str = Depends(current_user)):
         "headless": config.BROWSER_HEADLESS,
         "max_steps": config.AGENT_MAX_STEPS,
         "approval_timeout": config.APPROVAL_TIMEOUT_MINUTES,
+        "guided_idle_minutes": config.GUIDED_IDLE_MINUTES,
         "browser": browsers.browser_label(),
     }
 
@@ -1084,11 +1221,18 @@ def _mcp_url(url: str) -> str:
 
 
 @app.post("/api/integrations/custom", status_code=201)
-async def add_custom_integration(body: CustomServerIn, user: str = Depends(current_user)):
+async def add_custom_integration(body: CustomServerIn, request: Request, user: str = Depends(current_user)):
     try:
-        return await integrations.add_custom(user, body.name.strip(), _mcp_url(body.url), body.token.strip(), body.read_only)
+        return await integrations.add_custom(user, body.name.strip(), _mcp_url(body.url), body.token.strip(), body.read_only,
+                                             _base_url(request))
     except ValueError as e:
         raise HTTPException(400, str(e))
+
+
+@app.get(integrations.CLIENT_METADATA_PATH, include_in_schema=False)
+def integration_client_metadata(request: Request):
+    """Public on purpose: how an MCP server's sign-in service identifies this app (OAuth client id = this address)."""
+    return integrations.client_metadata(_base_url(request))
 
 
 @app.patch("/api/integrations/{integration_id}")
@@ -1227,6 +1371,8 @@ async def mcp_endpoint(request: Request):
         metadata = oauth.base_url(str(request.base_url)) + "/.well-known/oauth-protected-resource"
         return JSONResponse({"jsonrpc": "2.0", "id": None, "error": {"code": -32001, "message": "Clé d'API ou jeton manquant ou invalide"}},
                             status_code=401, headers={"WWW-Authenticate": f'Bearer realm="autocollab", resource_metadata="{metadata}"'})
+    if billing.suspended(auth.org_of(user)):
+        return JSONResponse(mcp._error(None, -32001, billing.SUSPENDED), status_code=403)
     if auth.must_change_password(user):
         return JSONResponse(mcp._error(None, -32001, "Choisissez d'abord votre mot de passe dans l'application"), status_code=403)
     if twofa.must_enroll(user):
@@ -1654,10 +1800,32 @@ async def create_task(body: NewTask, user: str = Depends(current_user)):
             task=body.task.strip(),
             headless=config.BROWSER_HEADLESS if body.headless is None else body.headless,
             max_steps=body.max_steps or config.AGENT_MAX_STEPS,
-            options={"attachments": attachments},
+            options={"attachments": attachments, "guided": body.guided},
         )
     except RuntimeError as e:
         raise HTTPException(409, str(e))
+    return run.summary()
+
+
+class SessionMessage(BaseModel):
+    text: str = Field(min_length=1, max_length=agents.MAX_INSTRUCTIONS)
+
+
+@app.post("/api/tasks/{task_id}/messages")
+def send_session_message(task_id: str, body: SessionMessage, user: str = Depends(current_user)):
+    """Guided session: the next instruction, or a correction while the agent works."""
+    run = _get_run(task_id, user)
+    if not run.send_message(body.text.strip(), user):
+        raise HTTPException(409, "Cette exécution n'attend pas de message : la session est terminée ou ce n'est pas une session guidée.")
+    return run.summary()
+
+
+@app.post("/api/tasks/{task_id}/finish")
+def finish_session(task_id: str, user: str = Depends(current_user)):
+    """Guided session: end it while the agent waits; the run ends with its last answer."""
+    run = _get_run(task_id, user)
+    if not run.finish_session():
+        raise HTTPException(409, "La session ne peut être terminée que lorsque l'agent attend votre message (sinon, arrêtez-la).")
     return run.summary()
 
 
@@ -1729,6 +1897,23 @@ def live_screenshot(task_id: str, user: str = Depends(current_user)):
         "X-Page-Title": quote(run.live_title, safe=""),
     }
     return Response(run.live_screenshot, media_type="image/png", headers=headers)
+
+
+@app.get("/api/tasks/{task_id}/live.mjpg")
+async def live_stream(task_id: str, request: Request, user: str = Depends(current_user)):
+    """The agent's screen as a video an <img> plays as is (MJPEG): a frame each time the page changes."""
+    run = _get_run(task_id, user, write=False)
+    if run.status not in ACTIVE_STATUSES:
+        return Response(status_code=204)
+
+    async def frames():
+        async for jpeg in run.live_frames():
+            if await request.is_disconnected():
+                break
+            yield b"--frame\r\nContent-Type: image/jpeg\r\nContent-Length: " + str(len(jpeg)).encode() + b"\r\n\r\n" + jpeg + b"\r\n"
+
+    return StreamingResponse(frames(), media_type="multipart/x-mixed-replace; boundary=frame",
+                             headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"})
 
 
 @app.get("/api/tasks/{task_id}/context")

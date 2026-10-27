@@ -13,7 +13,7 @@ import uuid
 from datetime import date, datetime
 from urllib.parse import urlparse
 
-from . import billing, files
+from . import auth, billing, files
 from .db import connect
 
 MOIS = ["janvier", "février", "mars", "avril", "mai", "juin",
@@ -157,9 +157,9 @@ def create(
     schedule_enabled: bool = False,
     via: str = "app",
 ) -> dict:
-    billing.check_new_agent()
+    billing.check_new_agent(auth.org_of(owner))
     if schedule and schedule_enabled:
-        billing.check_new_schedule()
+        billing.check_new_schedule(auth.org_of(owner))
     now = _now()
     row = {
         "id": uuid.uuid4().hex[:12], "owner": owner, "name": name, "instructions": instructions,
@@ -198,7 +198,7 @@ def update(agent_id: str, owner: str, changes: dict, via: str = "app") -> dict |
         "updated_via": via,
     }
     if sets["schedule_enabled"] and not current["schedule_enabled"]:
-        billing.check_new_schedule()
+        billing.check_new_schedule(auth.org_of(owner))
     # Only move the next run when the schedule itself or its on/off switch changed.
     if merged["schedule"] != current["schedule"] or bool(sets["schedule_enabled"]) != current["schedule_enabled"]:
         sets["next_run_at"] = _next_run_at(merged["schedule"], bool(sets["schedule_enabled"]))
